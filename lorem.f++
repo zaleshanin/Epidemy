@@ -1,0 +1,228 @@
+loremInit = function() {
+    /*	//временно выгружаем бумажки в некрономикон
+        var book;
+        book = get_obj_carry_vnum(732);
+        if(book == null)
+            throw 'LoremIpsum: necronomicon not found';
+    */
+    if (.tmp.epidemy == null)
+.tmp.epidemy = .Map();
+
+    //if (.tmp.epidemy.pieces == null)
+//.tmp.epidemy.pieces = .List();
+
+    if (.tmp.epidemy.warlocks == null)
+.tmp.epidemy.warlocks = .List();
+
+    //this = .tmp.epidemy;
+
+.tmp.epidemy.setPieceNames = function(piece, spell) {
+        var extradesc;
+        this = piece;
+
+        name = 'piece paper клочок бумаги бумага '+spell;
+        short_descr = "клочок||а|у||ом|е бумаги с надписью {x'{D"+spell+"{x'";
+        description = 'Клочок бумаги (piece) с магическими символами лежит здесь.\n';
+
+        extradesc = "Клочок бумаги с надписью {x'{D"+spell+"{x'.";
+        if(min==0 && max==4) {
+            extradesc = extradesc
+                +" Похоже это заклинание часть какого-то ритуала.\n"
+                +"Возможно тебе стоит поискать книгу, частью страницы которой "
+                +"является этот клочок.";
+        } else {
+            extradesc = extradesc
+                +" Похоже этот кусочек бумаги является частью \n"
+                +"чего-то большего. Найти бы только чего.";
+        }
+
+        set_extra_descr(name, extradesc);
+    };
+
+    //находим количество злых неагрессивных мобов-магов/некров
+.tmp.epidemy.get_evil_mage = function(count) {
+        var i, r;
+        var l, result, areas;
+        l = .List(); result = .List(); areas = .List();
+
+        for (i = .char_list; i != null; i = i.next) {
+            if (i.pc != null)
+                continue;
+            //если у моба уже есть бумажка
+            if(i.epidemy!=null)
+                continue;
+            //пусть ходят по разным зонам
+            if(areas.has(i.in_room.areaname))
+                continue;
+            //проверяем на алигн, уровень, количество
+            if(i.alignment>-10 || i.level < 30
+                || i.pIndexData.instances.size() > 1
+                || !(i.act&.tables.act_flags.mage || i.act&.tables.act_flags.necromancer))
+            continue;
+            //проверяем зону на квестовость и моба на агрессивность
+            if(i.in_room.area.area_flag&.tables.area_flags.noquest
+            || i.in_room.area.area_flag&.tables.area_flags.hidden
+            || i.affected_by&.tables.affect_flags.bloodthirst
+            || i.act&.tables.act_flags.aggressive)
+            continue;
+            //убирам практиков
+            if(i.act&.tables.act_flags.practice || i.hasDestiny)
+            continue;
+
+            l.push_back(i.pIndexData.vnum);
+            areas.add(i.in_room.areaname);
+        }
+        l.sort();
+        l.unique();
+
+        for( i=0 ; i<count ; i=i+1 ) {
+            r = l.random();
+            result.add(.get_mob_index(r).instances.back());
+            l.sub(r);
+        }
+
+        return result;
+    };
+
+    //сгенерировать бумажки с надписями Lorem ipsum dolor sit amet
+.tmp.epidemy.loadLoremPieces = function(book) {
+        try {
+            var i,wl,wk;
+            var loremArray;
+            var onePiece;
+            if(book.epidemy==null)
+                book.epidemy=.Map();
+
+
+            loremArray = .Array();
+            loremArray[0] = 'lorem';
+            loremArray[1] = 'ipsum';
+            loremArray[2] = 'dolor';
+            loremArray[3] = 'sit';
+            loremArray[4] = 'amet';
+
+            wl = .tmp.epidemy.get_evil_mage(loremArray.size());
+
+            for(i=0 ; i<loremArray.size() ; i=i+1){
+                wk = wl.back();
+                wl.pop_back();
+
+                //test
+            //.get_char_world('miyamoto').ptc(''+i+loremArray[i]+'->'+wk.name+'('+wk.in_room.vnum+')'+'\n');
+
+                //готовим из "холста" клочок заклинания
+                onePiece = LoremPiece(i,i,loremArray[i], book.epidemy.ownerName);
+
+                //готовим из найденого мага выдавателя бумажки
+                wk = .tmp.epidemy.Warlock(wk);
+
+                .tmp.epidemy.piece_to_warlock(onePiece, wk);
+
+            }
+        } catch (e) {
+        .tmp.epidemy.me.ptc("lorem.loadLoremPieces: " + e);
+        }
+    };
+
+.tmp.epidemy.piece_to_warlock = function(piece, wk) {
+        piece.obj_to_char(wk);
+
+        //в список чьи бумажки у моба
+        wk.epidemy.pieces[piece.epidemy.ownerName] = piece;
+    };
+/*.tmp.epidemy.piece_to_new_warlock = function(piece) {
+
+
+        wk = .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back());
+    .tmp.epidemy.piece_to_warlock(piece,wk);
+    };*/
+
+.tmp.epidemy.LoremPiece = function(min, max, spell, name){
+        var piece;
+
+        piece = .tmp.epidemy.piece.create();
+
+        piece.epidemy = .Map();
+        piece.epidemy.spellIndexMin = min;
+        piece.epidemy.spellIndexMax = max;
+        piece.epidemy.spellName = spell;
+        piece.epidemy.ownerName = name;
+
+
+    .tmp.epidemy.setPieceNames(piece, spell);
+
+        piece.onUse = function(ch,str){
+            if(ch.clan.name!='invader')
+                return false;
+
+            var obj, newPiece;
+
+            obj = ch.get_obj_carry(str);
+            if(obj==null || obj.epidemy.spellName==null)
+                return false;
+
+            //переименовываем this(больший номер), уничтожаем obj (меньший)
+            if(obj.epidemy.spellIndexMax+1 == epidemy.spellIndexMin) {
+
+
+                ch.act('Ты прикладываешь один клочок бумаги к другому...\nПо разрыву пробегает фиолетовый огонь, и клочки соединяются.');
+                ch.recho('%1$^C1 соединить два клочка бумаги, между ними вспыхивает фиолетовое пламя и они соединяются.',ch);
+
+                //создаём новый кусок
+                .tmp.epidemy.LoremPiece(obj.epidemy.spellIndexMin,epidemy.spellIndexMax,(obj.epidemy.spellName+' '+epidemy.spellName),epidemy.ownerName).obj_to_char(ch);
+                //убираем старые
+                obj.epidemy = null;
+                obj.extract(true);
+                this.epidemy = null;
+                this.extract(true);
+
+            } else {
+                ch.act('Похоже этот клочок сюда не подходит, или может попробовать присоединить с другой стороны?.');
+                ch.recho('%1$^C1 безуспешно пытается соединить два клочка бумаги.',ch);
+            }
+            return true;
+
+        };
+
+        /*onExtract(count) - предмет разрушается. count == false означает, что
+        разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
+        чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
+        piece.onExtract = function (count) {
+            if(count && epidemy!=null) {
+                .tmp.epidemy.piece_to_warlock(
+                    .tmp.epidemy.LoremPiece(epidemy.spellIndexMin,epidemy.spellIndexMax,epidemy.spellName, epidemy.ownerName),
+                    .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back())
+                );
+            }
+        };
+
+        //onQuit(ch,count) - ch покидает мир. Если разрушаем предмет, надо вернуть true.
+        // count == false при обычном quit, и true при делите.
+        piece.onQuit = function (ch,count) {
+            if(epidemy.ownerName!=ch.name) {
+                this.carried_by.act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', this);
+                .tmp.epidemy.piece_to_warlock(this,.tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back()));
+            }
+        };
+
+
+        /*onPut(ch,obj,cont) - ch кладет obj в контейнер cont.
+        Триггер вызывается для всех троих.*/
+        /*piece.onPut = function(book, ch, obj, cont) {
+            //test
+            .tmp.epidemy.me.ptc('');
+        };*/
+
+        //заносим в список, чтоб легче было чистить
+        //.tmp.epidemy.pieces.push_back(piece); //не заносим, проверяем по instances
+
+        return piece;
+    };
+
+.tmp.epidemy.piece = .get_obj_index(9607);
+
+    //loadLoremPieces(book);
+
+
+    //кто-то должен подсказывать где искать мобов с бумажками (или нет?)
+}

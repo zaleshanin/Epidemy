@@ -1,0 +1,75 @@
+warlockInit = function() {
+    if(.tmp.epidemy==null)
+        .tmp.epidemy = .Map();
+    if(.tmp.epidemy.warlocks==null)
+        .tmp.epidemy.warlocks = .List();
+
+    //this = .tmp.epidemy;
+
+.tmp.epidemy.clearWarlock = function(mage) {
+        mage.postGreet = null;
+        mage.onDeath = null;
+        mage.epidemy = null;
+        //выпиливаемся из списка
+        //mage.epidemy.pieces.keys.forEach(function(wk){
+        .tmp.epidemy.warlocks.sub(mage);
+        //},mage);
+
+    };
+
+.tmp.epidemy.Warlock = function(mage) {
+        if(mage.epidemy==null) {
+            mage.epidemy=.Map();
+            mage.epidemy.pieces = .Array(); //[char]=piece
+        }
+        //заносим в списочек, чтоб можно было почистить
+        .tmp.epidemy.warlocks.push_back(mage);
+
+        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
+        mage.onDeath = function(ch) {
+        .tmp.epidemy.clearWarlock(this);
+            return false;
+        };
+
+        mage.postGreet = function(ch) {
+            try {
+                var piece;
+
+                //если некрономикон еще не получен
+                if(.tmp.epidemy.books[ch.name]==null) //|| ch.clan.name!='invader'
+                    return;
+
+                piece = epidemy.pieces[ch.name];
+                //почему-то кусок не у меня
+                if(piece.carried_by!=this) {
+                    //можно спалить кусок и наказать вора
+                    //можно сказать где кусок сейчас
+                    //пока просто вернём кусок на место
+                    piece.carried_by.act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', piece);
+                    piece.obj_to_char(this);
+                }
+
+            .scheduler.sleep(2);
+                if(ch.in_room==in_room)
+                    ch.act("%1$^C1 говорит тебе '{G%2$^C1, у меня для тебя кое что есть!{x'",this,ch);
+
+            .scheduler.sleep(4);
+                if(ch.in_room==in_room) {
+                    piece.obj_to_char(ch);
+                    ch.act("%1$^C1 с осторожностью передаёт тебе тебе %2$O4.", this, piece);
+                    epidemy.pieces[ch.name]=null;
+                    if(epidemy.pieces.keys.size()==0)
+                        .tmp.epidemy.clearWarlock(this);
+                }
+
+
+            } catch (e) {
+            .get_char_world('miyamoto').ptc("warlock.postGreet: " + e);
+            }
+
+        };
+
+        return mage;
+    };
+
+}

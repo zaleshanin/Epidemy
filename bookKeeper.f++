@@ -1,0 +1,52 @@
+bookKeeperInit = function() {
+    if(.tmp.epidemy==null)
+        .tmp.epidemy = .Map();
+    if(.tmp.epidemy.books==null)
+        .tmp.epidemy.books=.Array();
+
+    //this = .tmp.epidemy;
+
+    .tmp.epidemy.BookKeeper = function(ndx) {
+        this = ndx;
+
+        postGreet = function(mob, ch) {
+            var book;
+
+            if(.tmp.epidemy.books[ch.name]!=null || ch.clan.name!='invader')
+                return;
+
+        .scheduler.sleep(2);
+            if(ch.in_room==mob.in_room)
+                ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи добыли древний гримуар самого Абдула аль-Хазреда.{x'",mob,ch);
+
+        .scheduler.sleep(4);
+            if(ch.in_room==mob.in_room)
+                ch.act("%1$^C1 говорит тебе '{GЯ подготовил%1$Gо||а для тебя копию. Думаю, ты разберешься что с ним делать.{x'",mob,ch);
+
+        .scheduler.sleep(4);
+            if(ch.in_room==mob.in_room) {
+                book = .tmp.epidemy.Necronomicon(ch);
+
+                book.obj_to_char(ch);
+                ch.act("%1$^C1 даёт тебе %2$O4.", mob, book);
+
+                //выданные на руки книжки заносим в картотеку, чтоб по две не брали.
+                .tmp.epidemy.books[ch.name] = book;
+
+                if(.tmp.epidemy.loadLoremPieces!=null) {
+                    //генерим 5 колочков заклинания
+                    .tmp.epidemy.loadLoremPieces(book);
+                } else {
+                    throw('Bookkeeper: loadLoremPieces not found!');
+                }
+            }
+
+        };
+    };
+
+    .tmp.epidemy.bookkeeper = .get_mob_index(761);
+
+    .tmp.epidemy.BookKeeper(.tmp.epidemy.bookkeeper);
+
+
+}

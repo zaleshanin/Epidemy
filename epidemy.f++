@@ -1,0 +1,282 @@
+epidemyInit = function() {
+    if (.tmp.epidemy == null)
+        .tmp.epidemy = .Map();
+
+    this = .tmp.epidemy;
+
+    //список зараженных
+    infected = .List();
+
+    //массивы социалов для зараженных
+    emoteArray = .Array();
+    emoteArray[0] = 'bounce self';  emoteArray[1] = 'burp self';
+    emoteArray[2] = 'burp';         emoteArray[3] = 'confused';
+    emoteArray[4] = 'conspire';     emoteArray[5] = 'cough';
+    emoteArray[6] = 'fart';         emoteArray[7] = 'glare';
+    emoteArray[8] = 'grimace';      emoteArray[9] = 'growl';
+    emoteArray[10] = 'lick self';   emoteArray[11] = 'moan';
+    emoteArray[12] = 'nail self';   emoteArray[13] = 'puke';
+    emoteArray[14] = 'stagger';     emoteArray[15] = 'slobber';
+    emoteArray[16] = 'twitch';      emoteArray[17] = 'wince';
+    emoteArray[18] = 'fume';        emoteArray[19] = 'flinch';
+    emoteArray[20] = 'rub self';
+
+    emoteTargArray = .Array();
+    emoteTargArray[0] = "puke";
+    emoteTargArray[1] = "stagger";
+    emoteTargArray[2] = "growl";
+
+    roseInit = function(rose) {
+        rose.short_descr = '{D' + rose.short_descr + '{x';
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.hum);
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.glow);
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.dark);
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.evil);
+
+        rose.onUse = function(ch, str) {
+            var target;
+
+            target = ch.get_char_room(str);
+
+            if(target == null)
+                ch.act("Этого нет здесь.");
+
+            if(!target.is_npc()) {
+                if(ch==target) {
+                    ch.act("Ты размахиваешь %1$O5 у себя над головой, но ничего не происходит!", this);
+                    ch.recho("%1$^C1 с непонятной целью машет %2$O5 у себя над головой!", ch, this);
+                } else {
+                    ch.act("Ты взмахиваешь %2$O5 в сторону %1$C4, но ничего не происходит!", target, this);
+                    target.act("%1$^C1 с непонятной целью машет в твою сторону %2$O5!", ch, this);
+                    ch.rvecho(target, "%1$^C1 с непонятной целью машет %3$O5 в сторону %2$C4!", ch, target, this);
+                }
+            } else if(target.size > 1) {
+                ch.act("Призываемые тобой {Dтёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо поменьше!", target);
+                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
+            } else if(target.pIndexData.spec_fun != 'spec_fido') {
+                ch.act("{DТёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо покровожаднее!", target);
+                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
+            } else {
+                ch.act("Ты взмахиваешь %2$O5, и она, преврашившись в {Dоблако чёрного дыма{x, пронимает внутрь %1$C2!", target, this);
+                ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, this);
+                this.extract(true);
+                //а вот тут заражаем!
+                target.onSpec = function(){.tmp.epidemy.infect(this);};
+            }
+            return true;
+        };
+    };
+
+    infect = function(mob) {
+        //всё равно заболеет, заносим в список
+        mob.epidemy = .Map();
+    .tmp.epidemy.infected.push_back(mob);
+
+        mob.onSpec = function(){
+            if(.chance(1))
+        .tmp.epidemy.transform(this);
+        else if(.chance(5)) {
+                act("Ты корчишься в мучениях сопротивляясь {Dтёмным силам{x внутри себя!");
+                recho("%1$^C1 дрожит и корчится сопротивляясь {Dтёмным силам{x внутри себя!", this);
+            }
+        };
+    };
+
+    transform = function(mob) {
+        //тёмные силы победили! УРА!
+
+        //выворачиваем зверюгу наизнанку если она не пет
+        //if(mob.leader==null)
+        //хотя почему нет? выворачиваем и петов...
+    .tmp.epidemy.evert(mob);
+
+        mob.onSpec = function () {
+            if(epidemy.victims.size() && .chance(5)) {
+                var vict;
+                vict = epidemy.victims.random();
+                if(vict.in_room!=in_room || vict.epidemy!=null){
+                .tmp.epidemy.getVictims(this,'onSpec2');
+                }else {
+                    /*---некотролируемая эпидемия начинается здесь---*/
+                    act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
+                    vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя!", this);
+                    rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4!", this, vict);
+                    vict.onSpec = function(){if(.chance(10)) .tmp.epidemy.infect(this);};
+                    /*----------------------------------------------*/
+                }
+            } else {
+                if (in_room.ppl.size()<2 || !.chance(5))
+                return;
+
+                var numba,temotes,emotes;
+                emotes = .tmp.epidemy.emoteArray.keys.size();
+                temotes = .tmp.epidemy.emoteTargArray.keys.size();
+                numba = .number_range(0, (temotes+emotes-1));
+
+                if (numba > (emotes-1)) {
+                    var target;
+                    var str;
+                    numba = numba - emotes;
+
+                    if(.tmp.epidemy.emoteTargArray[numba]==null)
+                    throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
+
+                    for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
+
+                    str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
+                    interpret(str);
+                } else {
+                    interpret(.tmp.epidemy.emoteArray[numba]);
+                }
+            }
+        };
+
+        //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
+
+        //onEntry() - мы вошли в какую-то комнату
+        mob.onEntry = function() {
+        .tmp.epidemy.getVictims(this,'onEntry');
+        };
+        //onGreet(ch) - ch вошел в нашу комнату
+        mob.onGreet = function(ch) {
+        .tmp.epidemy.getVictims(this,'onGreet');
+        };
+
+        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
+
+    .tmp.epidemy.getVictims(mob, 'Init');
+    };
+
+    getVictims = function(mob,text) {
+        mob.epidemy.victims = .List();
+        mob.in_room.ppl.forEach(function(mob){
+            if(!(this == mob //себя не кусаю
+                    || this.epidemy!=null //зараженных не кусаем
+                    || !this.is_npc() //игроков не кусаем
+                    || this.size > 1 //больших не кусаем
+                )
+                || (this.is_npc() && this.leader!=null && this.leader.pet==this) //петов кусаем
+            ) {
+                mob.epidemy.victims.push_back(this);
+            }
+        },mob);
+    };
+
+    evert = function(mob) {
+        this = .tmp.epidemy;
+        var match;
+
+        var long_descr;
+        var enName;
+        var regexp;
+
+        var short_descr;
+        var description;
+
+        var name;
+        var nameList;
+        long_descr = 'Вывернутое наизнанку существо {D#runame{x {Y(#enname{Y) ходит тут задом наперед.\n';
+        description = 'Отвратительное существо, вывернутое внутренностями наружу (несомненно какой-то\n' +
+            '{Dтемной{x магией), {D#runame{x ходит здесь задом наперед. Лучше держаться\n' +
+            'от ЭТОГО подальше, чтоб не укусило (страшно представить каким местом).\n' +
+            'Из черных глаз существа вырываются еле заметные языки феолетово-черного пламени.\n\n';
+
+        short_descr = reverseStr(mob.seeName(mob));
+
+        regexp = ' \\((' + mob.name.replace(' ','|') + ')\\) ';
+        match = mob.long_descr.matchGroups(regexp);
+
+        if(match.size()) {
+            long_descr = long_descr.replace('#enname', '{D'+reverseStr(match.back())+'{x');
+        } else {
+            long_descr = long_descr.replace('(#enname) ','');
+        }
+
+        nameList = ((short_descr+' '+reverseStr(mob.name)).split(' ')).sort().unique();
+
+        name = '';
+        var i; var size;
+        size = nameList.size();
+        for(i=1;i<=size;i=i+1) {
+            name = name+nameList.front();
+            nameList.pop_front();
+            if(i<size)
+                name = name + ' ';
+        }
+
+        long_descr = long_descr.replace('#runame',short_descr);
+        description = description.replace('#runame',short_descr);
+
+        mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
+        // меняем описания, и сохраняем старые для выздоравливания.
+        mob.epidemy.long_descr = mob.long_descr;
+        mob.long_descr = long_descr;
+
+        mob.epidemy.short_descr = mob.short_descr;
+        mob.short_descr = '{D'+short_descr+'{x';
+
+        mob.epidemy.description = mob.description;
+        mob.description = description;
+        //2do: хорошо бы надевать на петов ошейник с именем
+
+        mob.epidemy.name = mob.name;
+        mob.name = name;
+    };
+
+    reverseStr = function(str) {
+        var newStr;
+        var alfa;
+        var i;
+
+        newStr = '';
+
+        for( i=0; i<100; i=i+1) {
+            alfa = str.substr(i,1);
+            if(alfa=='')
+                break;
+
+            newStr = alfa + newStr;
+        }
+
+        return newStr.toLower();
+    };
+
+    heal = function(mob) {
+        //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
+        mob.name = mob.epidemy.name;
+        mob.short_descr = mob.epidemy.short_descr;
+        mob.long_descr = mob.epidemy.long_descr;
+        mob.description = mob.epidemy.description;
+
+        mob.onSpec = null;
+        mob.onGreet = null;
+        mob.onEntry = null;
+        mob.epidemy = null;
+
+        //выпиливаем из списка зараженных
+    .tmp.epidemy.infected.sub(mob);
+
+        mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
+    };
+
+    healall = function() {
+    .tmp.epidemy.infected.forEach(function(){.tmp.epidemy.heal(this);});
+    };
+
+    show = function(ch){
+        if(ch==null)
+            ch=.get_char_world('miyamoto');
+
+    .tmp.epidemy.infected.forEach(function(char){
+            char.ptc(in_room.name+':'+char.seeName(this)+'\n');
+        },ch);
+    };
+
+}
+
+//импрув моба: https://github.com/dreamland-mud/dreamland_code/blob/master/plug-ins/fight/fight_exp.cpp
+
+//Name: [fido dog зверюга] Vnum: [3062] Spec fun: [spec_fido] Size: [small]
+//Name: [alley cat feline кот] Vnum: [9543] Size: [small]
+//Name: [vulture стервятник] Vnum: [9544] Spec fun: [spec_fido] Size: [small]
+//eval looking4fido = function(sf,ch) {for(i=.char_list;i!=null;i=i.next) {if(i.pc!=null) {continue;} if(i.pIndexData.spec_fun==sf) ch.ptc(''+i.pIndexData.vnum+i.name+'\n');}}

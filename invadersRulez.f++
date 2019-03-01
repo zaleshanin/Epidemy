@@ -1,0 +1,70 @@
+/*Посвящается вымершему виду:
+#3066
+odif yltsaeb~
+	the Odif Yltsaeb~
+	Odif Yltsaeb is here, walking backwards.
+~
+	Odif is a small dog that has been reversed by some god.
+*/
+invadersRulezInit = function() {
+    if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+    if(.tmp.epidemy.warlocks==null) .tmp.epidemy.warlocks = .List();
+    if(.tmp.epidemy.books==null) .tmp.epidemy.books=.Array();
+
+    .tmp.epidemy.piece = .get_obj_index(9607);
+    .tmp.epidemy.necronomicon = .get_obj_index(732);
+    .tmp.epidemy.chocolate = .List().add(18078, 27110, 50042);//шоколадки чёрные 18078 27110 50042
+    .tmp.epidemy.ash = 39002;//пепел 39002
+    .tmp.epidemy.rose = 204;//роза   /*204 (rose black flower роза черная цветок)*/
+    .tmp.epidemy.pit = 3010;
+    .tmp.epidemy.darkTemple = 3072;
+
+    .tmp.epidemy.me = this;
+
+    //----------------------------------------------------------------//
+    //Инитим все куски под эпидемию
+    loremInit();
+    bookKeeperInit();
+    warlockInit();
+    bookInit();
+    epidemyInit();
+    //----------------------------------------------------------------//
+
+        //чистилки
+    .tmp.epidemy.clearPieces = function() {
+        .tmp.epidemy.piece.instances.forEach(function(){
+            if(epidemy!=null){
+                epidemy=null;
+                extract(true);
+            }
+        });
+    };
+    .tmp.epidemy.clearWarlocks = function() {
+        var i,c;
+        this = .tmp.epidemy.warlocks;
+        c = size();
+        for(i=0 ; i<c ; i=i+1) {
+        .tmp.epidemy.clearWarlock(back());
+            //pop_back();
+        }
+    };
+    .tmp.epidemy.clearBooks = function() {
+        var l,i,c;
+
+        this = .tmp.epidemy.necronomicon.instances;
+
+        l=.get_obj_index(732).instances;
+        c=l.size();
+        for(i=0 ; i<c ; i=i+1) {
+            l.back().extract(true);
+            l.pop_back();
+        }
+    };
+    .tmp.epidemy.clearAll = function() {
+        .tmp.epidemy.clearPieces();
+        .tmp.epidemy.clearWarlocks();
+        .tmp.epidemy.clearBooks();
+
+        .tmp.epidemy = null;
+    };
+}
