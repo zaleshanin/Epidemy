@@ -264,14 +264,14 @@ bookInit = function() {
                     }
                     //ночь
                     if (.sunlight != 0) {
-                        .scheduler.sleep(2);
+                    .scheduler.sleep(2);
                         ch.act('Ничего не происходит. Так сейчас и не ночь. Надо перечитать ритуал.');
                         return;
 
                     }
                     //месяц Зла
                     if (.month != 16) {
-                        .scheduler.sleep(2);
+                    .scheduler.sleep(2);
                         ch.act('Ничего не происходит. Эх! Не то ты выбрал время года. Надо перечитать ритуал.');
                         return;
                     }
@@ -311,11 +311,13 @@ bookInit = function() {
                     .scheduler.sleep(4);
                         ch.in_room.ppl.call.act('ПУФ!!! Во вспышке {DТьмы{x всё изчезает.', ch.in_room.get_obj_vnum(.tmp.epidemy.pit));
 
-                        ch.act('BINGO!!!');
-                        //book.epidemy.is_rose = roseInit(book.epidemy.is_rose);
-                        //book.epidemy.is_ash.extract(true);
-                        //book.epidemy.is_choco.extract(true);
-                        //book.epidemy = null;
+                        //ch.act('BINGO!!!');
+                        .tmp.epidemy.roseInit(book.epidemy.is_rose);
+                        book.epidemy.is_ash.extract(true);
+                        book.epidemy.is_choco.extract(true);
+                        book.epidemy.is_rose = null;
+                        book.epidemy.is_ash = null;
+                        book.epidemy.is_choco = null;
 
 
                     } else {
