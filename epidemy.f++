@@ -1,11 +1,12 @@
 epidemyInit = function() {
     if (.tmp.epidemy == null)
-        .tmp.epidemy = .Map();
+.tmp.epidemy = .Map();
 
     this = .tmp.epidemy;
 
     //список зараженных
-    infected = .List();
+    if(infected==null)
+        infected = .List();
 
     //массивы социалов для зараженных
     emoteArray = .Array();
@@ -70,32 +71,52 @@ epidemyInit = function() {
     infect = function(mob) {
         //всё равно заболеет, заносим в список
         mob.epidemy = .Map();
-    .tmp.epidemy.infected.push_back(mob);
 
+        .tmp.epidemy.infected.push_back(mob);
+
+        mob = .tmp.epidemy.addInfectedTriggers(mob);
+
+    };
+
+    addInfectedTriggers = function(mob) {
         mob.onSpec = function(){
-            if(.chance(1))
-        .tmp.epidemy.transform(this);
-        else if(.chance(5)) {
+            if(.chance(1)) {
+            .tmp.epidemy.transform(this);
+            } else if(.chance(5)) {
                 act("Ты корчишься в мучениях сопротивляясь {Dтёмным силам{x внутри себя!");
                 recho("%1$^C1 дрожит и корчится сопротивляясь {Dтёмным силам{x внутри себя!", this);
             }
         };
+
+        mob.onSpell = function(ch,spell,before) {
+            //dispel evil
+            if(before && spell == 15) {
+                recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", this);
+            .tmp.epidemy.heal(this);
+                return true;
+            }
+
+            //ray of truth
+
+        };
+
+        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
+        mob.onDeath = function(ch) {
+            //выпиливаемся из списка
+        .tmp.epidemy.infected.sub(this);
+
+            //вылупляем импа
+        };
+
+        return mob;
     };
-
-    transform = function(mob) {
-        //тёмные силы победили! УРА!
-
-        //выворачиваем зверюгу наизнанку если она не пет
-        //if(mob.leader==null)
-        //хотя почему нет? выворачиваем и петов...
-    .tmp.epidemy.evert(mob);
-
+    addSickTriggers = function(mob) {
         mob.onSpec = function () {
             if(epidemy.victims.size() && .chance(5)) {
                 var vict;
                 vict = epidemy.victims.random();
                 if(vict.in_room!=in_room || vict.epidemy!=null){
-                .tmp.epidemy.getVictims(this,'onSpec2');
+                .tmp.epidemy.getVictims(this,'onSpec');
                 }else {
                     /*---некотролируемая эпидемия начинается здесь---*/
                     act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
@@ -103,6 +124,7 @@ epidemyInit = function() {
                     rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4!", this, vict);
                     vict.onSpec = function(){if(.chance(10)) .tmp.epidemy.infect(this);};
                     /*----------------------------------------------*/
+                .tmp.epidemy.getVictims(this,'onSpec2');
                 }
             } else {
                 if (in_room.ppl.size()<2 || !.chance(5))
@@ -132,6 +154,9 @@ epidemyInit = function() {
         };
 
         //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
+        mob.onLeave = function() {
+        .tmp.epidemy.getVictims(this,'onLeave');
+        };
 
         //onEntry() - мы вошли в какую-то комнату
         mob.onEntry = function() {
@@ -142,9 +167,25 @@ epidemyInit = function() {
         .tmp.epidemy.getVictims(this,'onGreet');
         };
 
-        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
 
-    .tmp.epidemy.getVictims(mob, 'Init');
+        return mob;
+    }
+
+    transform = function(mob) {
+        //тёмные силы победили! УРА!
+
+        //выворачиваем зверюгу наизнанку если она не пет
+        //if(mob.leader==null)
+        //хотя почему нет? выворачиваем всех...
+        .tmp.epidemy.evert(mob);
+
+        mob = .tmp.epidemy.addSickTriggers(mob);
+
+        .tmp.epidemy.getVictims(mob, 'Init');
+
+        // план G - все заражены, собраться всем в комнате
+        // план D - все в одной комнате, вызываем "кракена"
+        plan_check(mob);
     };
 
     getVictims = function(mob,text) {
@@ -251,6 +292,8 @@ epidemyInit = function() {
         mob.onSpec = null;
         mob.onGreet = null;
         mob.onEntry = null;
+        mob.onSpell = null;
+        mob.onDeath = null;
         mob.epidemy = null;
 
         //выпиливаем из списка зараженных
@@ -272,6 +315,44 @@ epidemyInit = function() {
         },ch);
     };
 
+    plan_check = function(mob) {
+        var total, city, room;
+        var l,m;
+        var planG, planD;
+        planG = true; planD = true;
+
+        l = mob.pIndexData.instances;
+        city = mob.in_room.areaname;
+        room = mob.in_room.vnum;
+
+        total = l.size();
+        for( i=1 ; i<=total ; i=i+1 ) {
+            m = l.back();
+            if(m.in_room.areaname==city && m.epidemy==null) {
+                planG = false; planD = false;
+            }
+            if(planG && m.in_room.vnum!=room) {
+                planD = false;
+            }
+
+            l.pop_back();
+        }
+
+        if(planG || planD) {
+            l = mob.pIndexData.instances;
+            total = l.size();
+            for( i=1 ; i<=total ; i=i+1 ) {
+                m = l.back();
+                if(m.in_room.areaname==city) {
+                    if(planG)
+                        m.epidemy.plan = 1;
+                    if(planD)
+                        m.epidemy.plan = 2;
+                    m.epidemy.plan_room = room;
+                }
+            }
+        }
+    };
 }
 
 //импрув моба: https://github.com/dreamland-mud/dreamland_code/blob/master/plug-ins/fight/fight_exp.cpp

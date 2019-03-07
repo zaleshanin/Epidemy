@@ -1,0 +1,133 @@
+demonInit = function() {
+    if(.tmp.epidemy==null)
+        .tmp.epidemy = .Map();
+    if(.tmp.epidemy.demons==null)
+        .tmp.epidemy.demons = .List();
+
+    this = .tmp.epidemy;
+
+    get_demon_name = function() {
+        this = .tmp.epidemy;
+        var l,dl,c,n;
+        dl=.List();
+        l = demons.clone();
+        c = l.size();
+        for(i=0;i<c;i=i+1) {
+            n = l.back().name.getOneArgument();
+            dl.push_back(n);
+            l.pop_back();
+        }
+        l = demon_list.keys.clone();
+        c = dl.size();
+        for(i=0;i<c;i=i+1) {
+            l.sub(dl.back());
+            dl.pop_back();
+        }
+
+        return l.random();
+    };
+
+    get_one_demon = function(room) {
+        this = .tmp.epidemy;
+
+        if(demons.size()==demon_list.size())
+            throw('epidemy: demon amount owerflow!');
+
+        var demon;
+        var demon_name;
+
+        demon = .tmp.epidemy.demon.create();
+
+        demon_name = .tmp.epidemy.get_demon_name();
+
+        demon.name = .tmp.epidemy.demon_list[demon_name].name;
+        demon.short_descr = .tmp.epidemy.demon_list[demon_name].short_descr;
+        demon.long_descr = .tmp.epidemy.demon_list[demon_name].long_descr;
+        demon.description = .tmp.epidemy.demon_list[demon_name].description;
+
+        //demon.spec_fun = 'breath_fire';
+        demon.alignment = -1000;
+        // Act: [npc sentinel warrior nopurge notrack] -> [rw] act: .tables.act_flags
+        demon.act = .unset_bit(demon.act, .tables.act_flags.sentinel);
+        demon.act = .unset_bit(demon.act, .tables.act_flags.notrack);
+        demon.act = .set_bit(demon.act, .tables.act_flags.necromancer);
+        demon.act = .set_bit(demon.act, .tables.act_flags.nowhere);
+
+        // Aff: [infrared haste berserk regeneration] -> [rw] affected_by: .tables.affect_flags
+        demon.affected_by =  .set_bit(demon.affected_by, .tables.affect_flags.protect_good);
+
+        // Det: [evil invis hidden dark_vision] -> [rw] detection: .tables.detect_flags
+
+        // Imm:  [summon charm disease] -> [rw] imm_flags: .tables.imm_flags
+        demon.imm_flags = .set_bit(demon.imm_flags, .tables.imm_flags.fire);
+        demon.imm_flags = .set_bit(demon.imm_flags, .tables.imm_flags.mental);
+
+        // Res:  [spell weapon fire cold] [rw] res_flags: .tables.res_flags
+        demon.res_flags = .unset_bit(demon.res_flags, .tables.res_flags.weapon);
+        demon.res_flags = .unset_bit(demon.res_flags, .tables.res_flags.spell);
+
+        // Vuln: [lightning mental] [rw] vuln_flags: .tables.vuln_flags
+        demon.vuln_flags = .unset_bit(demon.vuln_flags, .tables.vuln_flags.lightning);
+        demon.vuln_flags = .unset_bit(demon.vuln_flags, .tables.vuln_flags.mental);
+        demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags.holy);
+        demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags.light);
+        demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags.prayer);
+
+        // Off:  [area_attack bash berserk disarm dodge fade fast kick kick_dirt parry rescue trip crush assist_guard] -> [rw] off_flags: .tables.off_flags
+        demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.bash);
+        demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.rescue);
+        demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.trip);
+        demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.crush);
+        demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.assist_guard);
+        demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.assist_align);
+        demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.tail);
+
+        // Group:    [3000]
+
+        demon.addDarkShroud();
+
+        demon.char_to_room(room);
+
+        //пишем призванного демона в список
+        .tmp.epidemy.demons.push_back(demon);
+    };
+
+    demon_list = .Array();
+
+    demon_list['furfur'] = .Map(); //вызывать молнии и громы, порывы ветра и сильнейшие бурные штормы.
+    demon_list['furfur'].description = 'Обычный Граф приисподней. Демон материализовался в образе человека с крыльями,\n' +
+'рогами и копытами оленя, и пылающим хвостом змеи.\n';
+    demon_list['furfur'].long_descr = 'Демон Фурфур (Furfur) выискивает жертв для своих легионов.\n';
+    demon_list['furfur'].short_descr = 'Фурфур||а|у|а|ом|е';
+    demon_list['furfur'].name = 'furfur фурфур demon демон';
+
+    demon_list['marchosias'] = .Map(); //изрыгая из пасти огонь.
+    demon_list['marchosias'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе волка с крыльями\n' +
+        'грифона и хвостом змеи.\n';
+    demon_list['marchosias'].long_descr = 'Демон Мархосиас (Marchosias) выискивает жертв для своих легионов.\n';
+    demon_list['marchosias'].short_descr = 'Мархосиас||а|у|а|ом|е';
+    demon_list['marchosias'].name = 'marchosias мархосиас demon демон';
+
+    demon_list['aamon'] = .Map();
+    demon_list['aamon'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе человека с головой\n' +
+        'ворона и волчьими зубами.\n';
+    demon_list['aamon'].long_descr = 'Демон Аамон (Aamon) выискивает жертв для своих легионов.\n';
+    demon_list['aamon'].short_descr = 'Аамон||а|у|а|ом|е';
+    demon_list['aamon'].name = 'aamon аамон demon демон';
+
+    demon_list['sitri'] = .Map();
+    demon_list['sitri'].description = 'Обычный Принц приисподней. Демон материализовался в образе человека с крыльями\n' +
+        'грифона, головой и хвостом леопарда.\n';
+    demon_list['sitri'].long_descr = 'Демон Ситри (Sitri) выискивает жертв для своих легионов.\n';
+    demon_list['sitri'].short_descr = 'Ситри';
+    demon_list['sitri'].name = 'sitri ситри demon демон';
+
+    demon_list['ipos'] = .Map();
+    demon_list['ipos'].description = 'Обычный Принц приисподней. Демон материализовался в образе ангела с белыми\n' +
+        'крыльями, но с головой льфа, ногами гуся, хвостом зайца.\n';
+    demon_list['ipos'].long_descr = 'Демон Ипос (Ipos) выискивает жертв для своих легионов.\n';
+    demon_list['ipos'].short_descr = 'Ипос||а|у|а|ом|е';
+    demon_list['ipos'].name = 'ipos ипос demon демон';
+
+    demon = .get_mob_index(3075); //Хассан
+}

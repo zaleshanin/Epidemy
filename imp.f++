@@ -1,0 +1,50 @@
+impInit = function() {
+    if(.tmp.epidemy==null)
+        .tmp.epidemy = .Map();
+    if(.tmp.epidemy.imps==null)
+        .tmp.epidemy.imps = .List();
+
+    initImp = function(mob) {
+        mob.onSpell = function(ch,spell,before) {
+            //dispel evil
+            if(spell != 15) {
+
+                return true;
+            }
+
+            //ray of truth
+        };
+    };
+
+
+    /*
+     dodge fade fast kick_dirt tail disarm trip
+    */
+
+    imp_list = .List();
+    imp_list.push_back(.get_mob_index(18608));
+    imp_list.push_back(.get_mob_index(9236));
+    imp_list.push_back(.get_mob_index(6309));
+
+}
+/*
+[10][6309][Арахнос][quasit бес мелкий][Бесенок (quasit), мерцая, ухмыляется тебе.]
+    Align:  [ 1000]
+    Act: [npc scavenger wimpy] (? act_flags)
+    Aff: [invisible sneak]
+    Det: [invis]
+    Off:  [disarm dodge trip assist_vnum]
+    Size: [medium]
+[5][9236][Каньон Стихий][imp чертенок][Маленький чертенок (imp) бегает раздраженным.]
+    Align:  [ -500]
+    Act: [npc scavenger stay_area wimpy] (? act_flags)
+    Aff: [sneak hide] (? affect_flags)
+    Off:  [disarm dodge trip assist_vnum] (? off_flags)
+    Size: [medium]
+[3][18608][Зона Новичков][quasit imp thing чертенок квазит][Забавный чертенок (imp) (возможно, это квазит?), шхерится по углам.]
+    Align:  [ -800]
+    Act: [npc scavenger stay_area wimpy] (? act_flags)
+    Aff: [sneak] (? affect_flags)
+    Off:  [fast] (? off_flags)
+    Size: [medium] (? size_table)
+*/
