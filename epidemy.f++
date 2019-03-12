@@ -324,7 +324,7 @@ epidemyInit = function() {
         var planG, planD;
         planG = true; planD = true;
 
-        l = mob.pIndexData.instances;
+        l = mob.pIndexData.instances.clone();
         city = mob.in_room.areaname;
         room = mob.in_room.vnum;
 
@@ -341,8 +341,8 @@ epidemyInit = function() {
             l.pop_back();
         }
 
-        if(planG || planD) {
-            l = mob.pIndexData.instances;
+       if(planG || planD) {
+            l = mob.pIndexData.instances.clone();
             total = l.size();
             for( i=1 ; i<=total ; i=i+1 ) {
                 m = l.back();
@@ -353,6 +353,7 @@ epidemyInit = function() {
                         m.epidemy.plan = 2;
                     m.epidemy.plan_room = room;
                 }
+		l.pop_back();
             }
         }
     };
