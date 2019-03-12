@@ -185,7 +185,7 @@ epidemyInit = function() {
 
         // план G - все заражены, собраться всем в комнате
         // план D - все в одной комнате, вызываем "кракена"
-        plan_check(mob);
+        .tmp.epidemy.plan_check(mob);
     };
 
     getVictims = function(mob,text) {
