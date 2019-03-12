@@ -333,6 +333,15 @@ bookInit = function() {
             .get_char_world('miyamoto').ptc('postSpeech:'+e);
             }
         };
+
+        //бывает и такая фигня, надо удалить из списка
+        ndx.onExtract = function(book, jopa) {
+            if(jopa) {
+                .tmp.epidemy.books[book.epidemy.ownerName] = null;
+            }
+
+        };
+
     };
 
 .tmp.epidemy.count_wk = function(chname) {
