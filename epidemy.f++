@@ -103,7 +103,7 @@ epidemyInit = function() {
         //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         mob.onDeath = function(ch) {
             //выпиливаемся из списка
-        .tmp.epidemy.infected.sub(this);
+            .tmp.epidemy.infected.sub(this);
 
             //вылупляем импа
         };
@@ -154,7 +154,7 @@ epidemyInit = function() {
         };
 
         //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
-        mob.onLeave = function() {
+        mob.onLeave = function(ch, from_room, movetype) {
         .tmp.epidemy.getVictims(this,'onLeave');
         };
 
@@ -169,7 +169,7 @@ epidemyInit = function() {
 
 
         return mob;
-    }
+    };
 
     transform = function(mob) {
         //тёмные силы победили! УРА!
@@ -284,14 +284,17 @@ epidemyInit = function() {
 
     heal = function(mob) {
         //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
-        mob.name = mob.epidemy.name;
-        mob.short_descr = mob.epidemy.short_descr;
-        mob.long_descr = mob.epidemy.long_descr;
-        mob.description = mob.epidemy.description;
+        if(mob.epidemy.name!=null) {
+            mob.name = mob.epidemy.name;
+            mob.short_descr = mob.epidemy.short_descr;
+            mob.long_descr = mob.epidemy.long_descr;
+            mob.description = mob.epidemy.description;
+        }
 
         mob.onSpec = null;
         mob.onGreet = null;
         mob.onEntry = null;
+        mob.onLeave = null;
         mob.onSpell = null;
         mob.onDeath = null;
         mob.epidemy = null;
@@ -353,6 +356,14 @@ epidemyInit = function() {
             }
         }
     };
+
+    //перепрошивка зараженных из списка
+    infected.forEach(function () {
+        .tmp.epidemy.addInfectedTriggers(this);
+        if(epidemy.long_descr != null)
+            .tmp.epidemy.addSickTriggers(this);
+    });
+
 }
 
 //импрув моба: https://github.com/dreamland-mud/dreamland_code/blob/master/plug-ins/fight/fight_exp.cpp
