@@ -12,7 +12,8 @@ bookKeeperInit = function() {
         postGreet = function(mob, ch) {
             var book;
 
-            if(.tmp.epidemy.books[ch.name]!=null || ch.clan.name!='invader')
+            if((.tmp.epidemy.books[ch.name]!=null && !.tmp.epidemy.books[ch.name].dead)
+                || ch.clan.name!='invader')
                 return;
 
         .scheduler.sleep(2);
