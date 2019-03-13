@@ -194,7 +194,7 @@ epidemyInit = function() {
 
             //отменяем план
             if(epidemy.plan!=null)
-                .tmp.epidemy.plan_cancel(mob);
+                .tmp.epidemy.plan_cancel(this);
             //вылупляем импа
         };
 
