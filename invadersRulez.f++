@@ -8,16 +8,19 @@ odif yltsaeb~
 */
 invadersRulezInit = function() {
     if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+    if(.tmp.epidemy.infected==null) .tmp.epidemy.infected = .List();
     if(.tmp.epidemy.warlocks==null) .tmp.epidemy.warlocks = .List();
     if(.tmp.epidemy.books==null) .tmp.epidemy.books=.Array();
+    if(.tmp.epidemy.demons==null) .tmp.epidemy.books=.List();
 
     .tmp.epidemy.piece = .get_obj_index(9607);
     .tmp.epidemy.necronomicon = .get_obj_index(732);
-    .tmp.epidemy.chocolate = .List().add(18078, 27110, 50042);//шоколадки чёрные 18078 27110 50042
-    .tmp.epidemy.ash = 39002;//пепел 39002
-    .tmp.epidemy.rose = 204;//роза   /*204 (rose black flower роза черная цветок)*/
+    .tmp.epidemy.chocolate = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
+    .tmp.epidemy.ash = 39002; //пепел 39002
+    .tmp.epidemy.rose = 204; //роза   /*204 (rose black flower роза черная цветок)*/
     .tmp.epidemy.pit = 3010;
     .tmp.epidemy.darkTemple = 3072;
+    .tmp.epidemy.demon = .get_mob_index(28666);
 
     .tmp.epidemy.me = this;
 
@@ -28,6 +31,7 @@ invadersRulezInit = function() {
     warlockInit();
     bookInit();
     epidemyInit();
+    demonInit();
     //----------------------------------------------------------------//
 
         //чистилки
