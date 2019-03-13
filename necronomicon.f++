@@ -406,4 +406,46 @@ bookInit = function() {
 .tmp.epidemy.necronomicon = .get_obj_index(732);
 
 .tmp.epidemy.necronomiconInit(.tmp.epidemy.necronomicon);
+
+.tmp.epidemy.roseInit = function(rose) {
+        rose.short_descr = '{D' + rose.short_descr + '{x';
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.hum);
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.glow);
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.dark);
+        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.evil);
+
+        rose.onUse = function(ch, str) {
+            var target;
+
+            target = ch.get_char_room(str);
+
+            if(target == null)
+                ch.act("Этого нет здесь.");
+
+            if(!target.is_npc()) {
+                if(ch==target) {
+                    ch.act("Ты размахиваешь %1$O5 у себя над головой, но ничего не происходит!", this);
+                    ch.recho("%1$^C1 с непонятной целью машет %2$O5 у себя над головой!", ch, this);
+                } else {
+                    ch.act("Ты взмахиваешь %2$O5 в сторону %1$C4, но ничего не происходит!", target, this);
+                    target.act("%1$^C1 с непонятной целью машет в твою сторону %2$O5!", ch, this);
+                    ch.rvecho(target, "%1$^C1 с непонятной целью машет %3$O5 в сторону %2$C4!", ch, target, this);
+                }
+            } else if(target.size > 1) {
+                ch.act("Призываемые тобой {Dтёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо поменьше!", target);
+                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
+            } else if(target.pIndexData.spec_fun != 'spec_fido') {
+                ch.act("{DТёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо покровожаднее!", target);
+                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
+            } else {
+                ch.act("Ты взмахиваешь %2$O5, и она, преврашившись в {Dоблако чёрного дыма{x, пронимает внутрь %1$C2!", target, this);
+                ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, this);
+                this.extract(true);
+                //а вот тут заражаем!
+                target.onSpec = function(){.tmp.epidemy.infect(this);};
+            }
+            return true;
+        };
+    };
+
 }
