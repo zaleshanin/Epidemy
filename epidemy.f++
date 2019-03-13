@@ -27,47 +27,6 @@ epidemyInit = function() {
     emoteTargArray[1] = "stagger";
     emoteTargArray[2] = "growl";
 
-    roseInit = function(rose) {
-        rose.short_descr = '{D' + rose.short_descr + '{x';
-        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.hum);
-        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.glow);
-        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.dark);
-        rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.evil);
-
-        rose.onUse = function(ch, str) {
-            var target;
-
-            target = ch.get_char_room(str);
-
-            if(target == null)
-                ch.act("Этого нет здесь.");
-
-            if(!target.is_npc()) {
-                if(ch==target) {
-                    ch.act("Ты размахиваешь %1$O5 у себя над головой, но ничего не происходит!", this);
-                    ch.recho("%1$^C1 с непонятной целью машет %2$O5 у себя над головой!", ch, this);
-                } else {
-                    ch.act("Ты взмахиваешь %2$O5 в сторону %1$C4, но ничего не происходит!", target, this);
-                    target.act("%1$^C1 с непонятной целью машет в твою сторону %2$O5!", ch, this);
-                    ch.rvecho(target, "%1$^C1 с непонятной целью машет %3$O5 в сторону %2$C4!", ch, target, this);
-                }
-            } else if(target.size > 1) {
-                ch.act("Призываемые тобой {Dтёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо поменьше!", target);
-                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
-            } else if(target.pIndexData.spec_fun != 'spec_fido') {
-                ch.act("{DТёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо покровожаднее!", target);
-                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
-            } else {
-                ch.act("Ты взмахиваешь %2$O5, и она, преврашившись в {Dоблако чёрного дыма{x, пронимает внутрь %1$C2!", target, this);
-                ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, this);
-                this.extract(true);
-                //а вот тут заражаем!
-                target.onSpec = function(){.tmp.epidemy.infect(this);};
-            }
-            return true;
-        };
-    };
-
     infect = function(mob) {
         //всё равно заболеет, заносим в список
         mob.epidemy = .Map();
@@ -112,12 +71,13 @@ epidemyInit = function() {
     };
     addSickTriggers = function(mob) {
         mob.onSpec = function () {
-            if(epidemy.victims.size() && .chance(5)) {
+            if(epidemy.victims.size() && .chance(10)) {
+                //кусаем если есть кого
                 var vict;
                 vict = epidemy.victims.random();
                 if(vict.in_room!=in_room || vict.epidemy!=null){
                 .tmp.epidemy.getVictims(this,'onSpec');
-                }else {
+                } else {
                     /*---некотролируемая эпидемия начинается здесь---*/
                     act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
                     vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя!", this);
@@ -126,7 +86,63 @@ epidemyInit = function() {
                     /*----------------------------------------------*/
                 .tmp.epidemy.getVictims(this,'onSpec2');
                 }
-            } else {
+            } else if(.chance(50) && (epidemy.plan == 1 && in_room.vnum!=epidemy.plan_room) ) { //&& .chance(5)
+                if(epidemy.plan_way==null || epidemy.plan_waypoint!=in_room) {
+                    //ищем путь
+                    var sectorsDeny;
+                    interpret('ponder');
+                    sectorsDeny = 0;
+                    // sectorsDeny = .tables.sector_table.water_swim;
+                    // sectorsDeny = .set_bit(sectorsDeny, .tables.sector_table.air);
+                    epidemy.plan_way = in_room.traverseTo(.get_room_index(epidemy.plan_room), this, 0, sectorsDeny);
+                    epidemy.plan_waypoint = in_room;
+                } else {
+                    //маршрут есть, мы еще не на месте
+                    if(epidemy.plan_waypoint!=in_room)
+                        throw('odif прошмыгнул, минуя плановый маршрут');
+
+                    if(epidemy.plan_nextroom==null) {
+                        //test
+                        // interpret('say куда б податься? (идти мне, кстати, еще ' + epidemy.plan_way.size() + ' комнат)');
+                        if(.chance(20)) {
+                            if(.chanceOneOf(3)) {
+                                //нюхаем
+                                in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
+                                epidemy.plan_nextroom = epidemy.plan_way.front();
+                                epidemy.plan_way.pop_front();
+                            } else if (.chanceOneOf(2)) {
+                                interpret('sneeze');
+                            } else {
+                                interpret('itch');
+                            }
+
+                        }
+                    } else {
+                        //унюхали - делаем шаг
+                        if(.chance(20)){
+                            //test
+                            //interpret('say ну, пойду в '+epidemy.plan_nextroom.name+', а то мне еще шагать ' + epidemy.plan_way.size() + " комнат! (выход:"+in_room.doorTo(epidemy.plan_nextroom)+')');
+                            if(move_char(in_room.doorTo(epidemy.plan_nextroom))){
+                                //test
+                                //interpret('say вот, пришла в '+epidemy.plan_nextroom.name+'. ай да я!');
+                                epidemy.plan_waypoint = epidemy.plan_nextroom;
+                                epidemy.plan_nextroom = null;
+                            } else {
+                                interpret('bonk');
+                                //test
+                                interpret('say заблудилася я! ПА-МА-ГИ-ТЕ!!!');
+                                epidemy.plan_nextroom = null;
+                                epidemy.plan_way = null;
+                                epidemy.plan_waypoint = null;
+                            }
+
+                        }
+                    }
+                }
+
+
+            } else  {
+                //спамим всякими социалами
                 if (in_room.ppl.size()<2 || !.chance(5))
                 return;
 
@@ -360,6 +376,9 @@ epidemyInit = function() {
 
     //перепрошивка зараженных из списка
     infected.forEach(function () {
+        epidemy.plan_way = null;
+        epidemy.plan_waypoint = null;
+        epidemy.plan_nextroom = null;
         .tmp.epidemy.addInfectedTriggers(this);
         if(epidemy.long_descr != null)
             .tmp.epidemy.addSickTriggers(this);
