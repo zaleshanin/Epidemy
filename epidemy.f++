@@ -63,8 +63,6 @@ epidemyInit = function() {
         mob.onDeath = function(ch) {
             //выпиливаемся из списка
             .tmp.epidemy.infected.sub(this);
-
-            //вылупляем импа
         };
 
         return mob;
@@ -76,7 +74,7 @@ epidemyInit = function() {
                 var vict;
                 vict = epidemy.victims.random();
                 if(vict.in_room!=in_room || vict.epidemy!=null){
-                .tmp.epidemy.getVictims(this,'onSpec');
+                    .tmp.epidemy.getVictims(this,'onSpec');
                 } else {
                     /*---некотролируемая эпидемия начинается здесь---*/
                     act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
@@ -86,6 +84,8 @@ epidemyInit = function() {
                     /*----------------------------------------------*/
                 .tmp.epidemy.getVictims(this,'onSpec2');
                 }
+            } else if(epidemy.plan == 2) {
+
             } else if(.chance(50) && (epidemy.plan == 1 && in_room.vnum!=epidemy.plan_room) ) { //&& .chance(5)
                 if(epidemy.plan_way==null || epidemy.plan_waypoint!=in_room) {
                     //ищем путь
@@ -127,6 +127,10 @@ epidemyInit = function() {
                                 //interpret('say вот, пришла в '+epidemy.plan_nextroom.name+'. ай да я!');
                                 epidemy.plan_waypoint = epidemy.plan_nextroom;
                                 epidemy.plan_nextroom = null;
+                                if(in_room.vnum = epidemy.plan_room && epidemy.plan_way.size()==0) {
+                                    .tmp.epidemy.plan_check(this);
+                                    epidemy.plan_way = null;
+                                }
                             } else {
                                 interpret('bonk');
                                 //test
@@ -183,6 +187,16 @@ epidemyInit = function() {
         .tmp.epidemy.getVictims(this,'onGreet');
         };
 
+        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
+        mob.onDeath = function(ch) {
+            //выпиливаемся из списка
+        .tmp.epidemy.infected.sub(this);
+
+            //отменяем план
+            if(epidemy.plan!=null)
+                .tmp.epidemy.plan_cancel(mob);
+            //вылупляем импа
+        };
 
         return mob;
     };
@@ -334,9 +348,32 @@ epidemyInit = function() {
         },ch);
     };
 
+    plan_cancel = function(mob) {
+        var total, city;
+        var i, l, m;
+
+        city = .get_room_index(mob.epidemy.plan_room).areaname;
+
+        l = .tmp.epidemy.infected.clone();
+        total = l.size();
+
+        for( i=1 ; i<=total ; i=i+1 ) {
+            m = l.back();
+            if(m.in_room.areaname==city) {
+                m.epidemy.plan = null;
+                m.epidemy.plan_room = null;
+                m.epidemy.plan_waypoint = null;
+                m.epidemy.plan_nextroom = null;
+                m.epidemy.plan_way = null;
+            }
+            l.pop_back();
+        }
+
+    };
+
     plan_check = function(mob) {
         var total, city, room;
-        var l,m;
+        var i,l,m;
         var planG, planD;
         planG = true; planD = true;
 
@@ -358,18 +395,18 @@ epidemyInit = function() {
         }
 
        if(planG || planD) {
-            l = mob.pIndexData.instances.clone();
+            l = .tmp.epidemy.infected.clone();
             total = l.size();
             for( i=1 ; i<=total ; i=i+1 ) {
                 m = l.back();
-                if(m.in_room.areaname==city) {
+                if(m.in_room.areaname==city && m.leader==null) {
                     if(planG)
                         m.epidemy.plan = 1;
                     if(planD)
                         m.epidemy.plan = 2;
                     m.epidemy.plan_room = room;
                 }
-		l.pop_back();
+		        l.pop_back();
             }
         }
     };
