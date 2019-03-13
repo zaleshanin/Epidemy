@@ -85,7 +85,12 @@ epidemyInit = function() {
                 .tmp.epidemy.getVictims(this,'onSpec2');
                 }
             } else if(epidemy.plan == 2) {
-
+				var demon_room;
+				demon_room = in_room;
+				//взорвать всех зверюг в комнате
+				.tmp.epidemy.explode_in_room(demon_room);
+				//вызывать демона
+				.tmp.epidemy.get_one_demon(demon_room);
             } else if(.chance(50) && (epidemy.plan == 1 && in_room.vnum!=epidemy.plan_room) ) { //&& .chance(5)
                 if(epidemy.plan_way==null || epidemy.plan_waypoint!=in_room) {
                     //ищем путь
@@ -410,6 +415,13 @@ epidemyInit = function() {
             }
         }
     };
+	explode_in_room = function(room) {
+
+		room.ppl.forEach( function(){ act('Отвратительные существа вспыхиваеют темно-фиолетовым пламенем...');} );
+		
+		//.tmp.epidemy.infected.forEach(function(r){if(in_room==r && epidemy!==null)raw_kill();},room);
+
+	};
 
     //перепрошивка зараженных из списка
     infected.forEach(function () {
