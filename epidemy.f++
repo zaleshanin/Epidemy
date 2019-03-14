@@ -20,7 +20,7 @@ epidemyInit = function() {
     emoteArray[14] = 'stagger';     emoteArray[15] = 'slobber';
     emoteArray[16] = 'twitch';      emoteArray[17] = 'wince';
     emoteArray[18] = 'fume';        emoteArray[19] = 'flinch';
-    emoteArray[20] = 'rub self';
+    emoteArray[20] = 'rub self';    emoteArray[21] = 'sneeze';
 
     emoteTargArray = .Array();
     emoteTargArray[0] = "puke";
@@ -92,31 +92,32 @@ epidemyInit = function() {
 				//вызывать демона
 				.tmp.epidemy.get_one_demon(demon_room);
             } else if(.chance(50) && (epidemy.plan == 1 && in_room.vnum!=epidemy.plan_room) ) { //&& .chance(5)
+                // нет маршрута, или сместились в процессе следования
                 if(epidemy.plan_way==null || epidemy.plan_waypoint!=in_room) {
                     //ищем путь
                     var sectorsDeny;
                     interpret('ponder');
                     sectorsDeny = 0;
+                    /*
+                    Руфина говорит тебе 'а вообще я добавила .set_bit_number'
+                    Руфина говорит тебе 'сектор - это номер, а если хочется получить битовую маску, надо установить бит с этим номером, а не просто логическое или делать'
+                    Руфина говорит тебе 'в общем что-то типа x=.set_bit_number(x, .tables.sector_table.air) , потом вода и тд'
+*/
                     // sectorsDeny = .tables.sector_table.water_swim;
                     // sectorsDeny = .set_bit(sectorsDeny, .tables.sector_table.air);
                     epidemy.plan_way = in_room.traverseTo(.get_room_index(epidemy.plan_room), this, 0, sectorsDeny);
                     epidemy.plan_waypoint = in_room;
                 } else {
                     //маршрут есть, мы еще не на месте
-                    if(epidemy.plan_waypoint!=in_room)
-                        throw('odif прошмыгнул, минуя плановый маршрут');
-
                     if(epidemy.plan_nextroom==null) {
                         //test
                         // interpret('say куда б податься? (идти мне, кстати, еще ' + epidemy.plan_way.size() + ' комнат)');
                         if(.chance(20)) {
-                            if(.chanceOneOf(3)) {
+                            if(.chanceOneOf(2)) {
                                 //нюхаем
                                 in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
                                 epidemy.plan_nextroom = epidemy.plan_way.front();
                                 epidemy.plan_way.pop_front();
-                            } else if (.chanceOneOf(2)) {
-                                interpret('sneeze');
                             } else {
                                 interpret('itch');
                             }
@@ -137,6 +138,10 @@ epidemyInit = function() {
                                     epidemy.plan_way = null;
                                 }
                             } else {
+                                //test
+                                .tmp.epidemy.me.ptc('заблудилось '+name+' в '+in_room.name
+                                    + '(plan_room:'+epidemy.plan_room+' plan_waipoint:'+epidemy.plan_waypoint.vnum+epidemy.plan_waypoint.name+' plan_nextroom:'+epidemy.plan_nextroom.vnum+epidemy.plan_nextroom.name+')');
+
                                 interpret('bonk');
                                 //test
                                 interpret('say заблудилася я! ПА-МА-ГИ-ТЕ!!!');
@@ -354,6 +359,8 @@ epidemyInit = function() {
     };
 
     plan_cancel = function(mob) {
+        //test
+        .tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
         var total, city;
         var i, l, m;
 
@@ -378,48 +385,77 @@ epidemyInit = function() {
 
     plan_check = function(mob) {
         var total, city, room;
-        var i,l,m;
+        var i,mlist,m,inst_count;
         var planG, planD;
         planG = true; planD = true;
+        inst_count = 0;
 
-        l = mob.pIndexData.instances.clone();
+        if (mob.pIndexData.instances.size() < 10) return;
+
+        mlist = mob.pIndexData.instances.clone();
         city = mob.in_room.areaname;
         room = mob.in_room.vnum;
 
-        total = l.size();
+        total = mlist.size();
         for( i=1 ; i<=total ; i=i+1 ) {
-            m = l.back();
+            m = mlist.back();
+            //тварь в нашем городе, но не инфицирована
             if(m.in_room.areaname==city && m.epidemy==null) {
                 planG = false; planD = false;
             }
+            //планГ (все в кучу) не отменен, но собрались не все
             if(planG && m.in_room.vnum!=room) {
                 planD = false;
             }
 
-            l.pop_back();
+            if(planG) {
+                inst_count=inst_count+1;
+            }
+
+            mlist.pop_back();
         }
 
-       if(planG || planD) {
-            l = .tmp.epidemy.infected.clone();
-            total = l.size();
+        if(inst_count<10) {
+            planD = false; planG = false;
+        }
+
+        //если планГ утвержден, и он еще не прописан - прописываем
+        if(planG && mob.epidemy.plan==null) {
+            mlist = .tmp.epidemy.infected.clone();
+            total = mlist.size();
             for( i=1 ; i<=total ; i=i+1 ) {
-                m = l.back();
+                m = mlist.back();
                 if(m.in_room.areaname==city && m.leader==null) {
-                    if(planG)
-                        m.epidemy.plan = 1;
-                    if(planD)
-                        m.epidemy.plan = 2;
+                    m.epidemy.plan = 1;
                     m.epidemy.plan_room = room;
                 }
-		        l.pop_back();
+		        mlist.pop_back();
             }
+        }
+        //если планД утвержден, назначем ответственного за геноцид
+        if(planD) {
+           mob.epidemy.plan = 2;
+
         }
     };
 	explode_in_room = function(room) {
 
 		room.ppl.forEach( function(){ act('Отвратительные существа вспыхиваеют темно-фиолетовым пламенем...');} );
-		
-		//.tmp.epidemy.infected.forEach(function(r){if(in_room==r && epidemy!==null)raw_kill();},room);
+		/*Отвратительные существа вспыхиваеют темно-фиолетовым пламенем...
+epidemy: plan_cancel()
+Ты слышишь предсмертный крик агюревз яансажу.
+Тихий голос из хрустального шара фенера: Исключение при вызове onSpec:
+Runtime exception Operation not implemented
+    in cs #4168 (epidemy: epidemy v0.6.007test) line 445: in_room
+    called from cs #4168 (epidemy: epidemy v0.6.007test) line 445
+    called from RegList::forEach
+    called from cs #4168 (epidemy: epidemy v0.6.007test) line 91
+    called from <native>
+    Ya-ma-ta!
+
+Агюревз яансажу с жадностью раздирает труп на куски.
+*/
+		.tmp.epidemy.infected.forEach(function(r){if(!dead && in_room==r && epidemy!=null)raw_kill();},room);
 
 	};
 
