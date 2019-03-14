@@ -36,7 +36,7 @@ demonInit = function() {
 
         demon.onDeath = function(ch) {
             //выпиливаемся из списка
-            .tmp.epidemy.sub(this);
+            .tmp.epidemy.demons.sub(this);
         };
 
         return demon;
@@ -45,21 +45,22 @@ demonInit = function() {
     get_one_demon = function(room) {
         this = .tmp.epidemy;
 
-        if(demons.size()==demon_list.size())
+        if(demons.size()>=demon_list.size())
             throw('epidemy: demon amount owerflow!');
 
         var demon;
         var demon_name;
 
         demon = .tmp.epidemy.demon.create();
+        //пишем призванного демона в список
+        .tmp.epidemy.demons.push_back(demon);
 
+        //выдаём демону имя
         demon_name = .tmp.epidemy.get_demon_name();
-
         demon.name = .tmp.epidemy.demon_list[demon_name].name;
         demon.short_descr = .tmp.epidemy.demon_list[demon_name].short_descr;
         demon.long_descr = .tmp.epidemy.demon_list[demon_name].long_descr;
         demon.description = .tmp.epidemy.demon_list[demon_name].description;
-
 
         demon.addDarkShroud();
 
@@ -67,9 +68,6 @@ demonInit = function() {
 
         demon.char_to_room(room);
 		room.ppl.forEach(function(mob){act('Из дыма и смрада появляется %1$C1.',mob);},demon);
-
-        //пишем призванного демона в список
-        .tmp.epidemy.demons.push_back(demon);
     };
 
     demon_list = .Array();
