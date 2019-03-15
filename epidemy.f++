@@ -1,6 +1,7 @@
 epidemyInit = function() {
+    var fillEmotes, fillTriggers;
 	if (.tmp.epidemy == null)
-.tmp.epidemy = .Map();
+        .tmp.epidemy = .Map();
 
 	this = .tmp.epidemy;
 
@@ -36,7 +37,6 @@ epidemyInit = function() {
 		mob = .tmp.epidemy.addInfectedTriggers(mob);
 
 	};
-
 	addInfectedTriggers = function(mob) {
 		mob.onSpec = function(){
 			if(.chance(1)) {
@@ -64,6 +64,10 @@ epidemyInit = function() {
 			//выпиливаемся из списка
 			.tmp.epidemy.infected.sub(this);
 		};
+        mob.onExtract = function(count) {
+            //выпиливаемся из списка
+        .tmp.epidemy.infected.sub(this);
+        };
 
 		return mob;
 	};
@@ -210,7 +214,6 @@ epidemyInit = function() {
 
 		return mob;
 	};
-
 	transform = function(mob) {
 		//тёмные силы победили! УРА!
 
@@ -227,7 +230,6 @@ epidemyInit = function() {
 		// план D - все в одной комнате, вызываем "кракена"
 		.tmp.epidemy.plan_check(mob);
 	};
-
 	getVictims = function(mob,text) {
 		mob.epidemy.victims = .List();
 		mob.in_room.ppl.forEach(function(mob){
@@ -242,7 +244,6 @@ epidemyInit = function() {
 			}
 		},mob);
 	};
-
 	evert = function(mob) {
 		this = .tmp.epidemy;
 		var match;
@@ -303,7 +304,6 @@ epidemyInit = function() {
 		mob.epidemy.name = mob.name;
 		mob.name = name;
 	};
-
 	reverseStr = function(str) {
 		var newStr;
 		var alfa;
@@ -321,7 +321,6 @@ epidemyInit = function() {
 
 		return newStr.toLower();
 	};
-
 	heal = function(mob) {
 		//будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
 		if(mob.epidemy.name!=null) {
@@ -344,11 +343,9 @@ epidemyInit = function() {
 
 		mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
 	};
-
 	healall = function() {
 	.tmp.epidemy.infected.forEach(function(){.tmp.epidemy.heal(this);});
 	};
-
 	show = function(ch){
 		if(ch==null)
 			ch=.get_char_world('miyamoto');
@@ -357,14 +354,13 @@ epidemyInit = function() {
 			char.ptc(in_room.name+':'+char.seeName(this)+'\n');
 		},ch);
 	};
-
 	plan_cancel = function(mob) {
 		//test
 		.tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
 		var total, city;
 		var i, l, m;
 
-		city = .get_room_index(mob.epidemy.plan_room).areaname;
+		city = mob.in_room.areaname;
 
 		l = .tmp.epidemy.infected.clone();
 		total = l.size();
@@ -382,114 +378,95 @@ epidemyInit = function() {
 		}
 
 	};
-
 	plan_check = function(mob) {
 		var total, city, room;
-		var i,mlist,m,inst_count;
+		var i,mlist,m,icount;
 		var planG, planD;
 		planG = true; planD = true;
-		inst_count = 0;
+        city = mob.in_room.areaname;
+        room = mob.in_room.vnum;
 
-		if (mob.pIndexData.instances.size() < 10) return;
+		if(mob.epidemy.plan==null) {
+		    .tmp.epidemy.plan_cancel(mob);
 
-		mlist = mob.pIndexData.instances.clone();
-		city = mob.in_room.areaname;
-		room = mob.in_room.vnum;
+            mlist = mob.pIndexData.instances.clone();
+            // если тварей меньше 10 то нечего и собираться
+            if (mlist.size() < 10) return;
 
-		total = mlist.size();
-		for( i=1 ; i<=total ; i=i+1 ) {
-			m = mlist.back();
-			//тварь в нашем городе, но не инфицирована
-			if(m.in_room.areaname==city && m.epidemy==null) {
-				planG = false; planD = false;
-			}
-			//планГ (все в кучу) не отменен, но собрались не все
-			if(planG && m.in_room.vnum!=room) {
-				planD = false;
-			}
+            total = mlist.size();
+            for( i=1 ; i<=total ; i=i+1 ) {
+                m = mlist.back();
+                //тварь в нашем городе, но не инфицирована
+                if(m.in_room.areaname==city && m.epidemy==null)
+                    planG = false;
+                mlist.pop_back();
+            }
 
-			if(planG) {
-				inst_count=inst_count+1;
-			}
+            //если планГ утвержден, и он еще не прописан - прописываем
+            if(planG) {
+                //test
+                .tmp.epidemy.me.ptc('EPIDEMY: PLAN G!!!\n');
 
-			mlist.pop_back();
-		}
+                mlist = .tmp.epidemy.infected.clone();
+                total = mlist.size();
+                for( i=1 ; i<=total ; i=i+1 ) {
+                    m = mlist.back();
+                    if(m.in_room.areaname==city && m.leader==null) {
+                        m.epidemy.plan = 1;
+                        m.epidemy.plan_room = room;
+                    }
+                    mlist.pop_back();
+                }
+            }
+        }
+        if(mob.epidemy.plan==1) {
+		    icount = 0;
+            mlist = .tmp.epidemy.infected.clone();
+            total = mlist.size();
+            for( i=1 ; i<=total ; i=i+1 ) {
+                m = mlist.back();
+                if(m.in_room.areaname==city && m.in_room.vnum!=room)
+                    planD = false;
 
-		if(inst_count<10) {
-			planD = false; planG = false;
-		}
+                if(planD)
+                    icount=icount+1;
 
-		//если планГ утвержден, и он еще не прописан - прописываем
-		if(planG && mob.epidemy.plan==null) {
-			mlist = .tmp.epidemy.infected.clone();
-			total = mlist.size();
-			for( i=1 ; i<=total ; i=i+1 ) {
-				m = mlist.back();
-				if(m.in_room.areaname==city && m.leader==null) {
-					m.epidemy.plan = 1;
-					m.epidemy.plan_room = room;
-				}
-				mlist.pop_back();
-			}
-		}
-		//если планД утвержден, назначем ответственного за геноцид
-		if(planD) {
-		   mob.epidemy.plan = 2;
+                mlist.pop_back();
+            }
 
-		}
+            //если планД утвержден, назначем ответственного за геноцид
+            if(planD && icount>=10) {
+                //test
+                .tmp.epidemy.me.ptc('EPIDEMY: PLAN D!!!\n');
+
+                mob.epidemy.plan = 2;
+            }
+        }
+
 	};
 	explode_in_room = function(room) {
         var l,i,c,m;
-		room.ppl.forEach( function(){ act('Отвратительные существа вспыхиваеют темно-фиолетовым пламенем...');} );
+        var ash;
+		room.ppl.forEach( function(){ act('Отвратительные существа вспыхивают темно-фиолетовым пламенем...');} );
 		
 		l = .tmp.epidemy.infected.clone();
 		c = l.size();
 		for(i=0;i<c;i=i+1){
 		    m = l.back();
-		    if(m.in_room==room && m.is_npc())
-		        m.raw_kill();
+		    if(m.in_room==room && m.is_npc()){
+                ash = .get_obj_index(.tmp.epidemy.ash).create();
+                ash.obj_to_room(room);
+                ash.timer = 5;
+                ash.description = 'Горсть пепла (ash) останков '+m.seeName(m,2)+'{G лежит у твоих ног.{x';
+
+		        m.extract(true);
+		    }
             l.pop_back();
 		}
-		//bug: почему-то не дождались котика
-		//2do: перед убийством отключить spec_fido
-		//2do: перед убийством отключить onSpec у всех кроме plan==2
-		//2do: а может их extract()
-/*Отвратительные существа вспыхиваеют темно-фиолетовым пламенем...
-epidemy: plan_cancel()
-Ты слышишь предсмертный крик агюревз яансажу.
-Сердце агюревз яансажу выпадает из ее разрубленной груди.
-Сердце агюревз яансажу выпадает из ее разрубленной груди.
-Ты слышишь предсмертный крик агюревз яансажу.
-Ты слышишь предсмертный крик агюревз яансажу.
-Ты слышишь предсмертный крик агюревз яансажу.
-Агюревз яансажу падает на землю ... и УМИРАЕТ.
-Ты слышишь предсмертный крик агюревз яансажу.
-Отрубленная голова агюревз яансажу падает на землю.
-Сердце агюревз яансажу выпадает из ее разрубленной груди.
-Ты слышишь предсмертный крик агюревз яансажу.
-Внутренности агюревз яансажу вываливаются на пол.
-Ты слышишь предсмертный крик агюревз яансажу.
-Внутренности агюревз яансажу вываливаются на пол.
-Ты слышишь предсмертный крик агюревз яансажу.
-Внутренности агюревз яансажу вываливаются на пол.
-Из дыма и смрада появляется Аамон.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу показывает ушами что-то непонятное.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-Агюревз яансажу с жадностью раздирает труп на куски.
-*/
 	};
 
+
+	//2do перепрошивка может не понадобиться если функции хранить в .tmp.epidemy
 	//перепрошивка зараженных из списка
 	infected.forEach(function () {
 		epidemy.plan_way = null;
