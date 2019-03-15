@@ -1,22 +1,13 @@
 loremInit = function() {
-    /*	//временно выгружаем бумажки в некрономикон
-        var book;
-        book = get_obj_carry_vnum(732);
-        if(book == null)
-            throw 'LoremIpsum: necronomicon not found';
-    */
     if (.tmp.epidemy == null)
-.tmp.epidemy = .Map();
-
-    //if (.tmp.epidemy.pieces == null)
-//.tmp.epidemy.pieces = .List();
+        .tmp.epidemy = .Map();
 
     if (.tmp.epidemy.warlocks == null)
-.tmp.epidemy.warlocks = .List();
+        .tmp.epidemy.warlocks = .List();
 
-    //this = .tmp.epidemy;
+    this = .tmp.epidemy;
 
-.tmp.epidemy.setPieceNames = function(piece, spell) {
+    setPieceNames = function(piece, spell) {
         var extradesc;
         this = piece;
 
@@ -40,7 +31,7 @@ loremInit = function() {
     };
 
     //находим количество злых неагрессивных мобов-магов/некров
-.tmp.epidemy.get_evil_mage = function(count) {
+    get_evil_mage = function(count) {
         var i, r;
         var l, result, areas;
         l = .List(); result = .List(); areas = .List();
@@ -85,7 +76,7 @@ loremInit = function() {
     };
 
     //сгенерировать бумажки с надписями Lorem ipsum dolor sit amet
-.tmp.epidemy.loadLoremPieces = function(book) {
+    loadLoremPieces = function(book) {
         try {
             var i,wl,wk;
             var loremArray;
@@ -124,20 +115,14 @@ loremInit = function() {
         }
     };
 
-.tmp.epidemy.piece_to_warlock = function(piece, wk) {
+    piece_to_warlock = function(piece, wk) {
         piece.obj_to_char(wk);
 
         //в список чьи бумажки у моба
         wk.epidemy.pieces[piece.epidemy.ownerName] = piece;
     };
-/*.tmp.epidemy.piece_to_new_warlock = function(piece) {
 
-
-        wk = .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back());
-    .tmp.epidemy.piece_to_warlock(piece,wk);
-    };*/
-
-.tmp.epidemy.LoremPiece = function(min, max, spell, name){
+    LoremPiece = function(min, max, spell, name){
         var piece;
 
         piece = .tmp.epidemy.piece.create();
@@ -219,10 +204,7 @@ loremInit = function() {
         return piece;
     };
 
-.tmp.epidemy.piece = .get_obj_index(9607);
-
-    //loadLoremPieces(book);
-
+    piece = .get_obj_index(9607);
 
     //кто-то должен подсказывать где искать мобов с бумажками (или нет?)
 }
