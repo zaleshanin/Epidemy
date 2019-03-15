@@ -1,12 +1,13 @@
 bookKeeperInit = function() {
+    var BookKeeper;
     if(.tmp.epidemy==null)
         .tmp.epidemy = .Map();
     if(.tmp.epidemy.books==null)
         .tmp.epidemy.books=.Array();
 
-    //this = .tmp.epidemy;
+    this = .tmp.epidemy;
 
-    .tmp.epidemy.BookKeeper = function(ndx) {
+    BookKeeper = function(ndx) {
         this = ndx;
 
         postGreet = function(mob, ch) {
@@ -45,9 +46,6 @@ bookKeeperInit = function() {
         };
     };
 
-    .tmp.epidemy.bookkeeper = .get_mob_index(761);
-
-    .tmp.epidemy.BookKeeper(.tmp.epidemy.bookkeeper);
-
-
+    bookkeeper = .get_mob_index(761);
+    BookKeeper(bookkeeper);
 }
