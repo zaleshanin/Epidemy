@@ -1,10 +1,11 @@
 bookInit = function() {
+    var necronomiconInit;
     if(.tmp.epidemy==null)
-.tmp.epidemy = .Map();
+        .tmp.epidemy = .Map();
 
-    //this = .tmp.epidemy;
+    this = .tmp.epidemy;
 
-.tmp.epidemy.Necronomicon = function(ch) {
+    Necronomicon = function(ch) {
         this = .tmp.epidemy.necronomicon.create();
 
         epidemy = .Map();
@@ -13,10 +14,9 @@ bookInit = function() {
         epidemy.isLorem = 0;
 
         return this;
-
     };
 
-.tmp.epidemy.necronomiconInit = function(ndx) {
+    necronomiconInit = function(ndx) {
         //onExtraDescr(ch,str) - возвращает строку, которую надо показать чару ch,
         // при взгляде на экстра-дескр str. Если вернуть пустую строку, продолжится
         // поиск другого экстра-деска, иначе -- покажет то что мы вернули, и оборвет поиск.
@@ -224,10 +224,6 @@ bookInit = function() {
                 obj.extract(true);
 
             }
-            //.isset_bit(obj.extra_flags,.tables.extra_flags.glow
-            //extra_flags = .unset_bit(extra_flags, .tables.extra_flags.glow);
-            //obj.extra_flags = .unset_bit(obj.extra_flags, .tables.extra_flags.glow);
-            //obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.glow);
         };
         //onFetch(ch,obj) - ch вынул obj из этого предмета-контейнера
         ndx.onFetch = function(book,ch,obj) {
@@ -257,7 +253,7 @@ bookInit = function() {
 
                     }
                     //мы в храме
-                    if(ch.in_room.vnum!=.tmp.epidemy.darkTemple) {
+                    if(ch.in_room.vnum!=.tmp.epidemy.darkTempleVnum) {
                     .scheduler.sleep(2);
                         ch.act('Ничего не происходит. Возможно ты находишься не в том месте?');
                         return;
@@ -276,9 +272,9 @@ bookInit = function() {
                         return;
                     }
 
-                    if(ch.in_room.get_obj_vnum(.tmp.epidemy.pit)==null) {
+                    if(ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum)==null) {
                     .scheduler.sleep(2);
-                        ch.act('Ничего не происходит. А куда собственно подевалась яма для пожертвований?.');
+                        ch.act('Ничего не происходит. А куда собственно подевалась яма для пожертвований?');
                         return;
                     }
 
@@ -286,16 +282,16 @@ bookInit = function() {
                     book.epidemy.is_ash = null;
                     book.epidemy.is_choco = null;
 
-                    ch.in_room.get_obj_vnum(.tmp.epidemy.pit).items.forEach(function(c){
+                    ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum).items.forEach(function(c){
                         var vnum;
                         vnum = pIndexData.vnum;
-                        if(.tmp.epidemy.rose == vnum) {
+                        if(.tmp.epidemy.roseVnum == vnum) {
                             c.epidemy.is_rose = this;
                         }
-                        if(.tmp.epidemy.ash ==vnum) {
+                        if(.tmp.epidemy.ashVnum ==vnum) {
                             c.epidemy.is_ash = this;
                         }
-                        if(.tmp.epidemy.chocolate.has(vnum)) {
+                        if(.tmp.epidemy.chocolatesVnumsList.has(vnum)) {
                             c.epidemy.is_choco = this;
                         }
                     }, book);
@@ -305,14 +301,14 @@ bookInit = function() {
                         && book.epidemy.is_choco !=null ) {
 
                     .scheduler.sleep(2);
-                        ch.in_room.ppl.call.act('Из %1$O1 начинает валить густой черный дым.', ch.in_room.get_obj_vnum(.tmp.epidemy.pit));
+                        ch.in_room.ppl.call.act('Из %1$O1 начинает валить густой черный дым.', ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum));
                     .scheduler.sleep(4);
-                        ch.in_room.ppl.call.act('Из %1$O1 вырываются фиолетовые языки пламени и разряды молний.', ch.in_room.get_obj_vnum(.tmp.epidemy.pit));
+                        ch.in_room.ppl.call.act('Из %1$O1 вырываются фиолетовые языки пламени и разряды молний.', ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum));
                     .scheduler.sleep(4);
-                        ch.in_room.ppl.call.act('ПУФ!!! Во вспышке {DТьмы{x всё изчезает.', ch.in_room.get_obj_vnum(.tmp.epidemy.pit));
+                        ch.in_room.ppl.call.act('ПУФ!!! Во вспышке {DТьмы{x всё изчезает.');
 
                         //ch.act('BINGO!!!');
-                        .tmp.epidemy.roseInit(book.epidemy.is_rose);
+                        .tmp.epidemy.Rose(book.epidemy.is_rose);
                         book.epidemy.is_ash.extract(true);
                         book.epidemy.is_choco.extract(true);
                         book.epidemy.is_rose = null;
@@ -344,7 +340,7 @@ bookInit = function() {
 
     };
 
-.tmp.epidemy.count_wk = function(chname) {
+    count_wk = function(chname) {
         var count, l,c,i;
         count = 0;
         l = .tmp.epidemy.warlocks.clone();
@@ -357,7 +353,7 @@ bookInit = function() {
 
         return count;
     };
-.tmp.epidemy.get_wk_array = function(chname) {
+    get_wk_array = function(chname) {
         var result;
         var l,c,i,m,p;
         result = .Array();
@@ -403,11 +399,10 @@ bookInit = function() {
 
     };
 
-.tmp.epidemy.necronomicon = .get_obj_index(732);
+    necronomicon = .get_obj_index(732);
+    necronomiconInit(.tmp.epidemy.necronomicon);
 
-.tmp.epidemy.necronomiconInit(.tmp.epidemy.necronomicon);
-
-.tmp.epidemy.roseInit = function(rose) {
+    Rose = function(rose) {
         rose.short_descr = '{D' + rose.short_descr + '{x';
         rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.hum);
         rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.glow);
