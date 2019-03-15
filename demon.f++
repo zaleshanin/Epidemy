@@ -1,4 +1,5 @@
 demonInit = function() {
+    var add_demon_triggers, make_demon_list;
     if(.tmp.epidemy==null)
         .tmp.epidemy = .Map();
     if(.tmp.epidemy.demons==null)
@@ -26,22 +27,6 @@ demonInit = function() {
 
         return l.random();
     };
-
-    add_demon_triggers = function(demon){
-        demon.onSpell = function(ch, spell, before) {
-            if(spell=='dispel evil') {
-
-            }
-        };
-
-        demon.onDeath = function(ch) {
-            //выпиливаемся из списка
-            .tmp.epidemy.demons.sub(this);
-        };
-
-        return demon;
-    };
-
     get_one_demon = function(room) {
         this = .tmp.epidemy;
 
@@ -64,50 +49,67 @@ demonInit = function() {
 
         demon.addDarkShroud();
 
-        demon = add_demon_triggers(demon);
+        //demon = add_demon_triggers(demon);
 
         demon.char_to_room(room);
 		room.ppl.forEach(function(mob){act('...из дыма и гари появляется %1$C1.',mob);},demon);
     };
 
-    demon_list = .Array();
+    add_demon_triggers = function(demon){
+        demon.onSpell = function(demon, ch, spell, before) {
+            if(spell=='dispel evil') {
 
-    demon_list['furfur'] = .Map(); //вызывать молнии и громы, порывы ветра и сильнейшие бурные штормы.
-    demon_list['furfur'].description = 'Обычный Граф приисподней. Демон материализовался в образе человека с крыльями,\n' +
-        'рогами и копытами оленя, и пылающим хвостом змеи.\n';
-    demon_list['furfur'].long_descr = 'Демон Фурфур (Furfur) выискивает жертв для своих легионов.\n';
-    demon_list['furfur'].short_descr = 'Фурфур||а|у|а|ом|е';
-    demon_list['furfur'].name = 'furfur фурфур demon демон';
+            }
+        };
 
-    demon_list['marchosias'] = .Map(); //изрыгая из пасти огонь.
-    demon_list['marchosias'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе волка с крыльями\n' +
-        'грифона и хвостом змеи.\n';
-    demon_list['marchosias'].long_descr = 'Демон Мархосиас (Marchosias) выискивает жертв для своих легионов.\n';
-    demon_list['marchosias'].short_descr = 'Мархосиас||а|у|а|ом|е';
-    demon_list['marchosias'].name = 'marchosias мархосиас demon демон';
+        demon.onDeath = function(demon, ch) {
+            //выпиливаемся из списка
+        .tmp.epidemy.demons.sub(demon);
+        };
+    };
+    make_demon_list = function(){
+        this = .tmp.epidemy;
+        demon_list = .Array();
 
-    demon_list['aamon'] = .Map();
-    demon_list['aamon'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе человека с головой\n' +
-        'ворона и волчьими зубами.\n';
-    demon_list['aamon'].long_descr = 'Демон Аамон (Aamon) выискивает жертв для своих легионов.\n';
-    demon_list['aamon'].short_descr = 'Аамон||а|у|а|ом|е';
-    demon_list['aamon'].name = 'aamon аамон demon демон';
+        demon_list['furfur'] = .Map(); //вызывать молнии и громы, порывы ветра и сильнейшие бурные штормы.
+        demon_list['furfur'].description = 'Обычный Граф приисподней. Демон материализовался в образе человека с крыльями,\n' +
+            'рогами и копытами оленя, и пылающим хвостом змеи.\n';
+        demon_list['furfur'].long_descr = 'Демон Фурфур (Furfur) выискивает жертв для своих легионов.\n';
+        demon_list['furfur'].short_descr = 'Фурфур||а|у|а|ом|е';
+        demon_list['furfur'].name = 'furfur фурфур demon демон';
 
-    demon_list['sitri'] = .Map();
-    demon_list['sitri'].description = 'Обычный Принц приисподней. Демон материализовался в образе человека с крыльями\n' +
-        'грифона, головой и хвостом леопарда.\n';
-    demon_list['sitri'].long_descr = 'Демон Ситри (Sitri) выискивает жертв для своих легионов.\n';
-    demon_list['sitri'].short_descr = 'Ситри';
-    demon_list['sitri'].name = 'sitri ситри demon демон';
+        demon_list['marchosias'] = .Map(); //изрыгая из пасти огонь.
+        demon_list['marchosias'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе волка с крыльями\n' +
+            'грифона и хвостом змеи.\n';
+        demon_list['marchosias'].long_descr = 'Демон Мархосиас (Marchosias) выискивает жертв для своих легионов.\n';
+        demon_list['marchosias'].short_descr = 'Мархосиас||а|у|а|ом|е';
+        demon_list['marchosias'].name = 'marchosias мархосиас demon демон';
 
-    demon_list['ipos'] = .Map();
-    demon_list['ipos'].description = 'Обычный Принц приисподней. Демон материализовался в образе ангела с белыми\n' +
-        'крыльями, но с головой льфа, ногами гуся, хвостом зайца.\n';
-    demon_list['ipos'].long_descr = 'Демон Ипос (Ipos) выискивает жертв для своих легионов.\n';
-    demon_list['ipos'].short_descr = 'Ипос||а|у|а|ом|е';
-    demon_list['ipos'].name = 'ipos ипос demon демон';
+        demon_list['aamon'] = .Map();
+        demon_list['aamon'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе человека с головой\n' +
+            'ворона и волчьими зубами.\n';
+        demon_list['aamon'].long_descr = 'Демон Аамон (Aamon) выискивает жертв для своих легионов.\n';
+        demon_list['aamon'].short_descr = 'Аамон||а|у|а|ом|е';
+        demon_list['aamon'].name = 'aamon аамон demon демон';
+
+        demon_list['sitri'] = .Map();
+        demon_list['sitri'].description = 'Обычный Принц приисподней. Демон материализовался в образе человека с крыльями\n' +
+            'грифона, головой и хвостом леопарда.\n';
+        demon_list['sitri'].long_descr = 'Демон Ситри (Sitri) выискивает жертв для своих легионов.\n';
+        demon_list['sitri'].short_descr = 'Ситри';
+        demon_list['sitri'].name = 'sitri ситри demon демон';
+
+        demon_list['ipos'] = .Map();
+        demon_list['ipos'].description = 'Обычный Принц приисподней. Демон материализовался в образе ангела с белыми\n' +
+            'крыльями, но с головой льфа, ногами гуся, хвостом зайца.\n';
+        demon_list['ipos'].long_descr = 'Демон Ипос (Ipos) выискивает жертв для своих легионов.\n';
+        demon_list['ipos'].short_descr = 'Ипос||а|у|а|ом|е';
+        demon_list['ipos'].name = 'ipos ипос demon демон';
+    };
 
     demon = .get_mob_index(28666);
+    add_demon_triggers(demon);
+    make_demon_list();
 }
 
 /*       //demon.spec_fun = 'spec_breath_fire';
