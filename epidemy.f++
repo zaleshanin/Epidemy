@@ -175,7 +175,7 @@ epidemyInit = function() {
 	};
 	plan_cancel = function(mob) {
 		//test
-		.tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
+		//.tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
 
 		var total, city;
 		var i, l, m;
@@ -225,7 +225,7 @@ epidemyInit = function() {
             //если планГ утвержден, и он еще не прописан - прописываем
             if(planG) {
                 //test
-                .tmp.epidemy.me.ptc('EPIDEMY: PLAN G!!!\n');
+                //.tmp.epidemy.me.ptc('EPIDEMY: PLAN G!!!\n');
 
                 mlist = .tmp.epidemy.infected.clone();
                 total = mlist.size();
@@ -257,7 +257,7 @@ epidemyInit = function() {
             //если планД утвержден, назначем ответственного за геноцид
             if(planD && icount>=10) {
                 //test
-                .tmp.epidemy.me.ptc('EPIDEMY: PLAN D!!!\n');
+                //.tmp.epidemy.me.ptc('EPIDEMY: PLAN D!!!\n');
 
                 mob.epidemy.plan = 2;
             }
@@ -414,8 +414,8 @@ epidemyInit = function() {
 								}
 							} else {
 								//test
-							.tmp.epidemy.me.ptc('заблудилось '+name+' в '+in_room.name
-									+ '(plan_room:'+epidemy.plan_room+' plan_waipoint:'+epidemy.plan_waypoint.vnum+epidemy.plan_waypoint.name+' plan_nextroom:'+epidemy.plan_nextroom.vnum+epidemy.plan_nextroom.name+')');
+							//.tmp.epidemy.me.ptc('заблудилось '+name+' в '+in_room.name
+							//		+ '(plan_room:'+epidemy.plan_room+' plan_waipoint:'+epidemy.plan_waypoint.vnum+epidemy.plan_waypoint.name+' plan_nextroom:'+epidemy.plan_nextroom.vnum+epidemy.plan_nextroom.name+')');
 
 								interpret('bonk');
 								//test
