@@ -4,20 +4,18 @@ warlockInit = function() {
     if(.tmp.epidemy.warlocks==null)
         .tmp.epidemy.warlocks = .List();
 
-    //this = .tmp.epidemy;
+    this = .tmp.epidemy;
 
-.tmp.epidemy.clearWarlock = function(mage) {
+    clearWarlock = function(mage) {
         mage.postGreet = null;
         mage.onDeath = null;
+        mage.onExtract = null;
         mage.epidemy = null;
         //выпиливаемся из списка
-        //mage.epidemy.pieces.keys.forEach(function(wk){
         .tmp.epidemy.warlocks.sub(mage);
-        //},mage);
-
     };
 
-.tmp.epidemy.Warlock = function(mage) {
+    Warlock = function(mage) {
         if(mage.epidemy==null) {
             mage.epidemy=.Map();
             mage.epidemy.pieces = .Array(); //[char]=piece
@@ -27,8 +25,11 @@ warlockInit = function() {
 
         //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         mage.onDeath = function(ch) {
-        .tmp.epidemy.clearWarlock(this);
+            .tmp.epidemy.clearWarlock(this);
             return false;
+        };
+        mage.onExtract = function(count) {
+            .tmp.epidemy.clearWarlock(this);
         };
 
         mage.postGreet = function(ch) {

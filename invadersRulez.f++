@@ -13,62 +13,26 @@ invadersRulezInit = function() {
     if(.tmp.epidemy.books==null) .tmp.epidemy.books=.Array();
     if(.tmp.epidemy.demons==null) .tmp.epidemy.books=.List();
 
-    .tmp.epidemy.piece = .get_obj_index(9607);
-    .tmp.epidemy.necronomicon = .get_obj_index(732);
-    .tmp.epidemy.chocolate = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
-    .tmp.epidemy.ash = 39002; //пепел 39002
-    .tmp.epidemy.rose = 204; //роза   /*204 (rose black flower роза черная цветок)*/
-    .tmp.epidemy.pit = 3010;
-    .tmp.epidemy.darkTemple = 3072;
-    .tmp.epidemy.demon = .get_mob_index(28666);
+    this = .tmp.epidemy;
 
-    .tmp.epidemy.me = this;
+    bookkeeper = .get_mob_index(761);
+    necronomicon = .get_obj_index(732);
+    piece = .get_obj_index(9607);
+    chocolatesVnumsList = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
+    ashVnum = 39002; //пепел 39002
+    roseVnum = 204; //роза   /*204 (rose black flower роза черная цветок)*/
+    pitVnum = 3010;
+    darkTempleVnum = 3072;
+    demon = .get_mob_index(28666);
 
     //----------------------------------------------------------------//
     //Инитим все куски под эпидемию
-    loremInit();
     bookKeeperInit();
-    warlockInit();
     bookInit();
+    loremInit();
+    warlockInit();
     epidemyInit();
     demonInit();
     //----------------------------------------------------------------//
 
-        //чистилки
-    .tmp.epidemy.clearPieces = function() {
-        .tmp.epidemy.piece.instances.forEach(function(){
-            if(epidemy!=null){
-                epidemy=null;
-                extract(true);
-            }
-        });
-    };
-    .tmp.epidemy.clearWarlocks = function() {
-        var i,c;
-        this = .tmp.epidemy.warlocks;
-        c = size();
-        for(i=0 ; i<c ; i=i+1) {
-        .tmp.epidemy.clearWarlock(back());
-            //pop_back();
-        }
-    };
-    .tmp.epidemy.clearBooks = function() {
-        var l,i,c;
-
-        this = .tmp.epidemy.necronomicon.instances;
-
-        l=.get_obj_index(732).instances;
-        c=l.size();
-        for(i=0 ; i<c ; i=i+1) {
-            l.back().extract(true);
-            l.pop_back();
-        }
-    };
-    .tmp.epidemy.clearAll = function() {
-        .tmp.epidemy.clearPieces();
-        .tmp.epidemy.clearWarlocks();
-        .tmp.epidemy.clearBooks();
-
-        .tmp.epidemy = null;
-    };
 }

@@ -67,7 +67,7 @@ demonInit = function() {
         demon = add_demon_triggers(demon);
 
         demon.char_to_room(room);
-		room.ppl.forEach(function(mob){act('Из дыма и смрада появляется %1$C1.',mob);},demon);
+		room.ppl.forEach(function(mob){act('...из дыма и гари появляется %1$C1.',mob);},demon);
     };
 
     demon_list = .Array();

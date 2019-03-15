@@ -27,6 +27,9 @@ impInit = function() {
     imp_list.push_back(.get_mob_index(6309));
 
 }
+//импрув моба: https://github.com/dreamland-mud/dreamland_code/blob/master/plug-ins/fight/fight_exp.cpp
+
+
 /*
 [10][6309][Арахнос][quasit бес мелкий][Бесенок (quasit), мерцая, ухмыляется тебе.]
     Align:  [ 1000]
