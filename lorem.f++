@@ -1,10 +1,13 @@
 loremInit = function() {
+    var fillPieceTriggers;
     if (.tmp.epidemy == null)
         .tmp.epidemy = .Map();
 
     if (.tmp.epidemy.warlocks == null)
         .tmp.epidemy.warlocks = .List();
 
+    if (.tmp.epidemy.triggers == null)
+        .tmp.epidemy.triggers = .Map();
     this = .tmp.epidemy;
 
     setPieceNames = function(piece, spell) {
@@ -28,6 +31,8 @@ loremInit = function() {
         }
 
         set_extra_descr(name, extradesc);
+
+        return piece;
     };
 
     //находим количество злых неагрессивных мобов-магов/некров
@@ -123,6 +128,7 @@ loremInit = function() {
     };
 
     LoremPiece = function(min, max, spell, name){
+        this = .tmp.epidemy;
         var piece;
 
         piece = .tmp.epidemy.piece.create();
@@ -133,10 +139,19 @@ loremInit = function() {
         piece.epidemy.spellName = spell;
         piece.epidemy.ownerName = name;
 
+        piece = setPieceNames(piece, spell);
 
-    .tmp.epidemy.setPieceNames(piece, spell);
+        piece.onUse = triggers.pieceOnUse;
+        piece.onExtract = triggers.pieceOnExtract;
+        piece.onQuit = triggers.pieceOnQuit;
 
-        piece.onUse = function(ch,str){
+        return piece;
+    };
+
+    fillPieceTriggers = function() {
+        this = .tmp.epidemy.triggers;
+
+        pieceOnUse = function(ch,str){
             if(ch.clan.name!='invader')
                 return false;
 
@@ -154,7 +169,7 @@ loremInit = function() {
                 ch.recho('%1$^C1 соединить два клочка бумаги, между ними вспыхивает фиолетовое пламя и они соединяются.',ch);
 
                 //создаём новый кусок
-                .tmp.epidemy.LoremPiece(obj.epidemy.spellIndexMin,epidemy.spellIndexMax,(obj.epidemy.spellName+' '+epidemy.spellName),epidemy.ownerName).obj_to_char(ch);
+            .tmp.epidemy.LoremPiece(obj.epidemy.spellIndexMin,epidemy.spellIndexMax,(obj.epidemy.spellName+' '+epidemy.spellName),epidemy.ownerName).obj_to_char(ch);
                 //убираем старые
                 obj.epidemy = null;
                 obj.extract(true);
@@ -172,21 +187,21 @@ loremInit = function() {
         /*onExtract(count) - предмет разрушается. count == false означает, что
         разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
         чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
-        piece.onExtract = function (count) {
+        pieceOnExtract = function (count) {
             if(count && epidemy!=null) {
-                .tmp.epidemy.piece_to_warlock(
+            .tmp.epidemy.piece_to_warlock(
                     .tmp.epidemy.LoremPiece(epidemy.spellIndexMin,epidemy.spellIndexMax,epidemy.spellName, epidemy.ownerName),
-                    .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back())
-                );
+            .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back())
+            );
             }
         };
 
         //onQuit(ch,count) - ch покидает мир. Если разрушаем предмет, надо вернуть true.
         // count == false при обычном quit, и true при делите.
-        piece.onQuit = function (ch,count) {
+        pieceOnQuit = function (ch,count) {
             if(epidemy.ownerName!=ch.name) {
                 this.carried_by.act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', this);
-                .tmp.epidemy.piece_to_warlock(this,.tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back()));
+            .tmp.epidemy.piece_to_warlock(this,.tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back()));
             }
         };
 
@@ -198,13 +213,8 @@ loremInit = function() {
             .tmp.epidemy.me.ptc('');
         };*/
 
-        //заносим в список, чтоб легче было чистить
-        //.tmp.epidemy.pieces.push_back(piece); //не заносим, проверяем по instances
-
-        return piece;
     };
 
     piece = .get_obj_index(9607);
-
-    //кто-то должен подсказывать где искать мобов с бумажками (или нет?)
+    fillPieceTriggers();
 }
