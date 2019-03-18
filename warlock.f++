@@ -1,44 +1,31 @@
 warlockInit = function() {
+    var fillWKTriggers;
     if(.tmp.epidemy==null)
         .tmp.epidemy = .Map();
     if(.tmp.epidemy.warlocks==null)
         .tmp.epidemy.warlocks = .List();
+    if(.tmp.epidemy.triggers == null)
+        .tmp.epidemy.triggers = .Map();
 
     this = .tmp.epidemy;
 
-    clearWarlock = function(mage) {
-        mage.postGreet = null;
-        mage.onDeath = null;
-        mage.onExtract = null;
-        mage.epidemy = null;
-        //выпиливаемся из списка
-        .tmp.epidemy.warlocks.sub(mage);
-    };
+    fillWKTriggers = function () {
+        this = .tmp.epidemy.triggers;
 
-    Warlock = function(mage) {
-        if(mage.epidemy==null) {
-            mage.epidemy=.Map();
-            mage.epidemy.pieces = .Array(); //[char]=piece
-        }
-        //заносим в списочек, чтоб можно было почистить
-        .tmp.epidemy.warlocks.push_back(mage);
-
-        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
-        mage.onDeath = function(ch) {
+        wkOnDeath = function (ch) {
             .tmp.epidemy.clearWarlock(this);
             return false;
         };
-        mage.onExtract = function(count) {
+        wkOnExtract = function(count) {
             .tmp.epidemy.clearWarlock(this);
         };
-
-        mage.postGreet = function(ch) {
+        wkPostGreet = function(ch) {
             try {
                 var piece;
 
                 //если некрономикон еще не получен
                 if(.tmp.epidemy.books[ch.name]==null) //|| ch.clan.name!='invader'
-                    return;
+                return;
 
                 piece = epidemy.pieces[ch.name];
                 //почему-то кусок не у меня
@@ -70,7 +57,33 @@ warlockInit = function() {
 
         };
 
+    };
+
+    Warlock = function(mage) {
+        if(mage.epidemy==null) {
+            mage.epidemy=.Map();
+            mage.epidemy.pieces = .Array(); //[char]=piece
+        }
+        //заносим в списочек
+        .tmp.epidemy.warlocks.push_back(mage);
+
+        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
+        mage.onDeath = .tmp.epidemy.triggers.wkOnDeath;
+        mage.onExtract = .tmp.epidemy.triggers.wkOnExtract;
+        mage.postGreet = .tmp.epidemy.triggers.wkPostGreet;
+
+
         return mage;
     };
+    clearWarlock = function(mage) {
+        mage.postGreet = null;
+        mage.onDeath = null;
+        mage.onExtract = null;
+        mage.epidemy = null;
+        //выпиливаемся из списка
+    .tmp.epidemy.warlocks.sub(mage);
+    };
+
+    fillWKTriggers();
 
 }
