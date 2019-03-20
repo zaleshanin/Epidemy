@@ -289,6 +289,10 @@ epidemyInit = function() {
 							m.epidemy.plan_room = room;}else{
                                 m.epidemy.plan = 0;
                                 m.epidemy.plan_room = null;
+                                //2do
+                                m.epidemy.plan_way = null;
+                                m.epidemy.plan_waypoint = null;
+                                m.epidemy.plan_nextroom = null;
 							}
 						}
 						mlist.pop_back();
@@ -532,8 +536,13 @@ epidemyInit = function() {
                             if(.chance(20)) {
 								//нюхаем
 								in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
-								if(epidemy.plan_way.size()==0)
+								if(epidemy.plan_way.size()==0){
+									//2do
+									mob.epidemy.plan_nextroom=null;
+                                    mob.epidemy.plan_waypoint=null;
+                                    mob.epidemy.plan_way=null;
 								    throw('собака-гуляка:WaySize=0;room:'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+');in_room:'+in_room.name+'('+in_room.vnum+')\n');
+								}
 								epidemy.plan_nextroom = epidemy.plan_way.front();
 								epidemy.plan_way.pop_front();
 								return;
@@ -562,6 +571,10 @@ epidemyInit = function() {
                                         interpret('say мы прибыли в место назначение!');
 										epidemy.plan=null;
                                         epidemy.plan_way = null;
+                                        //2do
+                                        epidemy.plan_nextroom=null;
+                                        epidemy.plan_waypoint=null;
+                                        //mob.epidemy.plan_way=null;
                                     }
                                     return;
                                 } else {
