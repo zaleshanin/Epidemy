@@ -1,11 +1,16 @@
 demonInit = function() {
-    var add_demon_triggers, make_demon_list;
-    if(.tmp.epidemy==null)
-        .tmp.epidemy = .Map();
-    if(.tmp.epidemy.demons==null)
-        .tmp.epidemy.demons = .List();
+if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+this = .tmp.epidemy;
 
-    this = .tmp.epidemy;
+    var add_demon_triggers, make_demon_list, fillDemonTriggers;
+
+    if(demons==null)
+        demons = .List();
+    if(triggers==null)
+        triggers=.Map();
+
+    //test
+    me = .get_char_world('miyamoto');
 
     get_demon_name = function() {
         this = .tmp.epidemy;
@@ -36,16 +41,16 @@ demonInit = function() {
         var demon;
         var demon_name;
 
-        demon = .tmp.epidemy.demon.create();
+        demon = demon.create();
         //пишем призванного демона в список
         .tmp.epidemy.demons.push_back(demon);
 
         //выдаём демону имя
-        demon_name = .tmp.epidemy.get_demon_name();
-        demon.name = .tmp.epidemy.demon_list[demon_name].name;
-        demon.short_descr = .tmp.epidemy.demon_list[demon_name].short_descr;
-        demon.long_descr = .tmp.epidemy.demon_list[demon_name].long_descr;
-        demon.description = .tmp.epidemy.demon_list[demon_name].description;
+        demon_name = get_demon_name();
+        demon.name = demon_list[demon_name].name;
+        demon.short_descr = demon_list[demon_name].short_descr;
+        demon.long_descr = demon_list[demon_name].long_descr;
+        demon.description = demon_list[demon_name].description;
 
         demon.addDarkShroud();
 
@@ -56,16 +61,11 @@ demonInit = function() {
     };
 
     add_demon_triggers = function(demon){
-        demon.onSpell = function(demon, ch, spell, before) {
-            if(spell=='dispel evil') {
+        this = .tmp.epidemy.triggers;
 
-            }
-        };
+        //demon.onSpell = demonOnSpell;
 
-        demon.onDeath = function(demon, ch) {
-            //выпиливаемся из списка
-        .tmp.epidemy.demons.sub(demon);
-        };
+        demon.onDeath = demonOnDeath;
     };
     make_demon_list = function(){
         this = .tmp.epidemy;
@@ -106,6 +106,71 @@ demonInit = function() {
         demon_list['ipos'].short_descr = 'Ипос||а|у|а|ом|е';
         demon_list['ipos'].name = 'ipos ипос demon демон';
     };
+
+    demon_plan_check = function(){
+        var city;
+
+
+    };
+
+    fillDemonTrigers = function() {
+        this = .tmp.epidemy.triggers;
+
+        demonOnSpec = function(demon){
+            this = .tmp.epidemy;
+            if(demon.plan==null){
+                demon.plan = demon_plan_check(demon);
+            }
+        };
+
+        /*onSpell(ch, spell, before) - ch пытается колдовать на нас заклинание spell,
+где spell - англ название умения. Вызывается дважды, причем before будет равно true перед кастом,
+и false - после каста. Если вернуть true из первого вызова, то заклинание выполнено не будет.
+Если вернуть true из второго вызова, то отрицательной реакции на атакующее заклинание не последует.  */
+        //test
+        // demonOnSpell = function(demon,ch,spell,before) {
+        demonOnSpell = function(ch,spell,before) {
+            //dispel evil
+            if(before){
+                //test
+                /*if(spell == 'dispel evil' || spell == 'ray of truth'
+                    || spell == 'wrath' || spell == 'banishment') {
+                    recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", this);
+                    return true;
+                }*/
+                //test
+                .tmp.epidemy.me.ptc('onSpell.before: '+ch.name+'->'+spell+'\n');
+            } else {
+                //test
+                /*if(spell == 'dispel evil' || spell == 'ray of truth'
+                    || spell == 'wrath' || spell == 'banishment') {
+                .tmp.epidemy.heal(this);
+                    return true;
+                }*/
+                //test
+                .tmp.epidemy.me.ptc('onSpell.after: '+ch.name+'->'+spell+'\n');
+
+            }
+            //ray of truth
+        };
+
+        /*onHit(ch, dam, damType, wield) - ch нанес нам повреждения размером dam, типом дамаги damType и оружием wield (wield==null при сражении голыми руками).*/
+        //test
+        //demonOnHit = function(demon, ch, dam, damType, wield) {
+        demonOnHit = function(ch, dam, damType, wield) {
+            var str;
+            if(wield==null) {str='голыми руками';} else {str=wield.name;}
+            .tmp.epidemy.me.ptc('onHit: '+ch.name+'->'+str+' dam:'+dam+' damType:'+damType+'\n');
+        };
+
+        demonOnDeath = function(demon, ch) {
+            this = .tmp.epidemy;
+            //выпиливаемся из списка
+            demons.sub(demon);
+        };
+    };
+
+    fillDemonTrigers();
 
     demon = .get_mob_index(28666);
     add_demon_triggers(demon);

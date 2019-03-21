@@ -1,0 +1,76 @@
+fiendInit = function(){
+if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+    this = .tmp.epidemy;
+    if(triggers==null)
+        triggers=.Map();
+    var fill_fiend_triggers;
+
+    get_fiends = function(demon, victim) {
+        this = .tmp.epidemy;
+
+        fiendFst = get_one_fiend(victim);
+        fiendSnd = get_one_fiend(victim);
+
+        fiendFst.epidemy.snd = fiendSnd;
+        fiendSnd.epidemy.snd = fiendFst;
+
+        fiendFst.char_to_room(demon.in_room);
+        fiendSnd.char_to_room(demon.in_room);
+
+        demon.recho('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
+        demon.recho('...Из врат выходят два исчадия, готовых исполнить волю %1$^c2...',demon);
+        demon.recho('...Врата со скрипом и грохотом затворяются. Вопли истязаемых душ стихают.');
+    };
+
+    get_one_fiend = function(victim) {
+        this = .tmp.epidemy;
+        var fiend;
+
+        fiend = Fiend.create();
+
+        fiend.epidemy = .Map();
+        fiend.epidemy.victim = victim;
+        fiend.epidemy.primary_targer = victim.pIndexData.vnum;
+
+        return fiend;
+    };
+
+    fiend_plan_check = function (fiend) {
+        var result;
+        /*
+        * 0 - не знаю что делать
+        * 1 - идём к цели
+        * 2 - пришли к цели - геноцид
+        */
+        result = 0;
+        if(fiend.epidemy.plan==null) {
+            if(fiend.epidemy.victim==null || fiend.epidemy.victim.dead) {
+                //цель померла, надо новую
+                if(.get_mob_index(fiend.epidemy.primary_targer).instances.size()>0) {
+                    fiend.epidemy.victim = .get_mob_index(fiend.epidemy.primary_targer).instances.random();
+                    fiend.epidemy.snd.epidemy.victim = fiend.epidemy.victim;
+                    result 1;
+                } else {
+                    
+                }
+            }
+        }
+        return result;
+    };
+
+    fill_fiend_triggers = function(Fiend){
+        onSpec = function(fiend) {
+            if(fiend.epidemy.plan == null) {
+                fiend.epidemy.plan == .tmp.epidemy.fiend_plan_check(this);
+            }
+        };
+
+        onArea = function(fiend) {
+            if(field.epidemy.plan == 0)
+                fiend.epidemy.plan = null;
+        };
+    };
+
+    Fiend = .get_mob_index(28667);
+    fill_fiend_triggers(Fiend);
+}

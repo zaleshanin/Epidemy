@@ -24,6 +24,7 @@ invadersRulezInit = function() {
 .tmp.epidemy.pitVnum = 3010;
 .tmp.epidemy.darkTempleVnum = 3072;
 .tmp.epidemy.demon = .get_mob_index(28666);
+.tmp.epidemy.fiend = .get_mob_index(28667);
 
     //----------------------------------------------------------------//
     //Инитим все куски под эпидемию
@@ -33,6 +34,8 @@ invadersRulezInit = function() {
     warlockInit();
     epidemyInit();
     demonInit();
+    fiendInit();
+
     //----------------------------------------------------------------//
 
 }
