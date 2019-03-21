@@ -1,223 +1,221 @@
 epidemyInit = function() {
     var fillEmotes, fillTriggers, fillInfected;
-	if (.tmp.epidemy == null)
-        .tmp.epidemy = .Map();
+    if (.tmp.epidemy == null)
+.tmp.epidemy = .Map();
 
-	this = .tmp.epidemy;
+    this = .tmp.epidemy;
 
-	infect = function(mob) {
-		this = .tmp.epidemy;
-		//всё равно заболеет, заносим в список
-		if(mob.epidemy==null)
-			mob.epidemy = .Map();
-
-		infected.push_back(mob);
-
-		mob = setInfectedTriggers(mob);
-	};
-	transform = function(mob) {
+    infect = function(mob) {
         this = .tmp.epidemy;
-		//тёмные силы победили! УРА!
-		//выворачиваем зверюгу наизнанку если она не пет
-		mob = evert(mob);
-		mob = setSickTriggers(mob);
-	};
-	getVictims = function(mob) {
-		var count,i,l,vict;
-		var result;
+        //всё равно заболеет, заносим в список
+        if(mob.epidemy==null)
+            mob.epidemy = .Map();
 
-		l = mob.in_room.ppl.clone();
-		result = .List();
-		count = l.size();
+        infected.push_back(mob);
 
-		for(i=0;i<count;i=i+1) {
-			vict = l.back();
+        mob = setInfectedTriggers(mob);
+    };
+    transform = function(mob) {
+        this = .tmp.epidemy;
+        //тёмные силы победили! УРА!
+        //выворачиваем зверюгу наизнанку если она не пет
+        mob = evert(mob);
+        mob = setSickTriggers(mob);
+        clearPlan(mob);
+    };
+    getVictims = function(mob) {
+        var count,i,l,vict;
+        var result;
+
+        l = mob.in_room.ppl.clone();
+        result = .List();
+        count = l.size();
+
+        for(i=0;i<count;i=i+1) {
+            vict = l.back();
             l.pop_back();
             if(vict==mob) continue;
             if(!vict.is_npc()) continue;
             if(vict.epidemy!=null) continue;
 
-			if(vict.size <= mob.size //малышей кусь
-				|| (vict.leader!=null && vict.leader.pet==vict)) { //петов кусь
-				result.push_back(vict);
-			}
-		}
+            if(vict.size <= mob.size //малышей кусь
+                || (vict.leader!=null && vict.leader.pet==vict)) { //петов кусь
+                result.push_back(vict);
+            }
+        }
 
-		return result;
-	};
-	evert = function(mob) {
-		this = .tmp.epidemy;
-		var match;
+        return result;
+    };
+    evert = function(mob) {
+        this = .tmp.epidemy;
+        var match;
 
-		var long_descr;
-		var enName;
-		var regexp;
+        var long_descr;
+        var enName;
+        var regexp;
 
-		var short_descr;
-		var description;
+        var short_descr;
+        var description;
 
-		var name;
-		var nameList;
-		long_descr = 'Вывернутое наизнанку существо {D#runame{x {Y(#enname{Y) ходит тут задом наперед.\n';
-		description = 'Отвратительное существо, вывернутое внутренностями наружу (несомненно какой-то\n' +
-			'{Dтемной{x магией), {D#runame{x ходит здесь задом наперед. Лучше держаться\n' +
-			'от ЭТОГО подальше, чтоб не укусило (страшно представить каким местом).\n' +
-			'Из черных глаз существа вырываются еле заметные языки феолетово-черного пламени.\n\n';
+        var name;
+        var nameList;
+        long_descr = 'Вывернутое наизнанку существо {D#runame{x {Y(#enname{Y) ходит тут задом наперед.\n';
+        description = 'Отвратительное существо, вывернутое внутренностями наружу (несомненно какой-то\n' +
+            '{Dтемной{x магией), {D#runame{x ходит здесь задом наперед. Лучше держаться\n' +
+            'от ЭТОГО подальше, чтоб не укусило (страшно представить каким местом).\n' +
+            'Из черных глаз существа вырываются еле заметные языки феолетово-черного пламени.\n\n';
 
-		short_descr = reverseStr(mob.seeName(mob));
+        short_descr = reverseStr(mob.seeName(mob));
 
-		regexp = ' \\((' + mob.name.replace(' ','|') + ')\\) ';
-		match = mob.long_descr.matchGroups(regexp);
+        regexp = ' \\((' + mob.name.replace(' ','|') + ')\\) ';
+        match = mob.long_descr.matchGroups(regexp);
 
-		if(match.size()) {
-			long_descr = long_descr.replace('#enname', '{D'+reverseStr(match.back())+'{x');
-		} else {
-			long_descr = long_descr.replace('\{Y\(#enname\{Y\) ','{Y');
-		}
+        if(match.size()) {
+            long_descr = long_descr.replace('#enname', '{D'+reverseStr(match.back())+'{x');
+        } else {
+            long_descr = long_descr.replace('\{Y\(#enname\{Y\) ','{Y');
+        }
 
-		nameList = ((short_descr+' '+reverseStr(mob.name)).split(' ')).sort().unique();
+        nameList = ((short_descr+' '+reverseStr(mob.name)).split(' ')).sort().unique();
 
-		name = '';
-		var i; var size;
-		size = nameList.size();
-		for(i=1;i<=size;i=i+1) {
-			name = name+nameList.front();
-			nameList.pop_front();
-			if(i<size)
-				name = name + ' ';
-		}
+        name = '';
+        var i; var size;
+        size = nameList.size();
+        for(i=1;i<=size;i=i+1) {
+            name = name+nameList.front();
+            nameList.pop_front();
+            if(i<size)
+                name = name + ' ';
+        }
 
-		long_descr = long_descr.replace('#runame',short_descr);
-		description = description.replace('#runame',short_descr);
+        long_descr = long_descr.replace('#runame',short_descr);
+        description = description.replace('#runame',short_descr);
 
-		mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
-		// меняем описания, и сохраняем старые для выздоравливания.
-		mob.epidemy.long_descr = mob.long_descr;
-		mob.long_descr = long_descr;
+        mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
+        // меняем описания, и сохраняем старые для выздоравливания.
+        mob.epidemy.long_descr = mob.long_descr;
+        mob.long_descr = long_descr;
 
-		mob.epidemy.short_descr = mob.short_descr;
-		mob.short_descr = '{D'+short_descr+'{x';
+        mob.epidemy.short_descr = mob.short_descr;
+        mob.short_descr = '{D'+short_descr+'{x';
 
-		mob.epidemy.description = mob.description;
-		mob.description = description;
-		//2do: хорошо бы надевать на петов ошейник с именем
+        mob.epidemy.description = mob.description;
+        mob.description = description;
+        //2do: хорошо бы надевать на петов ошейник с именем
 
-		mob.epidemy.name = mob.name;
-		mob.name = name;
+        mob.epidemy.name = mob.name;
+        mob.name = name;
 
         mob.epidemy.alignment = mob.alignment;
         mob.alignment = -1000;
 
-		return mob;
-	};
-	//2do олень, олень-одиночка
-	reverseStr = function(str) {
-	    //test
+        return mob;
+    };
+    reverseStr = function(str) {
+        //test
         var me;
         me = .get_char_world('miyamoto');
-		var newStr;
-		var alfa;
-		var i;
+        var newStr;
+        var alfa;
+        var i;
 
-		newStr = '';
-/*
-            me.ptc(alfa+'->'+fst);
-			if((alfa.toLower()=='ь' || alfa.toLower()=='ъ') && fst)
-                continue;
-
-            if(alfa.match('[- йуёеъыаоэяиью]{1}')){
-			    fst = true;
-            } else {
-                fst=false;
-            }
-*/
-		str = str.stripColour();
-		for( i=0; i<80; i=i+1) {
-			alfa = str.substr(i,1).toLower();
+        newStr = '';
+        str = str.stripColour();
+        for( i=0; i<80; i=i+1) {
+            alfa = str.substr(i,1).toLower();
             if(alfa.match('[- йуёеъыаоэяиью]{1}|^$') && newStr.match('^[ьъ]')) {
                 newStr = newStr.substr(1);
             }
 
-			if(alfa=='')
-				break;
+            if(alfa=='')
+                break;
 
-			newStr = alfa + newStr;
-		}
+            newStr = alfa + newStr;
+        }
 
-		return newStr;
+        return newStr;
+    };
+    heal = function(mob) {
+        this = .tmp.epidemy;
+
+        plan_cancel(mob);
+
+        //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
+        if(mob.epidemy.name!=null) {
+            mob.name = mob.epidemy.name;
+            mob.short_descr = mob.epidemy.short_descr;
+            mob.long_descr = mob.epidemy.long_descr;
+            mob.description = mob.epidemy.description;
+            mob.alignment = mob.epidemy.alignment;
+        }
+
+        mob.postSpec = null;
+        mob.onGreet = null;
+        mob.onEntry = null;
+        mob.onLeave = null;
+        mob.onSpell = null;
+        mob.onDeath = null;
+        mob.epidemy = null;
+
+        //выпиливаем из списка зараженных
+        infected.sub(mob);
+
+        mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
+    };
+    healall = function() {
+        this = .tmp.epidemy;
+        infected.forEach(function(){.tmp.epidemy.heal(this);});
+    };
+    show = function(ch){
+        this = .tmp.epidemy;
+        infected.forEach(function(char){
+            var plan;
+            plan = '';
+            if(epidemy.plan!=null && epidemy.plan>=1)
+                plan = '->'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+')';
+            char.ptc(char.seeName(this)+'->'+in_room.areaname+':'+in_room.name+'('+in_room.vnum+')'+plan+'\n');
+        },ch);
+    };
+    plan_cancel = function(mob) {
+    	this = .tmp.epidemy;
+        //test
+        //.tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
+
+        var total, city;
+        var i, l, m;
+
+        city = mob.in_room.areaname;
+
+        l = infected.clone();
+        total = l.size();
+
+        for( i=1 ; i<=total ; i=i+1 ) {
+            m = l.back();
+            if(m.in_room.areaname==city) {
+                clearPlan(m);
+            }
+            l.pop_back();
+        }
+
+    };
+    clearPlan = function(mob){
+        mob.epidemy.plan = null;
+        clearGPS(mob);
 	};
-	heal = function(mob) {
-		this = .tmp.epidemy;
-
-		plan_cancel(mob);
-
-		//будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
-		if(mob.epidemy.name!=null) {
-			mob.name = mob.epidemy.name;
-			mob.short_descr = mob.epidemy.short_descr;
-			mob.long_descr = mob.epidemy.long_descr;
-			mob.description = mob.epidemy.description;
-			mob.alignment = mob.epidemy.alignment;
-		}
-
-		mob.postSpec = null;
-		mob.onGreet = null;
-		mob.onEntry = null;
-		mob.onLeave = null;
-		mob.onSpell = null;
-		mob.onDeath = null;
-		mob.epidemy = null;
-
-		//выпиливаем из списка зараженных
-		infected.sub(mob);
-
-		mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
+    clearGPS = function(mob){
+        mob.epidemy.plan_room = null;
+        mob.epidemy.plan_waypoint = null;
+        mob.epidemy.plan_nextroom = null;
+        mob.epidemy.plan_way = null;
 	};
-	healall = function() {
-	.tmp.epidemy.infected.forEach(function(){.tmp.epidemy.heal(this);});
-	};
-	show = function(ch){
-	.tmp.epidemy.infected.forEach(function(char){
-			var plan;
-			plan = '';
-			if(epidemy.plan!=null && epidemy.plan>=1)
-				plan = '->'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+')';
-			char.ptc(char.seeName(this)+'->'+in_room.areaname+':'+in_room.name+'('+in_room.vnum+')'+plan+'\n');
-		},ch);
-	};
-	plan_cancel = function(mob) {
-		//test
-		//.tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
+    plan_check = function(mob) {
+        this = .tmp.epidemy;
 
-		var total, city;
-		var i, l, m;
-
-		city = mob.in_room.areaname;
-
-		l = .tmp.epidemy.infected.clone();
-		total = l.size();
-
-		for( i=1 ; i<=total ; i=i+1 ) {
-			m = l.back();
-			if(m.in_room.areaname==city) {
-				m.epidemy.plan = null;
-				m.epidemy.plan_room = null;
-				m.epidemy.plan_waypoint = null;
-				m.epidemy.plan_nextroom = null;
-				m.epidemy.plan_way = null;
-			}
-			l.pop_back();
-		}
-
-	};
-	plan_check = function(mob) {
-		this = .tmp.epidemy;
-
-		var result;
-		var total, city, room;
-		var i,mlist,m,icount,fidovnum;
-		var planG, planD;
-		planG = true; planD = true;
+        var result;
+        var total, city, room;
+        var i,mlist,m,icount,fidovnum;
+        var planG, planD;
+        planG = true; planD = true;
         city = mob.in_room.areaname;
         room = mob.in_room;
         result = 0;
@@ -230,7 +228,7 @@ epidemyInit = function() {
         * 2 - ты в куче, ждем остальных
         * 3 - я последний - вызываем "КРАКЕНА"
         */
-        if(mob.epidemy.plan_room==null) {
+        if(mob.epidemy.plan_room==null && mob.epidemy.plan==null) {
             //test
             mob.interpret('say plan_check: am i last one? (plan_room==null)');
 
@@ -253,59 +251,57 @@ epidemyInit = function() {
             //test
             mob.interpret('say infected in city:'+icount);
 
-            //фидолайк-твари найдены среди зараженных и зараженных достаточно
-            //if(fidovnum!=null && icount >= 13 ) {
-            //test
-            if(fidovnum!=null && icount >= 3 ) {
+            //должны быть заражены все fido-like, зараженных не меньше 13
+            if(fidovnum!=null && icount >= 13 ) {
                 //test
                 mob.interpret('say fido vnum:'+fidovnum);
 
-            	mlist = .get_mob_index(fidovnum).instances.clone();
+                mlist = .get_mob_index(fidovnum).instances.clone();
 
-            	result = 1;
-				total = mlist.size();
-				//все ли spec_fido в городе заражены
-				for( i=1 ; i<=total ; i=i+1 ) {
-					m = mlist.back();
-					//тварь в нашем городе, но не инфицирована
-					if(m.in_room.areaname==city && m.epidemy==null){
-						planG = false; planD = false; result = 0;
-					}
-					mlist.pop_back();
-				}
+                result = 1;
+                total = mlist.size();
+                //все ли spec_fido в городе заражены
+                for( i=1 ; i<=total ; i=i+1 ) {
+                    m = mlist.back();
+                    //тварь в нашем городе, но не инфицирована
+                    if(m.in_room.areaname==city && m.epidemy==null){
+                        planG = false; planD = false; result = 0;
+                    }
+                    mlist.pop_back();
+                }
 
-				//если планГ утвержден, и он еще не прописан - прописываем
-				//if(planG) {
-                    //test
-                    if(planG)mob.interpret('say attantion: planG!!!');
-					else mob.interpret('say attantion: NO planG! plan 0 for All!!!');
 
-					mlist = .tmp.epidemy.infected.clone();
-					total = mlist.size();
-					for( i=1 ; i<=total ; i=i+1 ) {
-						m = mlist.back();
-						if(m.in_room.areaname==city && m.leader==null) {
-                            if(planG) {m.epidemy.plan = 1;
-							m.epidemy.plan_room = room;}else{
-                                m.epidemy.plan = 0;
-                                m.epidemy.plan_room = null;
-                                //2do
-                                m.epidemy.plan_way = null;
-                                m.epidemy.plan_waypoint = null;
-                                m.epidemy.plan_nextroom = null;
-							}
-						}
-						mlist.pop_back();
-					}
-				//}
+                //if(planG) {
+                //test
+                if(planG)mob.interpret('say attantion: planG!!!');
+                else mob.interpret('say attantion: NO planG! plan 0 for All!!!');
+
+                mlist = .tmp.epidemy.infected.clone();
+                total = mlist.size();
+                for( i=1 ; i<=total ; i=i+1 ) {
+                    m = mlist.back();
+                    if(m.in_room.areaname==city && m.leader==null) {
+                        clearGPS(m);
+                        if(planG) {
+                            //если планГ утвержден, прописываем всем в городе
+                        	m.epidemy.plan = 1;
+                            m.epidemy.plan_room = room;
+                        } else {
+                        	//ни у кого нет плана
+                            m.epidemy.plan = 0;
+                        }
+                    }
+                    mlist.pop_back();
+                }
+                //}
             } else {
                 planG = false; planD = false;
-			}
+            }
         }
         //test
-		if(planD)mob.interpret('say checking for planD');
+        if(planD)mob.interpret('say checking for planD');
 
-		//если план Д еще не отменился, проверим...
+        //если план Д еще не отменился, проверим...
         //test
         mob.interpret('say planD:'+planD);
         if(planD) {
@@ -319,7 +315,7 @@ epidemyInit = function() {
                 result = 1;
                 planD = false;
             }
-		    icount = 0;
+            icount = 0;
             mlist = .tmp.epidemy.infected.clone();
             total = mlist.size();
             for( i=1 ; i<=total ; i=i+1 ) {
@@ -341,7 +337,7 @@ epidemyInit = function() {
             //если планД утвержден, назначем ответственного за геноцид
             //test
 //            if(planD && icount>=10) {
-            if(planD && icount>=3) {
+            if(planD && icount>=13) {
                 //test
                 mob.interpret('EPIDEMY: PLAN D!!!');
 
@@ -352,34 +348,34 @@ epidemyInit = function() {
         mob.interpret('say end of plan_check! result:'+result);
 
         return result;
-	};
-	explode_in_room = function(room) {
+    };
+    explode_in_room = function(room) {
         var l,i,c,m;
         var ash;
         //try {
-		room.ppl.forEach( function(){ act('Отвратительные существа вспыхивают темно-фиолетовым пламенем...');} );
-		
-		l = .tmp.epidemy.infected.clone();
-		c = l.size();
-		for(i=0;i<c;i=i+1){
-		    m = l.back();
-		    if(m.in_room==room && m.is_npc()){
+        room.ppl.forEach( function(){ act('Отвратительные существа вспыхивают темно-фиолетовым пламенем...');} );
+
+        l = .tmp.epidemy.infected.clone();
+        c = l.size();
+        for(i=0;i<c;i=i+1){
+            m = l.back();
+            if(m.in_room==room && m.is_npc()){
                 ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
                 ash.obj_to_room(room);
                 ash.timer = 5;
                 ash.description = 'Горсть пепла (ash) останков '+m.seeName(m,2)+'{G лежит у твоих ног.{x';
 
-		        m.extract(true);
-		    }
+                m.extract(true);
+            }
             l.pop_back();
-		}
+        }
         /*} catch(e) {
-        	.get_char_world('miyamoto').ptc("epidemy.explode_in_room: " + e);
-		}*/
-	};
+            .get_char_world('miyamoto').ptc("epidemy.explode_in_room: " + e);
+        }*/
+    };
 
     fillEmotes = function(){
-    	this = .tmp.epidemy;
+        this = .tmp.epidemy;
 
         //массивы социалов для зараженных
         emoteArray = .Array();
@@ -399,79 +395,79 @@ epidemyInit = function() {
         emoteTargArray[0] = "puke";
         emoteTargArray[1] = "stagger";
         emoteTargArray[2] = "growl";
-	};
+    };
     fillTriggers = function () {
         this = .tmp.epidemy;
 
         if(triggers == null)
-    		triggers = .Map();
+            triggers = .Map();
 
-		triggers.infectedPostSpec = function(){
-			if(.chance(1)) {
-				.tmp.epidemy.transform(this);
-			} else if(.chance(5)) {
-				act("Ты корчишься в мучениях сопротивляясь {Dтёмным силам{x внутри себя!");
-				recho("%1$^C1 дрожит и корчится сопротивляясь {Dтёмным силам{x внутри себя!", this);
-			}
-		};
+        triggers.infectedPostSpec = function(){
+            if(.chance(1)) {
+            .tmp.epidemy.transform(this);
+            } else if(.chance(5)) {
+                act("Ты корчишься в мучениях сопротивляясь {Dтёмным силам{x внутри себя!");
+                recho("%1$^C1 дрожит и корчится сопротивляясь {Dтёмным силам{x внутри себя!", this);
+            }
+        };
         triggers.sickPostSpec = function () {
-        	try {
-        	    if(dead) return;
+            try {
+                if(dead) return;
 
-        		if(epidemy==null && !dead) throw('NO epidemy Map\n');
+                if(epidemy==null && !dead) throw('NO epidemy Map\n');
 
-        		if(epidemy.victims==null) {
-        			epidemy.victims = .tmp.epidemy.getVictims(this);
-				}
+                if(epidemy.victims==null) {
+                    epidemy.victims = .tmp.epidemy.getVictims(this);
+                }
                 if(epidemy.plan != null && epidemy.plan >= 1 && epidemy.plan_room==null) {
                     epidemy.plan = null;
                 }
 
                 //test
                 //interpret('say (plan==null)='+(epidemy.plan == null)+' (plan==0)='+(epidemy.plan == 0));
-				if(epidemy.plan == null) {
-        			epidemy.plan = .tmp.epidemy.plan_check(this);
-				}
+                if(epidemy.plan == null) {
+                    epidemy.plan = .tmp.epidemy.plan_check(this);
+                }
                 //test
                 //interpret('say (plan==null)='+(epidemy.plan == null)+' (plan==0)='+(epidemy.plan == 0));
 
-				if(epidemy.plan == 2 && epidemy.plan_room!=in_room) {
-        			epidemy.plan = 1;
-				}
+                if(epidemy.plan == 2 && epidemy.plan_room!=in_room) {
+                    epidemy.plan = 1;
+                }
                 if(epidemy.plan == 1 && epidemy.plan_room==in_room) {
                     epidemy.plan = 2;
                 }
 
-				//test
-                interpret('say plan:'+epidemy.plan+', '+.tmp.epidemy.infected.size()+' infected');
+                //test
+                //interpret('say plan:'+epidemy.plan+', '+.tmp.epidemy.infected.size()+' infected');
 
-				if(epidemy.plan == 3) {
-					//бывает что какая-то зверюга убегает в последний момент
+                if(epidemy.plan == 3) {
+                    //бывает что какая-то зверюга убегает в последний момент
                     epidemy.plan = .tmp.epidemy.plan_check(this);
                     //и если план без изменений
                     if(epidemy.plan == 3) {
                         //test
                         interpret('say DEMON TIME!!!');
-						var demon_room;
+                        var demon_room;
 
-						demon_room = in_room;
+                        demon_room = in_room;
                         //взорвать всех зверюг в комнате
-                        .tmp.epidemy.explode_in_room(demon_room);
+                    .tmp.epidemy.explode_in_room(demon_room);
                         //вызывать демона
-                        .tmp.epidemy.get_one_demon(demon_room);
+                    .tmp.epidemy.get_one_demon(demon_room);
                         return;
-					}
-				}
+                    }
+                }
 
                 //собака-кусака!
-				if(epidemy.victims.size() && .chance(10)) {
+                if(epidemy.victims.size() && .chance(10)) {
                     //test
                     interpret('say Я собака-кусака!!!');
                     //кусаем если есть кого
                     var vict;
                     vict = epidemy.victims.random();
                     if(vict.in_room!=in_room || vict.epidemy!=null){
-                    	//изчез куда-то гад!!!
+                        //изчез куда-то гад!!!
                         epidemy.victims = null;
                         //test
                         interpret('say where is '+vict.name+'?!');
@@ -485,7 +481,7 @@ epidemyInit = function() {
                         epidemy.victims.sub(vict);
                     }
                     return;
-				}
+                }
 
                 //собака - гуляка!
                 /*plan:
@@ -500,18 +496,18 @@ epidemyInit = function() {
                     //test
                     interpret('say Я собака-гуляка!!! иду в '+epidemy.plan_room.name);
                     // нет маршрута, или сместились в процессе следования
-					if(epidemy.plan_way==null || (epidemy.plan_waypoint!=null && epidemy.plan_waypoint!=in_room)){
-						if(!epidemy.plan_room.isCommon()) {
+                    if(epidemy.plan_way==null || (epidemy.plan_waypoint!=null && epidemy.plan_waypoint!=in_room)){
+                        if(!epidemy.plan_room.isCommon()) {
                             //test
                             interpret('say Нам в '+epidemy.plan_room.name+' нельзя!');
-							epidemy.plan = null;
-							epidemy.plan_room = null;
-							//return;
-						} else {
+                            epidemy.plan = null;
+                            epidemy.plan_room = null;
+                            //return;
+                        } else {
                             //test
                             interpret('say как пройти в '+epidemy.plan_room.name+'?');
-							//ищем путь
-							var sectorsDeny;
+                            //ищем путь
+                            var sectorsDeny;
                             sectorsDeny = 0;
                             /*
                             Руфина говорит тебе 'а вообще я добавила .set_bit_number'
@@ -521,31 +517,27 @@ epidemyInit = function() {
                             // sectorsDeny = .set_bit(sectorsDeny, .tables.sector_table.air);
         */
 
-							interpret('ponder');
-							epidemy.plan_way = in_room.traverseTo(epidemy.plan_room, this, 0, sectorsDeny);
-							if(epidemy.plan_way.size()>0){
+                            interpret('ponder');
+                            epidemy.plan_way = in_room.traverseTo(epidemy.plan_room, this, 0, sectorsDeny);
+                            if(epidemy.plan_way.size()>0){
                                 //test
-                                interpret('say маршрут построен. следующая остановка: '+in_room.name);
-								epidemy.plan_waypoint = in_room;
-								return;
-							}
-						}
-					} else {
-						//маршрут есть и мы с него не сбились
+                                interpret('say маршрут построен. стартуем из: '+in_room.name);
+                                epidemy.plan_waypoint = in_room;
+                                return;
+                            }
+                        }
+                    } else {
+                        //маршрут есть и мы с него не сбились
                         if(epidemy.plan_nextroom==null) {
                             if(.chance(20)) {
-								//нюхаем
-								in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
-								if(epidemy.plan_way.size()==0){
-									//2do
-									mob.epidemy.plan_nextroom=null;
-                                    mob.epidemy.plan_waypoint=null;
-                                    mob.epidemy.plan_way=null;
-								    throw('собака-гуляка:WaySize=0;room:'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+');in_room:'+in_room.name+'('+in_room.vnum+')\n');
-								}
-								epidemy.plan_nextroom = epidemy.plan_way.front();
-								epidemy.plan_way.pop_front();
-								return;
+                                //нюхаем
+                                in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
+                                //внезапно закончился маршрут - кидаем исключение
+                                if(epidemy.plan_way.size()==0){.tmp.epidemy.clearGPS(this);throw('собака-гуляка:WaySize=0;room:'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+');in_room:'+in_room.name+'('+in_room.vnum+')\n');}
+
+                                epidemy.plan_nextroom = epidemy.plan_way.front();
+                                epidemy.plan_way.pop_front();
+                                return;
                             }
                         } else {
                             //test
@@ -569,67 +561,61 @@ epidemyInit = function() {
                                     if(in_room == epidemy.plan_room) { // && epidemy.plan_way.size()==0
                                         //test
                                         interpret('say мы прибыли в место назначение!');
-										epidemy.plan=null;
-                                        epidemy.plan_way = null;
-                                        //2do
-                                        epidemy.plan_nextroom=null;
-                                        epidemy.plan_waypoint=null;
-                                        //mob.epidemy.plan_way=null;
+                                        .tmp.epidemy.clearPlan(this);
+                                        epidemy.plan_room = in_room;
                                     }
                                     return;
                                 } else {
-									interpret('bonk');
+                                    interpret('cry');
                                     interpret('say заблудилася я! ПА-МА-ГИ-ТЕ!!!');
-                                    epidemy.plan_nextroom = null;
-                                    epidemy.plan_way = null;
-                                    epidemy.plan_waypoint = null;
+                                    .tmp.epidemy.clearGPS(this);
                                     return;
                                 }
 
                             }
                         }
-					}
+                    }
                     //test
                     interpret('say никуда вроде не погуляла?');
-					//return;
-				}
+                    //return;
+                }
 
                 //собака-кривляка!
-				if(.chance(5)) {
+                if(.chance(5)) {
                     //test
                     interpret('say Я собака-кривляка!');
-					//спамим всякими социалами
-					if (in_room.ppl.size()<2)
-						return;
+                    //спамим всякими социалами
+                    if (in_room.ppl.size()<2)
+                        return;
 
-					var numba,temotes,emotes;
-					emotes = .tmp.epidemy.emoteArray.keys.size();
-					temotes = .tmp.epidemy.emoteTargArray.keys.size();
-					numba = .number_range(0, (temotes+emotes-1));
+                    var numba,temotes,emotes;
+                    emotes = .tmp.epidemy.emoteArray.keys.size();
+                    temotes = .tmp.epidemy.emoteTargArray.keys.size();
+                    numba = .number_range(0, (temotes+emotes-1));
 
-					if (numba > (emotes-1)) {
-						var target;
-						var str;
-						numba = numba - emotes;
+                    if (numba > (emotes-1)) {
+                        var target;
+                        var str;
+                        numba = numba - emotes;
 
-						if(.tmp.epidemy.emoteTargArray[numba]==null)
-						throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
+                        if(.tmp.epidemy.emoteTargArray[numba]==null)
+                        throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
 
-						for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
+                        for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
 
-						str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
-						interpret(str);
-					} else {
-						interpret(.tmp.epidemy.emoteArray[numba]);
-					}
-					return;
-				}
+                        str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
+                        interpret(str);
+                    } else {
+                        interpret(.tmp.epidemy.emoteArray[numba]);
+                    }
+                    return;
+                }
             } catch(e){
-        		var me;
-        		me = .get_char_world('miyamoto');
-        		if(me!=null)
-        			me.ptc('epidemy.postSpec:'+e);
-			}
+                var me;
+                me = .get_char_world('miyamoto');
+                if(me!=null)
+                    me.ptc('epidemy.postSpec:'+e);
+            }
         };
 
         /*onSpell(ch, spell, before) - ch пытается колдовать на нас заклинание spell,
@@ -637,86 +623,86 @@ epidemyInit = function() {
         и false - после каста. Если вернуть true из первого вызова, то заклинание выполнено не будет.
         Если вернуть true из второго вызова, то отрицательной реакции на атакующее заклинание не последует.  */
         triggers.infectedOnSpell = function(ch,spell,before) {
-			//dispel evil
-			if(before){
-				if(spell == 'dispel evil' || spell == 'heal' || spell == 'superior heal') {
+            //dispel evil
+            if(before){
+                if(spell == 'dispel evil' || spell == 'heal' || spell == 'superior heal') {
                     recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", this);
                     return true;
                 }
-			} else {
+            } else {
                 if(spell == 'dispel evil' || spell == 'heal' || spell == 'superior heal') {
-                	.tmp.epidemy.heal(this);
+                .tmp.epidemy.heal(this);
                     return true;
                 }
-			}
-			//ray of truth
-		};
+            }
+            //ray of truth
+        };
         triggers.sickOnSpell = function(ch,spell,before) {
             //dispel evil
             if(before){
                 if(spell == 'dispel evil' || spell == 'ray of truth'
-					|| spell == 'wrath' || spell == 'banishment') {
+                    || spell == 'wrath' || spell == 'banishment') {
                     recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", this);
                     return true;
                 }
             } else {
                 if(spell == 'dispel evil' || spell == 'ray of truth'
-					|| spell == 'wrath' || spell == 'banishment') {
-                	.tmp.epidemy.heal(this);
+                    || spell == 'wrath' || spell == 'banishment') {
+                .tmp.epidemy.heal(this);
                     return true;
                 }
             }
             //ray of truth
         };
 
-		//onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
+        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         triggers.infectedOnDeath = function(ch) {
-			//выпиливаемся из списка
-		.tmp.epidemy.infected.sub(this);
-		};
+            //выпиливаемся из списка
+        .tmp.epidemy.infected.sub(this);
+        };
         triggers.infectedOnExtract = function(count) {
-			//выпиливаемся из списка
-			.tmp.epidemy.infected.sub(this);
-		};
+            //выпиливаемся из списка
+        .tmp.epidemy.infected.sub(this);
+        };
 
         //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
-		triggers.sickOnLeave = function(ch, from_room, movetype) {
+        triggers.sickOnLeave = function(ch, from_room, movetype) {
             epidemy.victims = null;
-		};
+        };
 
-		//onEntry() - мы вошли в какую-то комнату
+        //onEntry() - мы вошли в какую-то комнату
         triggers.sickOnEntry = function() {
             epidemy.victims = null;
-		};
+        };
 
-		//onGreet(ch) - ch вошел в нашу комнату
+        //onGreet(ch) - ch вошел в нашу комнату
         triggers.sickOnGreet = function(ch) {
             epidemy.victims = null;
-		};
+        };
 
-		//onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
+        //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         triggers.sickOnDeath = function(ch) {
-			//выпиливаемся из списка
-			.tmp.epidemy.infected.sub(this);
+            //выпиливаемся из списка
+        .tmp.epidemy.infected.sub(this);
 
-			//отменяем план
-			if(epidemy.plan!=null)
-				.tmp.epidemy.plan_cancel(this);
-			//вылупляем импа
-		};
+            //отменяем план
+            if(epidemy.plan!=null)
+                .tmp.epidemy.plan_cancel(this);
+            //вылупляем импа
+        };
 
     };
     fillInfected = function() {
-		var i, result;
+        var i, result;
 
         result = .List();
 
-		for (i = .char_list; i != null; i = i.next) {
-			if (i.is_npc() && i.epidemy != null && !i.dead) {
-				result.push_back(i);
-			}
-		}
-		return result;
+        for (i = .char_list; i != null; i = i.next) {
+            if (i.is_npc() && i.epidemy != null && !i.dead) {
+                result.push_back(i);
+            }
+        }
+        return result;
     };
 
     setInfectedTriggers = function(mob) {
@@ -739,10 +725,10 @@ epidemyInit = function() {
     };
 
     fillTriggers();
-	fillEmotes();
+    fillEmotes();
     //список зараженных
     infected = fillInfected();
-	
+
     //перепрошивка зараженных из списка свежими тригерами
     infected.forEach(function () {
         epidemy.plan_way = null;
