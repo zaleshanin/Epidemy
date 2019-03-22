@@ -172,7 +172,7 @@ this = .tmp.epidemy;
 
     fillDemonTrigers();
 
-    demon = .get_mob_index(28666);
+    demon = .get_mob_index(762);
     add_demon_triggers(demon);
     make_demon_list();
 }
