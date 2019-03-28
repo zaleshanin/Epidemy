@@ -119,8 +119,13 @@ this = .tmp.epidemy;
 
         return result;
     };
-    get_one_good = function(city) {
+    get_one_good = function(demon) {
+        this = .tmp.epidemy;
+
         var i,list, vlist;
+        var city;
+        city = demon.in_room.areaname;
+
         list = .List();
 
         vlist = get_victims_list();
@@ -130,7 +135,8 @@ this = .tmp.epidemy;
                 && i.in_room.areaname==city && i.in_room.isCommon()
                 && !vlist.has(i)) {
                 //2do не посылать если нельзя построить маршрут
-                list.push_back(i);
+                if(find_way(demon,i.in_room).size()>0)
+                    list.push_back(i);
             }
         }
 
@@ -145,11 +151,11 @@ this = .tmp.epidemy;
          *  0 - ничего не делаем, ждём
          *  1 - ищем добрячка - посылаем fiends
          */
-        city = demon.in_room.areaname;
+        //city = demon.in_room.areaname;
         if(demon.epidemy.plan==null) {
             //test
             demon.interpret('say дело было вечером делать было нечего!');
-            victim = get_one_good(city);
+            victim = get_one_good(demon);
             if(victim != null) {
                 plan = 1;
                 demon.epidemy.victim = victim;
