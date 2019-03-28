@@ -41,9 +41,11 @@ this = .tmp.epidemy;
         var demon;
         var demon_name;
 
-        demon = demon.create();
+        demon = Demon.create();
         //пишем призванного демона в список
         .tmp.epidemy.demons.push_back(demon);
+
+        demon.epidemy = .Map();
 
         //выдаём демону имя
         demon_name = get_demon_name();
@@ -60,13 +62,6 @@ this = .tmp.epidemy;
 		room.ppl.forEach(function(mob){act('...из дыма и гари появляется %1$C1.',mob);},demon);
     };
 
-    add_demon_triggers = function(demon){
-        this = .tmp.epidemy.triggers;
-
-        //demon.onSpell = demonOnSpell;
-
-        demon.onDeath = demonOnDeath;
-    };
     make_demon_list = function(){
         this = .tmp.epidemy;
         demon_list = .Array();
@@ -107,20 +102,121 @@ this = .tmp.epidemy;
         demon_list['ipos'].name = 'ipos ипос demon демон';
     };
 
-    demon_plan_check = function(){
-        var city;
+    get_victims_list = function () {
+        this = .tmp.epidemy;
+        var result;
+        var i,l,c,fiend;
+        result = .List();
+        l = Fiend.instances.clone();
+        c = l.size();
+        for(i=0;i<c;i=i+1) {
+            fiend = l.back();
+            l.pop_back();
+            if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead) {
+                result.push_back(fiend.epidemy.victim);
+            }
+        }
 
+        return result;
+    };
+    get_one_good = function(city) {
+        var i,list, vlist;
+        list = .List();
 
+        vlist = get_victims_list();
+
+        for (i = .char_list; i != null; i = i.next) {
+            if (i.is_npc() && i.alignment>=350
+                && i.in_room.areaname==city && i.in_room.isCommon()
+                && !vlist.has(i)) {
+                //2do не посылать если нельзя построить маршрут
+                list.push_back(i);
+            }
+        }
+
+        return list.random();
     };
 
-    fillDemonTrigers = function() {
-        this = .tmp.epidemy.triggers;
+    demon_plan_check = function(demon){
+        this = .tmp.epidemy;
+        var city,victim,plan;
 
-        demonOnSpec = function(demon){
-            this = .tmp.epidemy;
-            if(demon.plan==null){
-                demon.plan = demon_plan_check(demon);
+        /*
+         *  0 - ничего не делаем, ждём
+         *  1 - ищем добрячка - посылаем fiends
+         */
+        city = demon.in_room.areaname;
+        if(demon.epidemy.plan==null) {
+            //test
+            demon.interpret('say дело было вечером делать было нечего!');
+            victim = get_one_good(city);
+            if(victim != null) {
+                plan = 1;
+                demon.epidemy.victim = victim;
+                //test
+                demon.interpret('say похоже будем убивать!');
+            } else {
+                plan = 0;
+                //test
+                demon.interpret('say а где все?!');
             }
+        }
+
+        return plan;
+    };
+
+    add_demon_triggers = function() {
+        this = .tmp.epidemy;
+        Demon.postSpec = function(demon){
+            //test
+            demon.interpret('sigh');
+            this = .tmp.epidemy;
+
+            if(demon.fighting != null)
+                return;
+            try {
+            if(demon.epidemy.plan==null){
+                //test
+                demon.interpret('say чем бы заняться?');
+                demon.epidemy.plan = demon_plan_check(demon);
+
+            }
+
+            if(demon.epidemy.plan==1) {
+                if(demon.epidemy.victim==null || demon.epidemy.victim.dead) {
+                    demon.epidemy.plan=null;
+                    throw('epidemy.demon: no victim for calling fiends');
+                }
+
+                demon.interpret('emote делает странные пассы руками... немного помогая себе хвостом и надбровными дугами.');
+                .scheduler.sleep(2);
+                get_fiends(demon,demon.epidemy.victim);
+                .scheduler.sleep(2);
+                demon.recho('%1$^C1 произносит \'{gУбить %2$C4!\'{x',demon, demon.epidemy.victim);
+                demon.epidemy.victim=null;
+                demon.epidemy.plan = 0;
+            }
+            } catch (e) {
+                //test
+                // .print('epidemy.demon.postSpec:'+e);
+                .get_char_world('miyamoto').ptc('epidemy.demon.postSpec:'+e);
+            }
+        };
+        Demon.onArea = function(demon){
+            this = .tmp.epidemy;
+
+            if(demon.fighting != null)
+                return;
+
+            if(demon.epidemy.plan==0) {
+                demon.epidemy.plan = null;
+            }
+        };
+
+        Demon.onDeath = function(demon, ch) {
+            this = .tmp.epidemy;
+            //выпиливаемся из списка
+            demons.sub(demon);
         };
 
         /*onSpell(ch, spell, before) - ch пытается колдовать на нас заклинание spell,
@@ -129,51 +225,46 @@ this = .tmp.epidemy;
 Если вернуть true из второго вызова, то отрицательной реакции на атакующее заклинание не последует.  */
         //test
         // demonOnSpell = function(demon,ch,spell,before) {
-        demonOnSpell = function(ch,spell,before) {
+        /*demon.onSpell = function(ch,spell,before) {
             //dispel evil
             if(before){
                 //test
-                /*if(spell == 'dispel evil' || spell == 'ray of truth'
+                /!*if(spell == 'dispel evil' || spell == 'ray of truth'
                     || spell == 'wrath' || spell == 'banishment') {
                     recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", this);
                     return true;
-                }*/
+                }*!/
                 //test
                 .tmp.epidemy.me.ptc('onSpell.before: '+ch.name+'->'+spell+'\n');
             } else {
                 //test
-                /*if(spell == 'dispel evil' || spell == 'ray of truth'
+                /!*if(spell == 'dispel evil' || spell == 'ray of truth'
                     || spell == 'wrath' || spell == 'banishment') {
                 .tmp.epidemy.heal(this);
                     return true;
-                }*/
+                }*!/
                 //test
                 .tmp.epidemy.me.ptc('onSpell.after: '+ch.name+'->'+spell+'\n');
 
             }
             //ray of truth
-        };
+        };*/
 
         /*onHit(ch, dam, damType, wield) - ch нанес нам повреждения размером dam, типом дамаги damType и оружием wield (wield==null при сражении голыми руками).*/
         //test
         //demonOnHit = function(demon, ch, dam, damType, wield) {
-        demonOnHit = function(ch, dam, damType, wield) {
+        /*demon.onHit = function(ch, dam, damType, wield) {
             var str;
             if(wield==null) {str='голыми руками';} else {str=wield.name;}
             .tmp.epidemy.me.ptc('onHit: '+ch.name+'->'+str+' dam:'+dam+' damType:'+damType+'\n');
-        };
+        };*/
 
-        demonOnDeath = function(demon, ch) {
-            this = .tmp.epidemy;
-            //выпиливаемся из списка
-            demons.sub(demon);
-        };
     };
 
     fillDemonTrigers();
 
-    demon = .get_mob_index(762);
-    add_demon_triggers(demon);
+    Demon = .get_mob_index(762);
+    add_demon_triggers();
     make_demon_list();
 }
 
