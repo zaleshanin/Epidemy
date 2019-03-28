@@ -35,7 +35,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
         fiend.epidemy = .Map();
         fiend.epidemy.victim = victim;
-        fiend.epidemy.primary_targer = victim.pIndexData.vnum;
+        fiend.epidemy.primary_target = victim.pIndexData.vnum;
 
         fiend.armor0 = victim.armor0;
         fiend.armor1 = victim.armor1;
@@ -105,8 +105,8 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
         if(fiend.epidemy.plan==null) {
             if(fiend.epidemy.victim==null || fiend.epidemy.victim.dead) {
                 //цель померла, надо новую
-                if(.get_mob_index(fiend.epidemy.primary_targer).instances.size()>0) {
-                    fiend.epidemy.victim = get_victim(fiend.epidemy.primary_targer);
+                if(.get_mob_index(fiend.epidemy.primary_target).instances.size()>0) {
+                    fiend.epidemy.victim = get_victim(fiend.epidemy.primary_target);
                     if(!fiend.epidemy.snd.dead){
                         fiend.epidemy.snd.epidemy.victim = fiend.epidemy.victim;
                     }
@@ -126,8 +126,15 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                 result = 2;
             } else {
                 fiend.epidemy.plan_room = fiend.epidemy.victim.in_room;
-                fiend.epidemy.plan_way = find_way(fiend, fiend.epidemy.plan_room);
                 fiend.epidemy.plan_waypoint = fiend.in_room;
+                fiend.epidemy.plan_way = find_way(fiend, fiend.epidemy.plan_room);
+                //2do не умеют стоить маршрут через запертые двери
+                if(fiend.epidemy.plan_way.size()==0) {
+                    //test
+                    fiend.interpret('say этот находится в '+fiend.epidemy.victim.in_room.name+'. Пожалуй убьем другого...');
+                    fiend.epidemy.victim = null;
+                    clearPlan(fiend);
+                }
             }
         }
         if(result == 2) {
@@ -156,28 +163,58 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                 //test
                 mob.interpret('say направляюсь в '+mob.epidemy.plan_room.name+'('+mob.epidemy.plan_room.vnum+')');
                 if(mob.epidemy.plan_nextroom==null) {
-                    //test
-                    mob.interpret('say Посмотрим, куда нам дальше?');
-                    mob.epidemy.plan_nextroom = mob.epidemy.plan_way.front();
-                    mob.epidemy.plan_way.pop_front();
-                } else {
-                    //test
-                    mob.interpret('say Пробуем шагнуть из '+mob.in_room.name+'('+mob.in_room.vnum+') в '+mob.epidemy.plan_nextroom.name+'('+mob.epidemy.plan_nextroom.vnum+')');
-                    if(mob.move_char(mob.in_room.doorTo(mob.epidemy.plan_nextroom))){
+                    if(mob.epidemy.plan_way.size()==0 && mob.in_room!=mob.epidemy.plan_room){
                         //test
-                        mob.interpret('say Получилось. Я пришел в '+mob.in_room.name+'('+mob.in_room.vnum+')');
-                        mob.epidemy.plan_waypoint = mob.epidemy.plan_nextroom;
-                        mob.epidemy.plan_nextroom = null;
-                        if(mob.in_room == mob.epidemy.plan_room) {
-                            //test
-                            mob.interpret('say Похоже я на месте!');
-                            clearPlan(mob);
-                            mob.epidemy.plan_room = mob.in_room;
-                        }
+                        mob.interpret('say Маршрут закончился, на место не прибыли. Нужен новый маршрут!!!');
+                        mob.epidemy.plan = null;
                     } else {
                         //test
-                        mob.interpret('say Беда однако. Не ходится туда!');
-                        //.tmp.epidemy.clearGPS(fiend);
+                        mob.interpret('say Посмотрим, куда нам дальше?');
+                        mob.epidemy.plan_nextroom = mob.epidemy.plan_way.front();
+                        mob.epidemy.plan_way.pop_front();
+                    }
+                } else {
+                    //2do
+                    //getExitFlags        (имя или номер выхода): флаги этого выхода (таблица .tables.exit_flags)
+                    //.tables.exit_flags.closed locked isdoor
+                    var door;
+                    door = mob.in_room.doorTo(mob.epidemy.plan_nextroom);
+                    if(mob.in_room.getExitFlags(door) & .tables.exit_flags.closed){
+                        //test
+                        mob.interpret('say Дверь закрыта.');
+                        if(mob.in_room.getExitFlags(door) & .tables.exit_flags.locked) {
+                            //test
+                            mob.interpret('emote дергает за ручку двери.');
+                            mob.interpret('say и похоже заперта.');
+                            //2do
+                        } else {
+                            //test
+                            mob.interpret('say Войдем без стука...');
+                            //2do открывать нужно правильную дверь
+                            mob.interpret('emote открывает дверь.');
+                            mob.in_room.open(door);
+                        }
+
+                    } else {
+                        //test
+                        mob.interpret('say Пробуем шагнуть из '+mob.in_room.name+'('+mob.in_room.vnum+') в '+mob.epidemy.plan_nextroom.name+'('+mob.epidemy.plan_nextroom.vnum+')');
+                        if(mob.in_room == mob.epidemy.plan_nextroom
+                            || mob.move_char(door)){
+                            //test
+                            mob.interpret('say Получилось. Я пришел в '+mob.in_room.name+'('+mob.in_room.vnum+')');
+                            mob.epidemy.plan_waypoint = mob.epidemy.plan_nextroom;
+                            mob.epidemy.plan_nextroom = null;
+                            if(mob.in_room == mob.epidemy.plan_room) {
+                                //test
+                                mob.interpret('say Похоже я на месте!');
+                                clearPlan(mob);
+                                mob.epidemy.plan_room = mob.in_room;
+                            }
+                        } else {
+                            //test
+                            mob.interpret('say Беда однако. Не ходится туда!');
+                            //.tmp.epidemy.clearGPS(fiend);
+                        }
                     }
                 }
             }
@@ -193,7 +230,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                 return;
 
             if(fiend.epidemy.plan == null) {
-                fiend.epidemy.plan = .tmp.epidemy.fiend_plan_check(fiend);
+                fiend.epidemy.plan = fiend_plan_check(fiend);
             }
 
             if(fiend.epidemy.plan == 0) {
@@ -203,14 +240,17 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             }
 
             if(fiend.epidemy.plan == 1) {
+                //ходим
                 make_your_move(fiend);
             }
 
             if(fiend.epidemy.plan == 2) {
-                if(fiend.in_room == fiend.epidemy.victim.in_room) {
-                    fiend.multi_hit(fiend.epidemy.victim);
-                } else {
+                if(fiend.epidemy.victim.dead ||
+                    fiend.in_room != fiend.epidemy.victim.in_room) {
                     clearPlan(fiend);
+                } else {
+                    //бьем
+                    fiend.multi_hit(fiend.epidemy.victim);
                 }
             }
         };
