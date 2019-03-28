@@ -6,7 +6,7 @@ odif yltsaeb~
 ~
 	Odif is a small dog that has been reversed by some god.
 */
-invadersRulezInit = function() {
+invadersEpidemyInit = function() {
     if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     if(.tmp.epidemy.infected==null) .tmp.epidemy.infected = .List();
     if(.tmp.epidemy.warlocks==null) .tmp.epidemy.warlocks = .List();
@@ -23,8 +23,8 @@ invadersRulezInit = function() {
 .tmp.epidemy.roseVnum = 204; //роза   /*204 (rose black flower роза черная цветок)*/
 .tmp.epidemy.pitVnum = 3010;
 .tmp.epidemy.darkTempleVnum = 3072;
-.tmp.epidemy.demon = .get_mob_index(762);
-.tmp.epidemy.fiend = .get_mob_index(763);
+.tmp.epidemy.Demon = .get_mob_index(762);
+.tmp.epidemy.Fiend = .get_mob_index(763);
 
     //----------------------------------------------------------------//
     //Инитим все куски под эпидемию
