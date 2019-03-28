@@ -547,6 +547,7 @@ epidemyInit = function() {
                                 //test
                                 interpret('say пойду ка в '+epidemy.plan_nextroom.name+', а то идти еще '+epidemy.plan_way.size()+' комнат!');
 
+
                                 /*var exitDoor;
                                 exitDoor = in_room.doorTo(epidemy.plan_nextroom);
 

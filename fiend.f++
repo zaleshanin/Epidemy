@@ -184,15 +184,20 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                         mob.interpret('say Дверь закрыта.');
                         if(mob.in_room.getExitFlags(door) & .tables.exit_flags.locked) {
                             //test
-                            mob.interpret('emote дергает за ручку двери.');
+                            mob.recho('%1$^C1 дергает за ручку %2$N2.',mob,mob.in_room.exitShortDescr(door));
                             mob.interpret('say и похоже заперта.');
                             //2do
                         } else {
                             //test
-                            mob.interpret('say Войдем без стука...');
-                            //2do открывать нужно правильную дверь
-                            mob.interpret('emote открывает дверь.');
-                            mob.in_room.open(door);
+                            mob.interpret('say Войдем без стука... прымо в '+mob.in_room.exitKeyword(door).getOneArgument() + ' что на '+mob.in_room.doorName(door));
+                            //открывать нужно правильную дверь
+                            //зря Руфину тиранил - в комнате может быть несколько выходов с одинаковыми кейвордами
+                            //mob.interpret('open '+mob.in_room.exitKeyword(door).getOneArgument());
+                            mob.interpret('open '+mob.in_room.doorName(door));
+
+                            //mob.in_room.open(door);
+                            //mob.recho('%1$^C1 открывает %2$N4.',mob,mob.in_room.exitShortDescr(door));
+
                         }
 
                     } else {
@@ -297,6 +302,8 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
         mob.recho(t.wear_msg, mob, item);
         item.equip(t.wear_loc);
+
+        .scheduler.sleep(1);
     };
     scavenge = function(mob,items,corpse) {
         //test
@@ -388,7 +395,9 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     eq = mob.get_eq_char(t.wear_loc);
                     if(eq==null || i.level>eq.level) {
                         wear_item(mob,t,i,eq);
-                    }
+                    } else {
+                    mob.say('моё %1$O1, похоже, лучше...',eq);
+                }
                 }
                 else if(i.item_type == .tables.item_table.weapon)
                 {
@@ -475,10 +484,13 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             try{
             this = .tmp.epidemy;
 
+            if(fiend.dead)
+                return;
+
             if(fiend.fighting != null)
                 return;
 
-            if(fiend.epidemy.snd.fighting!=null
+            if(!fiend.epidemy.snd.dead && fiend.epidemy.snd.fighting!=null
                 && fiend.epidemy.snd.in_room == fiend.in_room
                 && fiend.epidemy.snd.fighting != fiend.epidemy.victim) {
                 if(.chance(80))
@@ -517,8 +529,11 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             }
 
             //собирательство
+                //plan 3 - собираем
+                //plan 4 - ждем пока всё соберем
             if(fiend.epidemy.plan==3) {
                 var corpse;
+                fiend.epidemy.plan=4;
                 scavenge(fiend, fiend.in_room.items, corpse);
                 if(!fiend.epidemy.snd.dead) {
                     if(fiend.epidemy.snd.in_room == fiend.in_room && fiend.epidemy.snd.epidemy.plan==0)
@@ -535,7 +550,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
         onEntry = function(fiend) {
             if(fiend.in_room.items.size()>0) {
                 if(fiend.epidemy.snd.in_room == fiend.in_room
-                    && fiend.epidemy.snd.epidemy.plan==3) {
+                    && (fiend.epidemy.snd.epidemy.plan==3 || fiend.epidemy.snd.epidemy.plan==4)) {
                     fiend.epidemy.plan = 0;
                 } else {
                     fiend.epidemy.plan=3;
