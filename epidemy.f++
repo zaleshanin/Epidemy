@@ -518,6 +518,8 @@ epidemyInit = function() {
                                 interpret('say маршрут построен. стартуем из: '+in_room.name);
                                 epidemy.plan_waypoint = in_room;
                                 return;
+                            } else {
+                                interpret('say беда! пустой маршрут!');
                             }
                         }
                     } else if(epidemy.plan_nextroom == null) {
@@ -556,13 +558,15 @@ epidemyInit = function() {
                                 }
                                 else
                                 {
-                                    recho('На мгновение в глазах %1$^C1 вспыхивает искра интеллекта.',this);
+                                    recho('На мгновение в глазах %1$C1 вспыхивает искра интеллекта.',this);
                                     interpret('open '+in_room.doorName(exitDoor));
                                 }
 
                                 return;
                             } else {
-                                if(.chanceOneOf(2)) {
+                                if(.chanceOneOf(3)) {
+                                    recho("%1$^C1 ходит кругами и нюхает следы. Этим что, можно ещё и нюхать?!",this);
+                                } else if(.chanceOneOf(2)) {
                                     in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
 
                                 } else {
