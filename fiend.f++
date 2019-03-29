@@ -131,7 +131,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                 //2do не умеют стоить маршрут через запертые двери
                 if(fiend.epidemy.plan_way.size()==0) {
                     //test
-                    fiend.interpret('say этот находится в '+fiend.epidemy.victim.in_room.name+'. Пожалуй убьем другого...');
+                    //fiend.interpret('say этот находится в '+fiend.epidemy.victim.in_room.name+'. Пожалуй убьем другого...');
                     fiend.epidemy.victim = null;
                     clearPlan(fiend);
                 }
@@ -149,27 +149,27 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     make_your_move = function(mob) {
         this = .tmp.epidemy;
         //test
-        mob.interpret('say Вижу цель - не вижу препятствий!');
+        //mob.interpret('say Вижу цель - не вижу препятствий!');
         if(mob.epidemy.plan_way == null) {
             //test
-            mob.interpret('say Цель есть, а путя нету... Бедааааа!');
+            //mob.interpret('say Цель есть, а путя нету... Бедааааа!');
             mob.epidemy.plan = null;
         } else {
             if(mob.epidemy.plan_waypoint==null || mob.epidemy.plan_waypoint != mob.in_room) {
                 //test
-                mob.interpret('say Сбился с пути, нужен новый маршрут!!!');
+                //mob.interpret('say Сбился с пути, нужен новый маршрут!!!');
                 clearPlan(mob);//.epidemy.plan = null;
             } else {
                 //test
-                mob.interpret('say направляюсь в '+mob.epidemy.plan_room.name+'('+mob.epidemy.plan_room.vnum+')');
+                //mob.interpret('say направляюсь в '+mob.epidemy.plan_room.name+'('+mob.epidemy.plan_room.vnum+')');
                 if(mob.epidemy.plan_nextroom==null) {
                     if(mob.epidemy.plan_way.size()==0 && mob.in_room!=mob.epidemy.plan_room){
                         //test
-                        mob.interpret('say Маршрут закончился, на место не прибыли. Нужен новый маршрут!!!');
+                        //mob.interpret('say Маршрут закончился, на место не прибыли. Нужен новый маршрут!!!');
                         mob.epidemy.plan = null;
                     } else {
                         //test
-                        mob.interpret('say Посмотрим, куда нам дальше?');
+                        //mob.interpret('say Посмотрим, куда нам дальше?');
                         mob.epidemy.plan_nextroom = mob.epidemy.plan_way.front();
                         mob.epidemy.plan_way.pop_front();
                     }
@@ -181,15 +181,15 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     door = mob.in_room.doorTo(mob.epidemy.plan_nextroom);
                     if(mob.in_room.getExitFlags(door) & .tables.exit_flags.closed){
                         //test
-                        mob.interpret('say Дверь закрыта.');
+                        //mob.interpret('say Дверь закрыта.');
                         if(mob.in_room.getExitFlags(door) & .tables.exit_flags.locked) {
                             //test
                             mob.recho('%1$^C1 дергает за ручку %2$N2.',mob,mob.in_room.exitShortDescr(door));
-                            mob.interpret('say и похоже заперта.');
-                            //2do
+                            //mob.interpret('say и похоже заперта.');
+
                         } else {
                             //test
-                            mob.interpret('say Войдем без стука... прымо в '+mob.in_room.exitKeyword(door).getOneArgument() + ' что на '+mob.in_room.doorName(door));
+                            //mob.interpret('say Войдем без стука... прымо в '+mob.in_room.exitKeyword(door).getOneArgument() + ' что на '+mob.in_room.doorName(door));
                             //открывать нужно правильную дверь
                             //зря Руфину тиранил - в комнате может быть несколько выходов с одинаковыми кейвордами
                             //mob.interpret('open '+mob.in_room.exitKeyword(door).getOneArgument());
@@ -202,25 +202,25 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
                     } else {
                         //test
-                        mob.interpret('say Пробуем шагнуть из '+mob.in_room.name+'('+mob.in_room.vnum+') в '+mob.epidemy.plan_nextroom.name+'('+mob.epidemy.plan_nextroom.vnum+')');
+                        //mob.interpret('say Пробуем шагнуть из '+mob.in_room.name+'('+mob.in_room.vnum+') в '+mob.epidemy.plan_nextroom.name+'('+mob.epidemy.plan_nextroom.vnum+')');
                         if(mob.in_room == mob.epidemy.plan_nextroom
                             || mob.move_char(door)){
                             //test
-                            mob.interpret('say Получилось. Я пришел в '+mob.in_room.name+'('+mob.in_room.vnum+')');
+                            //mob.interpret('say Получилось. Я пришел в '+mob.in_room.name+'('+mob.in_room.vnum+')');
                             mob.epidemy.plan_waypoint = mob.epidemy.plan_nextroom;
                             mob.epidemy.plan_nextroom = null;
                             if(mob.in_room == mob.epidemy.plan_room) {
                                 //test
-                                mob.interpret('say Похоже я на месте!');
+                                //mob.interpret('say Похоже я на месте!');
                                 if(mob.epidemy.plan<3)
                                     clearPlan(mob);
                                 mob.epidemy.plan_room = mob.in_room;
                             }
-                        } else {
+                        } /*else {
                             //test
-                            mob.interpret('say Беда однако. Не ходится туда!');
+                            //mob.interpret('say Беда однако. Не ходится туда!');
                             //.tmp.epidemy.clearGPS(fiend);
-                        }
+                        }*/
                     }
                 }
             }
@@ -312,10 +312,10 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     };
     scavenge = function(mob,items,corpse) {
         //test
-        if(corpse==null)
+        /*if(corpse==null)
             mob.say('будем лутить '+items.size()+' штук.');
         else
-            mob.say('будем лутить из трупа '+items.size()+' штук.');
+            mob.say('будем лутить из трупа '+items.size()+' штук.');*/
 
         this = .tmp.epidemy;
         var cl, ci, cc, c, t;
@@ -326,6 +326,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
         il = items.clone();
         ic = il.size();
         for(ii=0;ii<ic;ii=ii+1) {
+            if(mob.dead) return;
             i = il.back();
             il.pop_back();
             //test
@@ -336,7 +337,8 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                 mob.say('а %1$O1 кто-то уже упёр. ('+ii+')',i);
                 continue;
             }
-            mob.say('таaaксcc... %1$O1...',i);
+            //test
+            //mob.say('таaaксcc... %1$O1...',i);
 
             if(i.item_type==.tables.item_table.npc_corpse) {
                 scavenge(mob, i.items, i);
@@ -407,9 +409,10 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     eq = mob.get_eq_char(t.wear_loc);
                     if(eq==null || i.level>eq.level) {
                         wear_item(mob,t,i,eq);
-                    } else {
+                    } /*else {
+                    //test
                     mob.say('моё %1$O1, похоже, лучше...',eq);
-                }
+                }*/
                 }
                 else if(i.item_type == .tables.item_table.weapon)
                 {
@@ -419,9 +422,10 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     eq = mob.get_eq_char(t.wear_loc);
                     if(eq==null || ((i.value2+1)*i.value1/2)>((eq.value2+1)*eq.value1/2)){
                         wear_item(mob,t,i,eq);
-                    } else {
+                    } /*else {
+                    //test
                         mob.say('моё %1$O1, похоже, лучше...',eq);
-                    }
+                    }*/
                 }
                 else if(i.item_type == .tables.item_table.armor
                 || i.item_type == .tables.item_table.treasure
@@ -475,9 +479,10 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
                     if(obj.eq==null || is_better_armor(obj.eq,i)) {
                         wear_item(mob,t,i,obj.eq);
-                    } else {
+                    } /*else {
+                        //test
                         mob.say('моё %1$O1, похоже, лучше...',obj.eq);
-                    }
+                    }*/
 
                 }
 
@@ -490,33 +495,36 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
         mob_list = mob.in_room.list_mob_vnum(mob.pIndexData.vnum);
         count = mob_list.size();
         //test
-        mob.say('нас таких тут аж %1$S.',count);
+        //mob.say('нас таких тут аж %1$S.',count);
         for(i=0;i<count;i=i+1){
             m = mob_list.back();
-            mob.say(''+i+' - %1$C1',m);
+
+            //test
+            //mob.say(''+i+' - %1$C1',m);
+
             mob_list.pop_back();
             if(m.epidemy.plan==3 || m.epidemy.plan==4 ) {
                 //test
-                mob.say('%1$C1 уже грабит.',m);
+                //mob.say('%1$C1 уже грабит.',m);
                 return false;
             }
         }
         //test
-        mob.say('ну, значит прийдется мне...');
+        //mob.say('ну, значит прийдется мне...');
         return true;
     };
     loot = function(mob){
         this = .tmp.epidemy;
         if(mob.in_room.items.size()>0) {
             //test
-            mob.say('о! тут что-то есть!');
+            //mob.say('о! тут что-то есть!');
             if(time_to_loot(mob)) {
                 //test
-                mob.interpret('smile');
+                //mob.interpret('smile');
                 mob.epidemy.plan=3;
             } else {
                 //test
-                mob.interpret('cry');
+                //mob.interpret('cry');
                 mob.epidemy.plan=0;
             }
         }
@@ -557,14 +565,14 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
             if(fiend.epidemy.plan == 0) {
                 //test
-                fiend.interpret('say а может лут?!');
+                //fiend.interpret('say а может лут?!');
                 loot(fiend);
                 //test
-                if(fiend.epidemy.plan == 0)
-                    fiend.say('план не изменился');
+                //if(fiend.epidemy.plan == 0)
+                 //   fiend.say('план не изменился');
                 //2do видимо спамим
                 //test
-                fiend.interpret('say Я видимо должен что-то сделать?!');
+                //fiend.interpret('say Я видимо должен что-то сделать?!');
             }
 
             //ходим
@@ -589,7 +597,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                 var corpse;
                 fiend.epidemy.plan=4;
                 scavenge(fiend, fiend.in_room.items, corpse);
-                if(!fiend.epidemy.snd.dead) {
+                if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
                     if(fiend.epidemy.snd.in_room == fiend.in_room && fiend.epidemy.snd.epidemy.plan==0)
                         fiend.epidemy.snd.epidemy.plan=3;
                 }
@@ -603,9 +611,11 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
         onEntry = function(fiend) {
             this = .tmp.epidemy;
-            fiend.interpret('say а может лут?! (план:'+fiend.epidemy.plan+')');
+            //test
+            //fiend.interpret('say а может лут?! (план:'+fiend.epidemy.plan+')');
             loot(fiend);
-            fiend.interpret('say (план:'+fiend.epidemy.plan+')');
+            //test
+            //fiend.interpret('say (план:'+fiend.epidemy.plan+')');
         };
 
         onKill = function(fiend, ch) {
