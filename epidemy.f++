@@ -7,13 +7,17 @@ epidemyInit = function() {
 
     infect = function(mob) {
         this = .tmp.epidemy;
+
         //всё равно заболеет, заносим в список
         if(mob.epidemy==null)
             mob.epidemy = .Map();
+        mob.epidemy.infected = true;
 
         infected.push_back(mob);
 
         mob = setInfectedTriggers(mob);
+
+
     };
     transform = function(mob) {
         this = .tmp.epidemy;
@@ -177,7 +181,7 @@ epidemyInit = function() {
         },ch);
     };
     plan_cancel = function(mob) {
-    	this = .tmp.epidemy;
+        this = .tmp.epidemy;
         //test
         //.tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
 
@@ -201,13 +205,13 @@ epidemyInit = function() {
     clearPlan = function(mob){
         mob.epidemy.plan = null;
         clearGPS(mob);
-	};
+    };
     clearGPS = function(mob){
         mob.epidemy.plan_room = null;
         mob.epidemy.plan_waypoint = null;
         mob.epidemy.plan_nextroom = null;
         mob.epidemy.plan_way = null;
-	};
+    };
     plan_check = function(mob) {
         this = .tmp.epidemy;
 
@@ -284,10 +288,10 @@ epidemyInit = function() {
                         clearGPS(m);
                         if(planG) {
                             //если планГ утвержден, прописываем всем в городе
-                        	m.epidemy.plan = 1;
+                            m.epidemy.plan = 1;
                             m.epidemy.plan_room = room;
                         } else {
-                        	//ни у кого нет плана
+                            //ни у кого нет плана
                             m.epidemy.plan = 0;
                         }
                     }
@@ -491,12 +495,12 @@ epidemyInit = function() {
                 * 3 - я последний - вызываем "КРАКЕНА"
                 */
                 if(epidemy.plan==1 && .chance(50)) {
-                    if(epidemy.plan_room==null)throw('собака-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
+                    if(epidemy.plan_room==null)
+                        throw('собака-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
 
                     //test
                     interpret('say Я собака-гуляка!!! иду в '+epidemy.plan_room.name);
-                    // нет маршрута, или сместились в процессе следования
-                    if(epidemy.plan_way==null || (epidemy.plan_waypoint!=null && epidemy.plan_waypoint!=in_room)){
+                    if(epidemy.plan_way==null) {
                         if(!epidemy.plan_room.isCommon()) {
                             //test
                             interpret('say Нам в '+epidemy.plan_room.name+' нельзя!');
@@ -505,20 +509,10 @@ epidemyInit = function() {
                             //return;
                         } else {
                             //test
-                            interpret('say как пройти в '+epidemy.plan_room.name+'?');
+                            interpret('say надо вспомнить как пройти в '+epidemy.plan_room.name+'.');
                             //ищем путь
-                            var sectorsDeny;
-                            sectorsDeny = 0;
-                            /*2do
-                            Руфина говорит тебе 'а вообще я добавила .set_bit_number'
-                            Руфина говорит тебе 'сектор - это номер, а если хочется получить битовую маску, надо установить бит с этим номером, а не просто логическое или делать'
-                            Руфина говорит тебе 'в общем что-то типа x=.set_bit_number(x, .tables.sector_table.air) , потом вода и тд'
-                            // sectorsDeny = .tables.sector_table.water_swim;
-                            // sectorsDeny = .set_bit(sectorsDeny, .tables.sector_table.air);
-        */
-
                             interpret('ponder');
-                            epidemy.plan_way = in_room.traverseTo(epidemy.plan_room, this, 0, sectorsDeny);
+                            epidemy.plan_way = .tmp.epidemy.find_way(this,epidemy.plan_room);
                             if(epidemy.plan_way.size()>0){
                                 //test
                                 interpret('say маршрут построен. стартуем из: '+in_room.name);
@@ -526,82 +520,64 @@ epidemyInit = function() {
                                 return;
                             }
                         }
-                    } else {
-                        //маршрут есть и мы с него не сбились
-                        if(epidemy.plan_nextroom==null) {
-                            if(.chance(20)) {
-                                //нюхаем
-                                in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
-                                //внезапно закончился маршрут - кидаем исключение
-                                if(epidemy.plan_way.size()==0){.tmp.epidemy.clearGPS(this);throw('собака-гуляка:WaySize=0;room:'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+');in_room:'+in_room.name+'('+in_room.vnum+')\n');}
+                    } else if(epidemy.plan_nextroom == null) {
+                        .tmp.epidemy.make_your_move(this);
+                    } else if (epidemy.plan_waypoint!=in_room) { //сбились с маршрута
+                        epidemy.plan_waypoint = null;
+                        epidemy.plan_nextroom = null;
+                        epidemy.plan_way = null;
+                    } else { //маршрут есть и мы с него не сбились
+                        if(.chance(20)) {
+                            var exitDoor;
+                            exitDoor = in_room.doorTo(epidemy.plan_nextroom);
 
-                                epidemy.plan_nextroom = epidemy.plan_way.front();
-                                epidemy.plan_way.pop_front();
-                                return;
-                            }
-                        } else {
-                            //test
-                            interpret('say мне бы для начала добраться до '+epidemy.plan_nextroom.name);
+                            if(in_room.getExitFlags(exitDoor) & .tables.exit_flags.closed) {
 
-                            //унюхали - делаем шаг
-                            if(.chance(20)){
-                                //test
-                                interpret('say пойду ка в '+epidemy.plan_nextroom.name+', а то идти еще '+epidemy.plan_way.size()+' комнат!');
-
-                                var exitDoor;
-
-                                exitDoor = in_room.doorTo(epidemy.plan_nextroom);
-                                if(exitDoor==null)
-                                    throw('epidemy.walk: no ExitDoor:'+in_room.name+'('+in_room.vnum+') next:'+epidemy.plan_nextroom.name+'('+epidemy.plan_nextroom.vnum+') next:');
-
-                                if(in_room.getExitFlags(exitDoor) & .tables.exit_flags.closed){
-
-                                    if(.chanceOneOf(4)) {
-                                        recho('%1$^C1 бьётся головой в %2$N4. Закрыто.',this,in_room.exitShortDescr(exitDoor));
-                                    } else if(.chanceOneOf(3)) {
-                                        recho('%1$^C1 жалобно скулит и скребётся в %2$N4. Тщетно.',this, in_room.exitShortDescr(exitDoor));
-                                    } else if (.chanceOneOf(2)) {
-                                        var ppllist, sucker;
-                                        ppllist = in_room.ppl.clone();
-                                        ppllist.sub(this);
-                                        if(ppllist.size()>0) {
-                                            sucker = ppllist.random();
-                                            sucker.recho('%1$^C1 садится перед %2$N5, и жалобно смотрит в глаза %3$C3.',this, in_room.exitShortDescr(exitDoor), sucker);
-                                            sucker.act('%1$^C1 садится перед %2$N5, и жалобно смотрит тебе в глаза.',this, in_room.exitShortDescr(exitDoor));
-                                        } else {
-                                            recho('%1$^C1 садится перед %2$N5, и жалобно завывает.',this, in_room.exitShortDescr(exitDoor));
-                                        }
+                                if(.chanceOneOf(4))
+                                {
+                                    recho('%1$^C1 бьётся головой в %2$N4. Закрыто.',this,in_room.exitShortDescr(exitDoor));
+                                }
+                                else if(.chanceOneOf(3))
+                                {
+                                    recho('%1$^C1 жалобно скулит и скребётся в %2$N4. Тщетно.',this, in_room.exitShortDescr(exitDoor));
+                                }
+                                else if (.chanceOneOf(2))
+                                {
+                                    var ppllist, sucker;
+                                    ppllist = in_room.ppl.clone();
+                                    ppllist.sub(this);
+                                    if(ppllist.size()>0) {
+                                        sucker = ppllist.random();
+                                        sucker.recho('%1$^C1 садится перед %2$N5, и жалобно смотрит в глаза %3$C3.',this, in_room.exitShortDescr(exitDoor), sucker);
+                                        sucker.act('%1$^C1 садится перед %2$N5, и жалобно смотрит тебе в глаза.',this, in_room.exitShortDescr(exitDoor));
                                     } else {
-                                        recho('На мгновение в глазах %1$^C1 вспыхивает искра интеллекта.',this);
-                                        interpret('open '+in_room.doorName(exitDoor));
+                                        recho('%1$^C1 садится перед %2$N5, и жалобно завывает.',this, in_room.exitShortDescr(exitDoor));
                                     }
+                                }
+                                else
+                                {
+                                    recho('На мгновение в глазах %1$^C1 вспыхивает искра интеллекта.',this);
+                                    interpret('open '+in_room.doorName(exitDoor));
+                                }
+
+                                return;
+                            } else {
+                                if(.chanceOneOf(2)) {
+                                    in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
 
                                 } else {
 
-                                    if (move_char(exitDoor)) {
-                                        //test
-                                        interpret('say я пришла! ай-да-я!!');
-                                        epidemy.plan_waypoint = epidemy.plan_nextroom;
-                                        epidemy.plan_nextroom = null;
-                                        if (in_room == epidemy.plan_room) { // && epidemy.plan_way.size()==0
-                                            //test
-                                            interpret('say мы прибыли в место назначение!');
-                                            .tmp.epidemy.clearPlan(this);
-                                            epidemy.plan_room = in_room;
-                                        }
-                                        return;
-                                    } else {
-                                        interpret('cry');
-                                        interpret('say заблудилася я! ПА-МА-ГИ-ТЕ!!!');
-                                        .tmp.epidemy.clearGPS(this);
-                                        return;
-                                    }
+                                    .tmp.epidemy.make_your_move(this);
+
                                 }
+                                return;
                             }
+
+
                         }
                     }
                     //test
-                    interpret('say никуда вроде не погуляла?');
+                    interpret('say вот такая вот гуляка - решила никуда не ходить.');
                     //return;
                 }
 
@@ -723,7 +699,7 @@ epidemyInit = function() {
         result = .List();
 
         for (i = .char_list; i != null; i = i.next) {
-            if (i.is_npc() && i.epidemy != null && !i.dead) {
+            if (i.is_npc() && i.epidemy != null && i.epidemy.infected && !i.dead) {
                 result.push_back(i);
             }
         }
