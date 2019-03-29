@@ -283,23 +283,27 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     };
     wear_item = function(mob,t,item,replaced) {
         .scheduler.sleep(1);
+        if(mob.dead) return;
 
         mob.recho(t.get_msg, mob, item, t.conteiner);
         item.obj_to_char(mob);
 
         if(replaced!=null) {
             .scheduler.sleep(1);
+            if(mob.dead) return;
 
             mob.recho(t.remove_msg, mob, replaced);
             replaced.unequip();
 
             .scheduler.sleep(1);
+            if(mob.dead) return;
 
             mob.recho(t.drop_msg, mob, replaced);
             replaced.obj_to_room(mob.in_room);
         }
 
         .scheduler.sleep(1);
+        if(mob.dead) return;
 
         mob.recho(t.wear_msg, mob, item);
         item.equip(t.wear_loc);
