@@ -113,7 +113,7 @@ bookInit = function() {
                     }
                 } else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
                     if(book.epidemy.isLorem) {
-                        result  = 'Изображения темных магов выглядят потухшами и безжизненными.';
+                        result  = 'Ты тщательно вглядываешся в рисунки на странице:\nИзображения темных магов выглядят потухшами и безжизненными.';
                     } else {
                         aWk = .tmp.epidemy.get_wk_array(ch.name);
 
