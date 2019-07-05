@@ -8,13 +8,19 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     get_fiends = function(demon, victim) {
         if(victim.dead)
             throw('epidemy.fiend.get_fiend: Victim DEAD');
+
         this = .tmp.epidemy;
+
+        var fiendFst, fiendSnd;
 
         fiendFst = get_one_fiend(victim);
         fiendSnd = get_one_fiend(victim);
 
         fiendFst.epidemy.snd = fiendSnd;
+        fiendFst.epidemy.fst = true;
+
         fiendSnd.epidemy.snd = fiendFst;
+        fiendSnd.epidemy.fst = false;
 
         fiendFst.char_to_room(demon.in_room);
         fiendSnd.char_to_room(demon.in_room);
@@ -540,6 +546,11 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             try{
             this = .tmp.epidemy;
 
+            //2do заблудились, как добраться до цели не знаем - идём к демону
+                //2do нет больше виктимов - надо новых - идём к демону
+                //2do не знаем как пройти к демону - грустим! (или нет)
+
+
             if(fiend.dead)
                 return;
 
@@ -629,6 +640,12 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                         fiend.epidemy.snd.epidemy.plan=0;
                 }
             }
+        };
+
+        onDeath = function(fiend) {
+            //2do проверить правильность onDeath
+
+            //2do выпиливаемся из списка у демона (чтоб можно было вызвать новых тварей)
         };
 
         onArea = function(fiend) {

@@ -14,7 +14,7 @@ this = .tmp.epidemy;
 
     get_demon_name = function() {
         this = .tmp.epidemy;
-        var l,dl,c,n;
+        var l,dl,c,n,i;
         dl=.List();
         l = demons.clone();
         c = l.size();
