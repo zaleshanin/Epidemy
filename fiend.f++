@@ -13,8 +13,8 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
         var fiendFst, fiendSnd;
 
-        fiendFst = get_one_fiend(victim);
-        fiendSnd = get_one_fiend(victim);
+        fiendFst = get_one_fiend(demon, victim);
+        fiendSnd = get_one_fiend(demon, victim);
 
         fiendFst.epidemy.snd = fiendSnd;
         fiendFst.epidemy.fst = true;
@@ -33,14 +33,17 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
     };
 
-    get_one_fiend = function(victim) {
+    get_one_fiend = function(demon, victim) {
         this = .tmp.epidemy;
         var fiend;
 
         fiend = Fiend.create();
+        demon.epidemy.fiends.add(fiend);
 
         fiend.epidemy = .Map();
+        fiend.epidemy.demon = demon;
         fiend.epidemy.victim = victim;
+
         fiend.epidemy.primary_target = victim.pIndexData.vnum;
 
         fiend.armor0 = victim.armor0;
@@ -627,6 +630,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             loot(fiend);
             //test
             //fiend.interpret('say (план:'+fiend.epidemy.plan+')');
+            //2do если есть кого бить - бьём!
         };
 
         onKill = function(fiend, ch) {
@@ -646,6 +650,10 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             //2do проверить правильность onDeath
 
             //2do выпиливаемся из списка у демона (чтоб можно было вызвать новых тварей)
+        };
+        OnExtract = function(fiend) {
+            //выпиливаемся из списка
+            fiend.demon.epidemy.fiends.sub(this);
         };
 
         onArea = function(fiend) {

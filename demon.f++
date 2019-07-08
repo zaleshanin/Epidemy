@@ -46,6 +46,7 @@ this = .tmp.epidemy;
         .tmp.epidemy.demons.push_back(demon);
 
         demon.epidemy = .Map();
+        demon.epidemy.fiends = .List();
 
         //выдаём демону имя
         demon_name = get_demon_name();
@@ -181,18 +182,26 @@ this = .tmp.epidemy;
         * */
         //city = demon.in_room.areaname;
         if(demon.epidemy.plan==null) {
-            //test
-            demon.interpret('say дело было вечером делать было нечего!');
-            victim = get_one_good(demon);
-            if(victim != null) {
-                plan = 1;
-                demon.epidemy.victim = victim;
+            //2do количество исчадий
+            if(demon.epidemy.fiends.size()>=2) {
+                demon.epidemy.plan=null;
                 //test
-                demon.interpret('say похоже будем убивать!');
-            } else {
+                demon.interpret('say развелось исчадий, не протолкнуться!');
                 plan = 0;
+            } else {
                 //test
-                demon.interpret('say а где все?!');
+                demon.interpret('say дело было вечером делать было нечего!');
+                victim = get_one_good(demon);
+                if(victim != null) {
+                    plan = 1;
+                    demon.epidemy.victim = victim;
+                    //test
+                    demon.interpret('say похоже будем убивать!');
+                } else {
+                    plan = 0;
+                    //test
+                    demon.interpret('say а где все?!');
+                }
             }
         }
 
@@ -254,6 +263,13 @@ this = .tmp.epidemy;
             //выпиливаемся из списка
             demons.sub(demon);
         };
+
+        Demon.onExtract = function(demon) {
+            this = .tmp.epidemy;
+            //выпиливаемся из списка
+            demons.sub(demon);
+        };
+
 
         /*onSpell(ch, spell, before) - ch пытается колдовать на нас заклинание spell,
 где spell - англ название умения. Вызывается дважды, причем before будет равно true перед кастом,
