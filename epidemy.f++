@@ -159,6 +159,7 @@ epidemyInit = function() {
         mob.onLeave = null;
         mob.onSpell = null;
         mob.onDeath = null;
+        mob.onExtract = null;
         mob.epidemy = null;
 
         //выпиливаем из списка зараженных
@@ -168,7 +169,13 @@ epidemyInit = function() {
     };
     healall = function() {
         this = .tmp.epidemy;
-        infected.forEach(function(){.tmp.epidemy.heal(this);});
+
+        var infectedListClon;
+        infectedListClon = infected.clone();
+
+        for(sick in infectedListClon) {
+            heal(sick);
+        }
     };
     show = function(ch){
         this = .tmp.epidemy;
@@ -183,7 +190,7 @@ epidemyInit = function() {
     plan_cancel = function(mob) {
         this = .tmp.epidemy;
         //test
-        //.tmp.epidemy.me.ptc('epidemy: plan_cancel()\n');
+        //.tmp.epidemy.me.ptc('epidemy: plan_cancel('+ .tmp.epidemy.me.seeName(this) + '->' + in_room.areaname + ':' + in_room.name + '(' + in_room.vnum + ')'+')\n');
 
         var total, city;
         var i, l, m;
@@ -470,7 +477,7 @@ epidemyInit = function() {
                     //кусаем если есть кого
                     var vict;
                     vict = epidemy.victims.random();
-                    if(vict.in_room!=in_room || vict.epidemy!=null){
+                    if(vict.dead || vict.in_room!=in_room || vict.epidemy!=null){
                         //изчез куда-то гад!!!
                         epidemy.victims = null;
                         //test
