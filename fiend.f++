@@ -352,9 +352,16 @@ fiendInit = function(){
             if(i.item_type==.tables.item_table.npc_corpse) {
                 scavenge(mob, i.items, i);
             } else {
+                //если деремся, то хватаем только оружие.
+                if(mob.fighting != null && i.item_type != .tables.item_table.weapon) {
+                    //test
+                    //mob.say('таaaксcc... %1$O1 - совсем не оружие',i);
+                    continue;
+
+                }
+
                 //test
                 //mob.say('%1$O1 '+i.level+' левела, мой левел - '+mob.level,i);
-
                 if(i.level>mob.level+3 || !mob.can_see_obj(i) || !mob.can_get_obj(i))
                     continue;
 
@@ -557,6 +564,24 @@ fiendInit = function(){
                 if(fiend.dead)
                     return;
 
+                //собирательство
+                //plan 3 - собираем
+                //plan 4 - ждем пока всё соберем
+                if(fiend.epidemy.plan==3) {
+                    var corpse;
+                    fiend.epidemy.plan=4;
+                    scavenge(fiend, fiend.in_room.items, corpse);
+                    if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
+                        if(fiend.epidemy.snd.in_room == fiend.in_room && fiend.epidemy.snd.epidemy.plan==0)
+                            fiend.epidemy.snd.epidemy.plan=3;
+                    }
+                    if(fiend.fighting == fiend.epidemy.victim) {
+                        fiend.epidemy.plan = 2;
+                    } else {
+                        clearPlan(fiend);
+                    }
+                }
+
                 if(fiend.fighting != null)
                     return;
 
@@ -604,19 +629,6 @@ fiendInit = function(){
                     }
                 }
 
-                //собирательство
-                //plan 3 - собираем
-                //plan 4 - ждем пока всё соберем
-                if(fiend.epidemy.plan==3) {
-                    var corpse;
-                    fiend.epidemy.plan=4;
-                    scavenge(fiend, fiend.in_room.items, corpse);
-                    if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
-                        if(fiend.epidemy.snd.in_room == fiend.in_room && fiend.epidemy.snd.epidemy.plan==0)
-                            fiend.epidemy.snd.epidemy.plan=3;
-                    }
-                    clearPlan(fiend);
-                }
             }catch(e) {
                 //test
             .get_char_world('miyamoto').ptc('fiend.postSpec: '+e);
@@ -642,6 +654,16 @@ fiendInit = function(){
                     if(fiend.epidemy.snd.in_room == fiend.in_room)
                         fiend.epidemy.snd.epidemy.plan=0;
                 }
+            }
+        };
+
+        //onFight(ch) - вызывается каждый баттл-тик (3 секунды) при сражении с ch
+        onFight = function (fiend, ch) {
+            this = .tmp.epidemy;
+            if(fiend.get_eq_char('wield')==null) {
+                //test
+                //fiend.interpret('say а может вооружиться? (план:'+fiend.epidemy.plan+')');
+                loot(fiend);
             }
         };
 
