@@ -642,6 +642,7 @@ fiendInit = function(){
             loot(fiend);
             //test
             //fiend.interpret('say (план:'+fiend.epidemy.plan+')');
+            
         };
 
         onKill = function(fiend, ch) {
