@@ -1,5 +1,5 @@
 fiendInit = function(){
-if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+    if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     this = .tmp.epidemy;
     if(triggers==null)
         triggers=.Map();
@@ -29,7 +29,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             act('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
             act('...Из врат выходят два исчадия, готовых исполнить волю %1$C2...',demon);
             act('...Врата со скрипом и грохотом затворяются. Вопли истязаемых душ стихают.');
-            },demon );
+        },demon );
 
     };
 
@@ -64,7 +64,7 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
         fiend.saving_throw = victim.saving_throw;
         fiend.size = victim.size;
         if(victim.affected_by&.tables.affect_flags.sanctuary)
-            fiend.addDarkShroud();
+        fiend.addDarkShroud();
 
         return fiend;
     };
@@ -226,10 +226,10 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                                 mob.epidemy.plan_room = mob.in_room;
                             }
                         } /*else {
-                            //test
-                            //mob.interpret('say Беда однако. Не ходится туда!');
-                            //.tmp.epidemy.clearGPS(fiend);
-                        }*/
+							//test
+							//mob.interpret('say Беда однако. Не ходится туда!');
+							//.tmp.epidemy.clearGPS(fiend);
+						}*/
                     }
                 }
             }
@@ -291,33 +291,33 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
         return false;
     };
     wear_item = function(mob,t,item,replaced) {
-        .scheduler.sleep(1);
+    .scheduler.sleep(1);
         if(mob.dead) return;
 
         mob.recho(t.get_msg, mob, item, t.conteiner);
         item.obj_to_char(mob);
 
         if(replaced!=null) {
-            .scheduler.sleep(1);
+        .scheduler.sleep(1);
             if(mob.dead) return;
 
             mob.recho(t.remove_msg, mob, replaced);
             replaced.unequip();
 
-            .scheduler.sleep(1);
+        .scheduler.sleep(1);
             if(mob.dead) return;
 
             mob.recho(t.drop_msg, mob, replaced);
             replaced.obj_to_room(mob.in_room);
         }
 
-        .scheduler.sleep(1);
+    .scheduler.sleep(1);
         if(mob.dead) return;
 
         mob.recho(t.wear_msg, mob, item);
         item.equip(t.wear_loc);
 
-        .scheduler.sleep(1);
+    .scheduler.sleep(1);
     };
     scavenge = function(mob,items,corpse) {
         //test
@@ -405,11 +405,11 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     i.extract(true);
 
                 }
-                else  if(i.item_type == .tables.item_table.container)
+            else  if(i.item_type == .tables.item_table.container)
                 {
                     //t = 'container';
                 }
-                else if(i.item_type == .tables.item_table.light)
+            else if(i.item_type == .tables.item_table.light)
                 {
                     t.remove_msg = '%1$^C1 гасит свет, исходящий от %2$O2.';
                     t.wear_msg = '%1$^C1 зажигает %2$O4 и берет его в руки.';
@@ -419,11 +419,11 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     if(eq==null || i.level>eq.level) {
                         wear_item(mob,t,i,eq);
                     } /*else {
-                    //test
-                    mob.say('моё %1$O1, похоже, лучше...',eq);
-                }*/
+					//test
+					mob.say('моё %1$O1, похоже, лучше...',eq);
+				}*/
                 }
-                else if(i.item_type == .tables.item_table.weapon)
+            else if(i.item_type == .tables.item_table.weapon)
                 {
                     t.wear_msg = '%1$^C1 вооружается %2$O5.';
                     t.wear_loc = 'wield';
@@ -432,11 +432,11 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     if(eq==null || ((i.value2+1)*i.value1/2)>((eq.value2+1)*eq.value1/2)){
                         wear_item(mob,t,i,eq);
                     } /*else {
-                    //test
-                        mob.say('моё %1$O1, похоже, лучше...',eq);
-                    }*/
+					//test
+						mob.say('моё %1$O1, похоже, лучше...',eq);
+					}*/
                 }
-                else if(i.item_type == .tables.item_table.armor
+            else if(i.item_type == .tables.item_table.armor
                 || i.item_type == .tables.item_table.treasure
                 || i.item_type == .tables.item_table.jewelry
                 || i.item_type == .tables.item_table.gem)
@@ -444,42 +444,42 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     obj=.Map();
                     obj.wear_locations=.Array();
                     if(i.wear_flags&.tables.wear_flags.wear_finger) {
-                        obj.wear_locations['finger_l'] = '%1$^C1 надевает %2$O4 на левый палец.';
-                        obj.wear_locations['finger_r'] = '%1$^C1 надевает %2$O4 на правый палец.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_neck) {
-                        obj.wear_locations['neck_1'] = '%1$^C1 надевает %2$O4 вокруг шеи.';
-                        obj.wear_locations['neck_2'] = '%1$^C1 надевает %2$O4 вокруг шеи.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_wrist) {
-                        obj.wear_locations['wrist_l'] = '%1$^C1 надевает %2$O4 вокруг левого запястья.';
-                        obj.wear_locations['wrist_r'] = '%1$^C1 надевает %2$O4 вокруг правого запястья.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_body) {
-                        obj.wear_locations['body'] = '%1$^C1 надевает %2$O4 на тело.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_head) {
-                        obj.wear_locations['head'] = '%1$^C1 надевает %2$O4 на голову.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_legs) {
-                        obj.wear_locations['legs'] = '%1$^C1 надевает %2$O4 на бедра.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_feet) {
-                        obj.wear_locations['feet'] = '%1$^C1 надевает %2$O4 на ноги.';
-                    }  else if(i.wear_flags&.tables.wear_flags.wear_hands) {
-                        obj.wear_locations['hands'] = '%1$^C1 надевает %2$O4 на руки.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_arms) {
-                        obj.wear_locations['arms'] = '%1$^C1 надевает %2$O4 на плечи.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_shield) {
-                        obj.wear_locations['shield'] = '%1$^C1 надевает %2$O4 как щит.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_about) {
-                        obj.wear_locations['about'] = '%1$^C1 накидывает %2$O4 вокруг тела.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_waist) {
-                        obj.wear_locations['waist'] = '%1$^C1 надевает %2$O4 вокруг талии.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_face) {
-                        obj.wear_locations['face'] = '%1$^C1 надевает %2$O4 прикрывая лицо.';
-                    } else if(i.wear_flags&.tables.wear_flags.hold) {
-                        obj.wear_locations['hold'] = '%1$^C1 берёт в руки %2$O4.';
-                    } else if(i.wear_flags&.tables.wear_flags.wear_float) {
-                        obj.wear_locations['float'] = '%1$^C1 запускает %2$O4 кружиться вокруг себя.';
-                    } else {
-                        // 		mob.ptc('-['+c.pIndexData.vnum+'] '+c.name+' ('+t+');\n');
-                        continue;
-                    }
+                    obj.wear_locations['finger_l'] = '%1$^C1 надевает %2$O4 на левый палец.';
+                    obj.wear_locations['finger_r'] = '%1$^C1 надевает %2$O4 на правый палец.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_neck) {
+                    obj.wear_locations['neck_1'] = '%1$^C1 надевает %2$O4 вокруг шеи.';
+                    obj.wear_locations['neck_2'] = '%1$^C1 надевает %2$O4 вокруг шеи.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_wrist) {
+                    obj.wear_locations['wrist_l'] = '%1$^C1 надевает %2$O4 вокруг левого запястья.';
+                    obj.wear_locations['wrist_r'] = '%1$^C1 надевает %2$O4 вокруг правого запястья.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_body) {
+                    obj.wear_locations['body'] = '%1$^C1 надевает %2$O4 на тело.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_head) {
+                    obj.wear_locations['head'] = '%1$^C1 надевает %2$O4 на голову.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_legs) {
+                    obj.wear_locations['legs'] = '%1$^C1 надевает %2$O4 на бедра.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_feet) {
+                    obj.wear_locations['feet'] = '%1$^C1 надевает %2$O4 на ноги.';
+                }  else if(i.wear_flags&.tables.wear_flags.wear_hands) {
+                    obj.wear_locations['hands'] = '%1$^C1 надевает %2$O4 на руки.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_arms) {
+                    obj.wear_locations['arms'] = '%1$^C1 надевает %2$O4 на плечи.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_shield) {
+                    obj.wear_locations['shield'] = '%1$^C1 надевает %2$O4 как щит.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_about) {
+                    obj.wear_locations['about'] = '%1$^C1 накидывает %2$O4 вокруг тела.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_waist) {
+                    obj.wear_locations['waist'] = '%1$^C1 надевает %2$O4 вокруг талии.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_face) {
+                    obj.wear_locations['face'] = '%1$^C1 надевает %2$O4 прикрывая лицо.';
+                } else if(i.wear_flags&.tables.wear_flags.hold) {
+                    obj.wear_locations['hold'] = '%1$^C1 берёт в руки %2$O4.';
+                } else if(i.wear_flags&.tables.wear_flags.wear_float) {
+                    obj.wear_locations['float'] = '%1$^C1 запускает %2$O4 кружиться вокруг себя.';
+                } else {
+                    // 		mob.ptc('-['+c.pIndexData.vnum+'] '+c.name+' ('+t+');\n');
+                    continue;
+                }
 
                     obj = get_equiped_armor(obj,mob);
 
@@ -489,9 +489,9 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
                     if(obj.eq==null || is_better_armor(obj.eq,i)) {
                         wear_item(mob,t,i,obj.eq);
                     } /*else {
-                        //test
-                        mob.say('моё %1$O1, похоже, лучше...',obj.eq);
-                    }*/
+						//test
+						mob.say('моё %1$O1, похоже, лучше...',obj.eq);
+					}*/
 
                 }
 
@@ -547,79 +547,79 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
         postSpec = function(fiend) {
             try{
-            this = .tmp.epidemy;
+                this = .tmp.epidemy;
 
-            //2do заблудились, как добраться до цели не знаем - идём к демону
+                //2do заблудились, как добраться до цели не знаем - идём к демону
                 //2do нет больше виктимов - надо новых - идём к демону
                 //2do не знаем как пройти к демону - грустим! (или нет)
 
 
-            if(fiend.dead)
-                return;
+                if(fiend.dead)
+                    return;
 
-            if(fiend.fighting != null)
-                return;
+                if(fiend.fighting != null)
+                    return;
 
-            if(!fiend.epidemy.snd.dead && fiend.epidemy.snd.fighting!=null
-                && fiend.epidemy.snd.in_room == fiend.in_room
-                && fiend.epidemy.snd.fighting != fiend.epidemy.victim) {
-                if(.chance(80))
+                if(!fiend.epidemy.snd.dead && fiend.epidemy.snd.fighting!=null
+                    && fiend.epidemy.snd.in_room == fiend.in_room
+                    && fiend.epidemy.snd.fighting != fiend.epidemy.victim) {
+                    if(.chance(80))
                     fiend.interpret('yell ЗА ЗЛО!!! ЗА ЗАХВАТЧИКОВ!!! ВО СЛАВУ ТЕМНОГО ВЛАСТЕЛИНА!!!');
                 else
                     fiend.interpret('yell НАШИХ БЬЮТ!!!');
 
-                fiend.multi_hit(fiend.epidemy.snd.fighting);
-            }
-
-            if(fiend.epidemy.plan == null){
-                if(fiend.epidemy.primary_target!=null) {
-                    fiend.epidemy.plan = fiend_plan_check(fiend);
+                    fiend.multi_hit(fiend.epidemy.snd.fighting);
                 }
-            }
 
-            if(fiend.epidemy.plan == 0) {
-                //test
-                //fiend.interpret('say а может лут?!');
-                loot(fiend);
-                //test
-                //if(fiend.epidemy.plan == 0)
-                 //   fiend.say('план не изменился');
-                //2do видимо спамим
-                //test
-                //fiend.interpret('say Я видимо должен что-то сделать?!');
-            }
-
-            //ходим
-            if(fiend.epidemy.plan == 1) {
-                make_your_move(fiend);
-            }
-
-            //бьем
-            if(fiend.epidemy.plan == 2) {
-                if(fiend.epidemy.victim.dead ||
-                    fiend.in_room != fiend.epidemy.victim.in_room) {
-                    clearPlan(fiend);
-                } else {
-                    fiend.multi_hit(fiend.epidemy.victim);
+                if(fiend.epidemy.plan == null){
+                    if(fiend.epidemy.primary_target!=null) {
+                        fiend.epidemy.plan = fiend_plan_check(fiend);
+                    }
                 }
-            }
 
-            //собирательство
+                if(fiend.epidemy.plan == 0) {
+                    //test
+                    //fiend.interpret('say а может лут?!');
+                    loot(fiend);
+                    //test
+                    //if(fiend.epidemy.plan == 0)
+                    //   fiend.say('план не изменился');
+                    //2do видимо спамим
+                    //test
+                    //fiend.interpret('say Я видимо должен что-то сделать?!');
+                }
+
+                //ходим
+                if(fiend.epidemy.plan == 1) {
+                    make_your_move(fiend);
+                }
+
+                //бьем
+                if(fiend.epidemy.plan == 2) {
+                    if(fiend.epidemy.victim.dead ||
+                        fiend.in_room != fiend.epidemy.victim.in_room) {
+                        clearPlan(fiend);
+                    } else {
+                        fiend.multi_hit(fiend.epidemy.victim);
+                    }
+                }
+
+                //собирательство
                 //plan 3 - собираем
                 //plan 4 - ждем пока всё соберем
-            if(fiend.epidemy.plan==3) {
-                var corpse;
-                fiend.epidemy.plan=4;
-                scavenge(fiend, fiend.in_room.items, corpse);
-                if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
-                    if(fiend.epidemy.snd.in_room == fiend.in_room && fiend.epidemy.snd.epidemy.plan==0)
-                        fiend.epidemy.snd.epidemy.plan=3;
+                if(fiend.epidemy.plan==3) {
+                    var corpse;
+                    fiend.epidemy.plan=4;
+                    scavenge(fiend, fiend.in_room.items, corpse);
+                    if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
+                        if(fiend.epidemy.snd.in_room == fiend.in_room && fiend.epidemy.snd.epidemy.plan==0)
+                            fiend.epidemy.snd.epidemy.plan=3;
+                    }
+                    clearPlan(fiend);
                 }
-                clearPlan(fiend);
-            }
             }catch(e) {
                 //test
-                .get_char_world('miyamoto').ptc('fiend.postSpec: '+e);
+            .get_char_world('miyamoto').ptc('fiend.postSpec: '+e);
             }
         };
 
@@ -630,7 +630,6 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             loot(fiend);
             //test
             //fiend.interpret('say (план:'+fiend.epidemy.plan+')');
-            //2do если есть кого бить - бьём!
         };
 
         onKill = function(fiend, ch) {
@@ -646,14 +645,28 @@ if(.tmp.epidemy==null) .tmp.epidemy = .Map();
             }
         };
 
-        onDeath = function(fiend) {
+        onDeath = function(fiend, ch) {
+            //test
+            /*var fst;
+            fst = 'snd';
+            if(fiend.epidemy.fst)
+                fst='fst';
+            .tmp.epidemy.me.ptc('fiend['+fst+'].onDeath('+ch.name+')');*/
+
             //2do проверить правильность onDeath
 
             //2do выпиливаемся из списка у демона (чтоб можно было вызвать новых тварей)
         };
-        OnExtract = function(fiend) {
+        onExtract = function(fiend, count) {
+            //test
+            /*var fst;
+            fst = 'snd';
+            if(fiend.epidemy.fst)
+                fst='fst';
+            .tmp.epidemy.me.ptc('fiend['+fst+'].onExtract('+count+')');*/
+
             //выпиливаемся из списка
-            fiend.demon.epidemy.fiends.sub(this);
+            fiend.epidemy.demon.epidemy.fiends.sub(fiend);
         };
 
         onArea = function(fiend) {
