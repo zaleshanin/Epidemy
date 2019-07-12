@@ -184,7 +184,7 @@ fiendInit = function(){
                     fiend.say('fiend_plan_check: основная цель померла.');
 
                     if(fiend.epidemy.snd!=null
-                        && fiend.epidemy.snd.epidemy.victim!=null && fiend.epidemy.snd.epidemy.victim.dead) {
+                        && fiend.epidemy.snd.epidemy.victim!=null && !fiend.epidemy.snd.epidemy.victim.dead) {
                         //test
                         fiend.say('fiend_plan_check: берём цель братюни.');
                         fiend.epidemy.victim=fiend.epidemy.snd.epidemy.victim;
