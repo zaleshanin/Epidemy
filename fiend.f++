@@ -233,7 +233,7 @@ fiendInit = function(){
                     //test
                     fiend.say('fiend_plan_check: маршрута нет.');
 
-                    if(fiend.epidemy.snd.in_room==fiend.in_room && fiend.epidemy.snd.epidemy.plan_way!=null) {
+                    if(fiend.epidemy.snd!=null && fiend.epidemy.snd.in_room==fiend.in_room && fiend.epidemy.snd.epidemy.plan_way!=null) {
                         //test
                         fiend.say('fiend_plan_check: берем маршрут у напарника.');
                         fiend.epidemy.plan_room = fiend.epidemy.snd.epidemy.plan_room;
