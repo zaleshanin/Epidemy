@@ -808,7 +808,7 @@ fiendInit = function(){
                 //2do заблудились, как добраться до цели не знаем - идём к демону
                 //2do нет больше виктимов - надо новых - идём к демону
                 //2do не знаем как пройти к демону - грустим! (или нет)
-                if(fiend.dead || fiend.fighting!=null) {
+                if(fiend.dead) { // || fiend.fighting!=null
                     return;
                 } else if(fiend.epidemy.plan == null) {
                     //test
