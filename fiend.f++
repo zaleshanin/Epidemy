@@ -340,7 +340,8 @@ fiendInit = function(){
                             }
                         } else {
                             //test 2do???
-                            mob.interpret('say make_your_move: [ОЧЕНЬ ВНЕЗАПНО!!!]');
+                            mob.interpret('say make_your_move: (чистим всё) цель, возможно, переместилась');
+                            clearPlan(mob);
                         }
                     } else {
                         mob.epidemy.plan_nextroom = mob.epidemy.plan_way.front();
