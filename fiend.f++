@@ -326,16 +326,21 @@ fiendInit = function(){
                 //test
                 mob.interpret('say make_your_move: направляюсь в '+mob.epidemy.plan_room.name+'('+mob.epidemy.plan_room.vnum+')');
                 if(mob.epidemy.plan_nextroom==null) {
-                    if(mob.epidemy.plan_way.size()==0 && mob.in_room!=mob.epidemy.plan_room){
-                        //test
-                        mob.interpret('say make_your_move: Маршрут закончился, на место не прибыли. Может где-то рядом?');
-                        if(back_on_way(mob)) {
+                    if(mob.epidemy.plan_way.size()==0) {
+                        if(mob.in_room!=mob.epidemy.plan_room) {
                             //test
-                            mob.interpret('say make_your_move: Снова на маршруте!!!');
+                            mob.interpret('say make_your_move: Маршрут закончился, на место не прибыли. Может где-то рядом?');
+                            if (back_on_way(mob)) {
+                                //test
+                                mob.interpret('say make_your_move: Снова на маршруте!!!');
+                            } else {
+                                //test
+                                mob.interpret('say make_your_move: (чистим всё) Поретялася я! Нужен новый маршрут!!!');
+                                clearPlan(mob);
+                            }
                         } else {
-                            //test
-                            mob.interpret('say make_your_move: (чистим всё) Поретялася я! Нужен новый маршрут!!!');
-                            clearPlan(mob);
+                            //test 2do???
+                            mob.interpret('say make_your_move: [ОЧЕНЬ ВНЕЗАПНО!!!]');
                         }
                     } else {
                         mob.epidemy.plan_nextroom = mob.epidemy.plan_way.front();
@@ -938,10 +943,11 @@ fiendInit = function(){
 
         onKill = function(fiend, ch) {
             this = .tmp.epidemy;
-//test
-//fiend.say('onKill[plan '+fiend.epidemy.plan+'->null]');
+            //test
+            //fiend.say('onKill[plan '+fiend.epidemy.plan+'->null]');
             fiend.epidemy.last_room_looted=null;
             fiend.epidemy.plan=null;
+
             if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
                 && fiend.epidemy.snd.in_room == fiend.in_room)
                 fiend.epidemy.snd.epidemy.last_room_looted=null;
@@ -951,7 +957,12 @@ fiendInit = function(){
                 if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
                     clearPlan(fiend.epidemy.snd);
                 }
-            } else if (fiend.epidemy.genocide!=null && fiend.epidemy.genocide==ch) {
+            } else if (fiend.epidemy.genocide==ch) {
+                if(fiend.epidemy.snd!=null && fiend.epidemy.snd.epidemy.genocide==fiend.epidemy.genocide) {
+                    fiend.epidemy.snd.epidemy.genocide = null;
+                    fiend.epidemy.snd.epidemy.plan = null;
+
+                }
                 fiend.epidemy.genocide=null;
             }
         };
