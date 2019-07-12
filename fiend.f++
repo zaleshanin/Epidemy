@@ -848,7 +848,7 @@ fiendInit = function(){
                             } else {//если просто геноцид
                                 phrases.add(.fmt('В этом месте больше нет места добру! %1$^C1, сейчас ты умрёшь!!!',victim));
                                 phrases.add(.fmt('Ты слишком добр%1$G||ое|а, %1$C1, за это ты поплатишься жизнью!!!',victim));
-                                phrases.add(.fmt('Именем %1$^C2, %2$^C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
+                                phrases.add(.fmt('Именем %1$^C2, %2$C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
                                 phrases.add(.fmt('%1$^C1, прихвостень рыцарей, сейчас ты умрёшь!!!',victim));
                                 phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
                             }
@@ -856,7 +856,7 @@ fiendInit = function(){
                         } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
                             && fiend.in_room == fiend.epidemy.victim.in_room) {
                             victim = fiend.epidemy.victim;
-                            phrases.add(.fmt('Именем %1$^C2, %2$^C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
+                            phrases.add(.fmt('Именем %1$^C2, %2$C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
                             phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
                             phrases.add(.fmt('С твоей смертью, %1$C1, Империя Зла станет сильнее!!!',victim));
                             rare.add('ЗА ВДВ!!!');
