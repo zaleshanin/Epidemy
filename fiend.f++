@@ -450,7 +450,7 @@ fiendInit = function(){
             if(mob.in_room.getExitFlags(nextdoor) & .tables.exit_flags.locked)
                 continue;
             nextroom = mob.in_room.getRoom(nextdoor);
-            for(nextmob in nextroom) {
+            for(nextmob in nextroom.ppl) {
                 if(nextmob==mob.epidemy.victim)
                     return nextroom;
             }
@@ -892,7 +892,7 @@ fiendInit = function(){
                             }
                             rare.add('ЗА ВДВ!!!');
                         } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
-                            && fiend.in_room == fiend.epidemy.victim.in_room) {
+                            && fiend.in_room == fiend.epidemy.victim.in_room) { //если добрались до цели
                             victim = fiend.epidemy.victim;
                             phrases.add(.fmt('Именем %1$^C2, %2$C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
                             phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
