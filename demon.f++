@@ -150,7 +150,7 @@ this = .tmp.epidemy;
 
         for (i = .room_list; i != null; i = i.rnext) {
             if(i.areaname != city
-                || i.room_flags & .tables.room_flags.safe
+                || i.isCommon()
                 || i.resetMobiles.size() == 0) {
                 continue;
             }
