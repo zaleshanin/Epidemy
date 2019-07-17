@@ -52,10 +52,15 @@ fiendInit = function(){
         fiend.epidemy = .Map();
         fiend.epidemy.demon = demon;
         fiend.epidemy.victim = victim;
-
-        fiend.epidemy.plan_room = null;
-        fiend.epidemy.plan_waypoint = null;
-        fiend.epidemy.plan_way = null;
+        if(demon.epidemy.plan_way!=null) {
+            fiend.epidemy.plan_room = victim.in_room;
+            fiend.epidemy.plan_waypoint = fiend.in_room;
+            fiend.epidemy.plan_way = demon.epidemy.plan_way.clone();
+        } else {
+            fiend.epidemy.plan_room = null;
+            fiend.epidemy.plan_waypoint = null;
+            fiend.epidemy.plan_way = null;
+        }
         fiend.epidemy.plan_nextroom = null;
         fiend.epidemy.last_room_looted = null;
         fiend.epidemy.fst = null;
@@ -889,6 +894,9 @@ fiendInit = function(){
                                 phrases.add(.fmt('Именем %1$^C2, %2$C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
                                 phrases.add(.fmt('%1$^C1, прихвостень рыцарей, сейчас ты умрёшь!!!',victim));
                                 phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
+                                if(fiend.epidemy.genocide.level-fiend.level>=10) {
+                                    phrases.add(.fmt('Зло милосердно к тебе, %1$C1, ты умрёшь быстро!!!',victim));
+                                }
                             }
                             rare.add('ЗА ВДВ!!!');
                         } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
