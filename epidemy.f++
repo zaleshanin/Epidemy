@@ -574,7 +574,7 @@ epidemyInit = function() {
                                 if(.chanceOneOf(3)) {
                                     recho("%1$^C1 ходит кругами и нюхает следы. Этим что, можно ещё и нюхать?!",this);
                                 } else if(.chanceOneOf(2)) {
-                                    in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$G||ло|ла, что ЭТИМ можно нюхать!",mob,this);},this);
+                                    in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$Gло||ла, что ЭТИМ можно нюхать!",mob,this);},this);
 
                                 } else {
 
@@ -710,7 +710,7 @@ epidemyInit = function() {
         result = .List();
 
         for (i = .char_list; i != null; i = i.next) {
-            if (i.is_npc() && i.epidemy != null && i.epidemy.infected && !i.dead) {
+            if (i.is_npc() && i.epidemy != null && (i.epidemy.infected!=null && i.epidemy.infected==true) && !i.dead) {
                 result.push_back(i);
             }
         }
