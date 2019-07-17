@@ -47,6 +47,7 @@ this = .tmp.epidemy;
 
         demon.epidemy = .Map();
         demon.epidemy.fiends = .List();
+        demon.epidemy.victimsVnums = .List();
 
         //выдаём демону имя
         demon_name = get_demon_name();
@@ -103,7 +104,7 @@ this = .tmp.epidemy;
         demon_list['ipos'].name = 'ipos ипос demon демон';
     };
 
-    get_victims_list = function () {
+    /*get_victims_list = function () {
         this = .tmp.epidemy;
         var result;
         var i,l,c,fiend;
@@ -119,17 +120,18 @@ this = .tmp.epidemy;
         }
 
         return result;
-    };
-    get_victims_vnums_array = function () {
+    };*/
+    get_victims_vnums_array = function (demon) {
         this = .tmp.epidemy;
         var result;
-        var i,l,c,fiend;
         result = .Array();
-        l = Fiend.instances.clone();
-        c = l.size();
-        for(i=0;i<c;i=i+1) {
-            fiend = l.back();
-            l.pop_back();
+        // var i,l,c,fiend;
+        // l = Fiend.instances.clone();
+        // c = l.size();
+        // for(i=0;i<c;i=i+1) {
+        for(fiend in demon.epidemy.fiends) {
+            // fiend = l.back();
+            // l.pop_back();
             if(fiend.epidemy.primary_target!=null) {
                 if(result[fiend.epidemy.primary_target]!=null) {
                     result[fiend.epidemy.primary_target] = result[fiend.epidemy.primary_target] + 1;
@@ -141,30 +143,53 @@ this = .tmp.epidemy;
 
         return result;
     };
-    get_one_good = function(demon) {
-        this = .tmp.epidemy;
-
-        var i,list, vlist, vvlist;
-        var city;
+    get_mobs_vnums = function(demon) {
+        var resultList, city, i;
+        resultList = .List();
         city = demon.in_room.areaname;
 
-        list = .List();
-
-        vlist = get_victims_list();
-        vvlist = get_victims_vnums_array();
-
-        for (i = .char_list; i != null; i = i.next) {
-            if (i.is_npc() && i.alignment>=350
-                && i.in_room.areaname==city && i.in_room.isCommon()
-                && !vlist.has(i)
-                && (vvlist[i.pIndexData.vnum]==null || vvlist[i.pIndexData.vnum] < 6)) {
-                //2do не посылать если нельзя построить маршрут
-                if(find_way(demon,i.in_room).size()>0)
-                    list.push_back(i);
+        for (i = .room_list; i != null; i = i.rnext) {
+            if(i.areaname != city
+                || i.room_flags & .tables.room_flags.safe
+                || i.resetMobiles.size() == 0) {
+                continue;
+            }
+            var mob;
+            for(vnum in i.resetMobiles)    {
+                mob = .get_mob_index(vnum).instances.front();
+                if (mob!=null && mob.alignment>=350 && !resultList.has(vnum)) {
+                    resultList.push_back(vnum);
+                }
             }
         }
 
-        return list.random();
+        return resultList;
+    };
+    get_one_good = function(demon,min_level,max_level) {
+        this = .tmp.epidemy;
+        var city;
+
+        if(demon.epidemy.victimsVnums==null)
+            demon.epidemy.victimsVnums = .List();
+        if(demon.epidemy.victimsVnums.size()==0)
+            demon.epidemy.victimsVnums = get_mobs_vnums(demon);
+
+        var victimsList;
+        victimsList = get_victims_vnums_array(demon);
+
+        var mobList;
+        mobList = .List();
+        for(vnum in demon.epidemy.victimsVnums) {
+            if(victimsList[vnum]!=null && victimsList[vnum]>1) continue;
+
+            for(mob in .get_mob_index(vnum).instances) {
+                if(min_level!=null && mob.level<min_level) continue;
+                if(max_level!=null && mob.level>max_level) continue;
+                mobList.push_back(mob);
+            }
+        }
+
+        return mobList.random();
     };
 
     demon_plan_check = function(demon){
@@ -191,7 +216,7 @@ this = .tmp.epidemy;
             } else {
                 //test
                 demon.interpret('say дело было вечером делать было нечего!');
-                victim = get_one_good(demon);
+                victim = get_one_good(demon,12,null);
                 if(victim != null) {
                     plan = 1;
                     demon.epidemy.victim = victim;

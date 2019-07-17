@@ -907,7 +907,7 @@ fiendInit = function(){
                                 fiend.interpret('yell '+phrases.random());
                             else
                                 fiend.interpret('yell '+rare.random());
-
+                            //2do не ввязываемяс если у нас меньше 50% жизни
                             fiend.multi_hit(victim);
                         }
                     } else {
