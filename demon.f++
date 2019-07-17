@@ -208,7 +208,7 @@ this = .tmp.epidemy;
         //city = demon.in_room.areaname;
         if(demon.epidemy.plan==null) {
             //2do количество исчадий
-            if(demon.epidemy.fiends.size()>=2) {
+            if(demon.epidemy.fiends.size()>=10) {
                 demon.epidemy.plan=null;
                 //test
                 demon.interpret('say развелось исчадий, не протолкнуться!');
@@ -236,20 +236,19 @@ this = .tmp.epidemy;
     add_demon_triggers = function() {
         this = .tmp.epidemy;
         Demon.postSpec = function(demon){
+            try {
             //test
-            demon.interpret('sigh');
+            demon.say('demon.postSpec start');
             //2do социалов добавить бы
             //2do похоже не работает assist_align
             this = .tmp.epidemy;
 
             if(demon.fighting != null)
                 return;
-            try {
             if(demon.epidemy.plan==null){
                 //test
                 demon.interpret('say чем бы заняться?');
                 demon.epidemy.plan = demon_plan_check(demon);
-
             }
 
             if(demon.epidemy.plan==1) {
@@ -258,12 +257,20 @@ this = .tmp.epidemy;
                     throw('epidemy.demon: no victim for calling fiends');
                 }
 
-                demon.interpret('emote делает странные пассы руками... немного помогая себе хвостом и надбровными дугами.');
-                .scheduler.sleep(2);
-                get_fiends(demon,demon.epidemy.victim);
-                .scheduler.sleep(2);
-                demon.recho('%1$^C1 произносит \'{gУбить %2$C4!\'{x',demon, demon.epidemy.victim);
-                demon.epidemy.victim=null;
+                demon.epidemy.plan_way = find_way(demon,demon.epidemy.victim.in_room);
+                if(demon.epidemy.plan_way.size()==0) {
+                    //test
+                    demon.say('нет пути к %1$C1, удаляю %2$i',demon.epidemy.victim,demon.epidemy.victim.pIndexData.vnum);
+                    demon.epidemy.victimsVnums.sub(demon.epidemy.victim.pIndexData.vnum);
+                } else {
+                    demon.interpret('emote делает странные пассы руками... немного помогая себе хвостом и надбровными дугами.');
+                    .scheduler.sleep(2);
+                    get_fiends(demon,demon.epidemy.victim);
+                    .scheduler.sleep(2);
+                    demon.recho('%1$^C1 произносит \'{gУбить %2$C4!\'{x',demon, demon.epidemy.victim);
+                }
+                demon.epidemy.victim = null;
+                demon.epidemy.plan_way = null;
                 demon.epidemy.plan = 0;
             }
             } catch (e) {
