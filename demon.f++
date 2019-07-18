@@ -48,6 +48,7 @@ this = .tmp.epidemy;
         demon.epidemy = .Map();
         demon.epidemy.fiends = .List();
         demon.epidemy.victimsVnums = .List();
+        demon.epidemy.unricheble = .List();
 
         //выдаём демону имя
         demon_name = get_demon_name();
@@ -155,11 +156,17 @@ this = .tmp.epidemy;
                 continue;
             }
             var mob;
-            for(vnum in i.resetMobiles)    {
+            for(vnum in i.resetMobiles) {
+                if(demon.epidemy.unricheble.has(vnum)) continue;
+
                 mob = .get_mob_index(vnum).instances.front();
-                if (mob!=null && mob.alignment>=350 && !resultList.has(vnum)) {
-                    resultList.push_back(vnum);
-                }
+
+                if(mob==null
+                    || mob.imm_flags & .tables.imm_flags.weapon
+                    || mob.alignment<350
+                    || resultList.has(vnum)) {continue;}
+
+                resultList.push_back(vnum);
             }
         }
 
@@ -217,15 +224,16 @@ this = .tmp.epidemy;
                 //test
                 demon.interpret('say дело было вечером делать было нечего!');
                 victim = get_one_good(demon,12,null);
-                if(victim != null) {
+
+                if(victim == null) {
+                    plan = 0;
+                    //test
+                    demon.interpret('say а где все?!');
+                } else {
                     plan = 1;
                     demon.epidemy.victim = victim;
                     //test
                     demon.interpret('say похоже будем убивать!');
-                } else {
-                    plan = 0;
-                    //test
-                    demon.interpret('say а где все?!');
                 }
             }
         }
@@ -261,6 +269,7 @@ this = .tmp.epidemy;
                 if(demon.epidemy.plan_way.size()==0) {
                     //test
                     demon.say('нет пути к %1$C1, удаляю %2$i',demon.epidemy.victim,demon.epidemy.victim.pIndexData.vnum);
+                    demon.epidemy.unricheble.push_back(demon.epidemy.victim.pIndexData.vnum);
                     demon.epidemy.victimsVnums.sub(demon.epidemy.victim.pIndexData.vnum);
                 } else {
                     demon.interpret('emote делает странные пассы руками... немного помогая себе хвостом и надбровными дугами.');

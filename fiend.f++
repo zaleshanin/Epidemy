@@ -580,10 +580,12 @@ fiendInit = function(){
         if(mob.inventory.has(item)) {
             //test
             //mob.say('wear_item: wear %1$O1',item);
-            mob.recho(t.wear_msg, mob, item);
-            item.equip(t.wear_loc);
-            if(item.item_type == .tables.item_table.weapon) {
-                mob.epidemy.has_weapon = true;
+            if(mob.get_eq_char(t.wear_loc)==null) {
+                mob.recho(t.wear_msg, mob, item);
+                item.equip(t.wear_loc);
+                if(item.item_type == .tables.item_table.weapon) {
+                    mob.epidemy.has_weapon = true;
+                }
             }
         } else {
             //что-то пошло не так;
@@ -1166,6 +1168,29 @@ fiendInit = function(){
         fiends_names[24] = .Array();
         fiends_names[24]['greby'] = 'Греб|и|а|у|а|ом|е';
         fiends_names[24]['grebu'] = 'Греб|у|а|у|а|ом|е';
+        fiends_names[25] = .Array();
+        fiends_names[25]['Timon'] = 'Тимон||а|у|а|ом|е';
+        fiends_names[25]['Pumbaa'] = 'Пумб|a|ы|е|у|ой|е';
+        fiends_names[26] = .Array();
+        fiends_names[26]['ravshan'] = 'Равшан||а|у|а|ом|е';
+        fiends_names[26]['Jus'] = 'Джамшут||а|у|а|ом|е';
+        fiends_names[27] = .Array();
+        fiends_names[27]['tom'] = 'Том||а|у|а|ом|е';
+        fiends_names[27]['Jerry'] = 'Джери';
+        fiends_names[28] = .Array();
+        fiends_names[28]['Ichtyandr'] = 'Ихтиандр||а|у|а|ом|е';
+        fiends_names[28]['Gutiere'] = 'Гуттиэре';
+        fiends_names[29] = .Array();
+        fiends_names[29]['Gargantua'] = 'Гаргантюа';
+        fiends_names[29]['Pantagruel'] = 'Пантагрюэл|ь|я|ю|я|ем|е';
+        fiends_names[30] = .Array();
+        fiends_names[30]['Alyonushka'] = 'Алёнушк|а|и|е|у|ой|е';
+        fiends_names[30]['Ivanushka'] = 'Иванушк|а|и|е|у|ой|е';
+        fiends_names[30] = .Array();
+        fiends_names[30]['hansel'] = 'Гензел|ь|ь|ю|я|ем|е';
+        fiends_names[30]['gretel'] = 'Гретел|ь|ь|ю|я|ем|е';
+
+        //алёнушка и иванушка
 /*
         1 Именительный: кто? что?                колдун
         2 Родительный: бред кого? чего?          колдуна
