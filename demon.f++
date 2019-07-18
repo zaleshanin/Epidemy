@@ -150,7 +150,7 @@ this = .tmp.epidemy;
 
         for (i = .room_list; i != null; i = i.rnext) {
             if(i.areaname != city
-                || i.isCommon()
+                || !i.isCommon()
                 || i.resetMobiles.size() == 0) {
                 continue;
             }
@@ -238,7 +238,7 @@ this = .tmp.epidemy;
         Demon.postSpec = function(demon){
             try {
             //test
-            demon.say('demon.postSpec start');
+            // demon.say('demon.postSpec start');
             //2do социалов добавить бы
             //2do похоже не работает assist_align
             this = .tmp.epidemy;

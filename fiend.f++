@@ -208,8 +208,11 @@ fiendInit = function(){
                     } else {
                         //test
                         // fiend.say('fiend_plan_check: ищу новую цель через демона.');
-
-                        fiend.epidemy.victim = get_one_good(fiend.epidemy.demon,fiend.level-21,fiend.level+3);
+                        var minlvl;
+                        for(minlvl=fiend.level-10;minlvl>=0;minlvl=minlvl-10){
+                            fiend.epidemy.victim = get_one_good(fiend.epidemy.demon,minlvl,fiend.level+3);
+                            if(fiend.epidemy.victim!=null) break;
+                        }
                         //test
                         // if(fiend.epidemy.victim==null) fiend.say('fiend_plan_check: Неудачно.'); else fiend.say('будет атакован %1$C1.',fiend.epidemy.victim);
                     }
@@ -927,10 +930,10 @@ fiendInit = function(){
                             rare.add('ЗА ВДВ!!!');
                         }
 
-                        if(victim==null || victim.dead) {
+                        if(victim==null || victim.dead || victim.in_room!=fiend.in_room) {
                             clearPlan(fiend);
                         } else {
-                            if(.chance(95))
+                            if(.chance(98))
                                 fiend.interpret('yell '+phrases.random());
                             else
                                 fiend.interpret('yell '+rare.random());
@@ -1136,13 +1139,40 @@ fiendInit = function(){
         fiends_names[16] = .Array();
         fiends_names[16]['chip'] = 'Чип||а|у|а|ом|е';
         fiends_names[16]['dale'] = 'Дейл||а|у|а|ом|е';
+        fiends_names[17] = .Array();
+        fiends_names[17]['ta'] = 'Та';
+        fiends_names[17]['hi'] = 'Хи';
+        fiends_names[18] = .Array();
+        fiends_names[18]['sha'] = 'Ша';
+        fiends_names[18]['zam'] = 'Зам||а|у|а|ом|е';
+        fiends_names[19] = .Array();
+        fiends_names[19]['biba'] = 'Биб|а|ы|е|у|ой|е';
+        fiends_names[19]['boba'] = 'Боб|а|ы|е|у|ой|е';
+        fiends_names[20] = .Array();
+        fiends_names[20]['right'] = 'Райт||а|у|а|ом|е';
+        fiends_names[20]['now'] = 'Нау||а|у|а|ом|е';
+        fiends_names[21] = .Array();
+        fiends_names[21]['Urfin'] = 'Урфин||а|у|а|ом|е';
+        fiends_names[21]['Jus'] = 'Джюс||а|у|а|ом|е';
+        fiends_names[22] = .Array();
+        fiends_names[22]['Seeta'] = 'Зит|а|ы|е|у|ой|е';
+        fiends_names[22]['Geeta'] = 'Гит|а|ы|е|у|ой|е';
+        fiends_names[23] = .Array();
+        fiends_names[23]['ruf'] = 'Руф||а|у|а|ом|е';
+        fiends_names[23]['fina'] = 'Фин|а|ы|e|у|ой|е';
+        fiends_names[24] = .Array();
+        fiends_names[24]['Taj'] = 'Тадж||а|у|а|ем|е';
+        fiends_names[24]['Mahal'] = 'Махал||а|у|а|ом|е';
+        fiends_names[24] = .Array();
+        fiends_names[24]['greby'] = 'Греб|и|а|у|а|ом|е';
+        fiends_names[24]['grebu'] = 'Греб|у|а|у|а|ом|е';
 /*
-        Именительный: кто? что?                колдун
-        Родительный: бред кого? чего?          колдуна
-        Дательный: дать кому? чему?            колдуну
-        Винительный: убить кого? что?          колдуна
-        Творительный: управлять кем? чем?      колдуном
-        Предложный: говорить о ком? о чём?     колдуне
+        1 Именительный: кто? что?                колдун
+        2 Родительный: бред кого? чего?          колдуна
+        3 Дательный: дать кому? чему?            колдуну
+        4 Винительный: убить кого? что?          колдуна
+        5 Творительный: управлять кем? чем?      колдуном
+        6 Предложный: говорить о ком? о чём?     колдуне
 
         Пример склонения слова с дефисом: лягушк|а|и|е|у|ой|е-убийц|а|ы|е|у|ей|е
         */
