@@ -141,7 +141,7 @@ fiendInit = function(){
         //fiend_plan_check - должен вызываться из postSpec, когда plan==null
 
         //test
-        //fiend.say('fiend_plan_check[null]: start.');
+        // fiend.say('fiend_plan_check[null]: start.');
 
         this = .tmp.epidemy;
 
@@ -839,7 +839,25 @@ fiendInit = function(){
     //end loot
     // проверка, есть ли кого отгеноцидить
     genocide = function(fiend) {
+        //test
+        //fiend.say('genocide()');
         for(ch in fiend.in_room.ppl) {
+            //test
+            //fiend.say('genocide:%1$C1 alig:'+ch.alignment+' lvl:'+ch.level+'['+(fiend.level+3)+']',ch);
+            if(ch==fiend)
+                continue;
+
+            if(ch.alignment < 350 || ch.level > fiend.level+3) {
+                //test
+                //fiend.say('genocide:он или злой, или крутой - пусть живёт');
+                //он или злой, или крутой - пусть живёт
+                continue;
+            }
+            if(!ch.is_npc() && ch.level < fiend.level-3){
+                //слабых игоков не трогаем
+                continue;
+            }
+
             if(ch.imm_flags & .tables.imm_flags.weapon) {
                 //в сад этих пуленепробиваемых засранцев
                 continue;
@@ -849,13 +867,8 @@ fiendInit = function(){
                 // fiend.say('genocide:%1$C1 - цель. оставим на потом',ch);
                 continue;
             }
-            //test
-            //fiend.say('genocide:%1$C1 alig:'+ch.alignment+' lvl:'+ch.level+'['+(fiend.level+3)+']',ch);
-            if(ch.is_npc() && ch.alignment>=350 && ch.level<=fiend.level+3) {
-                //test
-                // fiend.say('genocide:%1$C1 наш пациент',ch);
-                return ch;
-            }
+
+            return ch;
         }
         //test
         // fiend.say('genocide: нет клиентов',ch);
@@ -888,53 +901,62 @@ fiendInit = function(){
                 }
 
                 if(fiend.epidemy.plan == 0) {
-                    fiend.interpret('say postSpec[plan 0]: Я видимо должен что-то сделать, но не знаю что?!');
+                    if(fiend.epidemy.snd!=null
+                        && fiend.epidemy.snd.epidemy.plan==null
+                        && fiend.epidemy.snd.in_room==fiend.in_room
+                        && fiend.epidemy.snd.fighting==null) {
+                        fiend.epidemy.snd.epidemy.plan=fiend.epidemy.plan;
+                    }
+                    //test
+                    // fiend.interpret('say postSpec[plan 0]: Я видимо должен что-то сделать, но не знаю что?!');
                 } else if(fiend.epidemy.plan == 1) { //ходим
                     make_your_move(fiend);
                 } else if(fiend.epidemy.plan == 2) { //бьем
                     if(fiend.fighting==null) {
                         var victim;
-                        var phrases, rare;
-                        rare = .List();
-                        phrases = .List();
 
                         if(fiend.epidemy.genocide!=null && !fiend.epidemy.genocide.dead
                             && fiend.epidemy.genocide.in_room==fiend.in_room) {
                             victim = fiend.epidemy.genocide;
-
-                            if(fiend.epidemy.genocide.fighting!=null
-                                && fiend.epidemy.genocide.fighting.pIndexData==Fiend) {//если вписываемся за братюню
-                                phrases.add('ЗА ЗЛО!!! ЗА ЗАХВАТЧИКОВ!!! ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
-                                phrases.add('ЗА ЗЛО!!!');
-                                phrases.add('ЗА ЗАХВАТЧИКОВ!!!');
-                                phrases.add('ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
-                                rare.add('НАШИХ БЬЮТ!!!');
-                            } else {//если просто геноцид
-                                phrases.add(.fmt('В этом месте больше нет места добру! %1$^C1, сейчас ты умрёшь!!!',victim));
-                                phrases.add(.fmt('Ты слишком добр%1$Gое||а, %1$C1, за это ты поплатишься жизнью!!!',victim)); //%Gсрд|муж|жен
-                                phrases.add(.fmt('Твои добрые дела, %1$C1, не останутся безнаказанными! Приготовься к смерти!!!',victim));
-                                phrases.add(.fmt('Деяния твои, %1$C1, не остались незамеченными! Умри же!!!',victim));
-                                phrases.add(.fmt('Именем %1$^C2, %2$C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
-                                phrases.add(.fmt('%1$^C1, прихвостень рыцарей, сейчас ты умрёшь!!!',victim));
-                                phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
-                                if((fiend.level-fiend.epidemy.genocide.level)>=10) {
-                                    phrases.add(.fmt('Зло милосердно к тебе, %1$C1, ты умрёшь быстро!!!',victim));
-                                    phrases.add(.fmt('Сегодня твой счастливый день, %1$C1, ты умрёшь быстро!!!',victim));
-                                }
-                            }
-                            rare.add('ЗА ВДВ!!!');
                         } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
                             && fiend.in_room == fiend.epidemy.victim.in_room) { //если добрались до цели
                             victim = fiend.epidemy.victim;
-                            phrases.add(.fmt('Именем %1$^C2, %2$C1, ты умрёшь!!!',fiend.epidemy.demon,victim));
-                            phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
-                            phrases.add(.fmt('С твоей смертью, %1$C1, Империя Зла станет сильнее!!!',victim));
-                            rare.add('ЗА ВДВ!!!');
                         }
 
                         if(victim==null || victim.dead || victim.in_room!=fiend.in_room) {
                             clearPlan(fiend);
                         } else {
+                            var phrases, rare;
+                            rare = .List();
+                            phrases = .List();
+                            if(victim.fighting!=null && victim.fighting.pIndexData==Fiend) {
+                                //если вписываемся за братюню
+                                phrases.add('ЗА ЗЛО!!! ЗА ЗАХВАТЧИКОВ!!! ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
+                                phrases.add('ЗА ЗЛО!!!');
+                                phrases.add('ЗА ЗАХВАТЧИКОВ!!!');
+                                phrases.add('ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
+                                rare.add('НАШИХ БЬЮТ!!!');
+                                rare.add('ЗА ВДВ!!!');
+                            } else {
+                                //если просто геноцид
+                                phrases.add(.fmt('%1$^C1, твои преступления против Империи Зла не остались незамеченными! Приготовься умереть!!!',victim));
+                                phrases.add(.fmt('Отныне здесь нет места добру! %1$^C1, сейчас ты умрёшь!!!',victim));
+                                phrases.add(.fmt('Ты слишком добр%1$Gое||а, %1$C1, за это ты поплатишься жизнью!!!',victim));
+                                phrases.add(.fmt('Твои добрые дела, %1$C1, не останутся безнаказанными! Приготовься к смерти!!!',victim));
+                                phrases.add(.fmt('Деяния твои, %1$C1, не остались незамеченными! Умри же!!!',victim));
+                                phrases.add(.fmt('Именем %2$^C2, %1$C1, ты умрёшь!!!',victim,fiend.epidemy.demon));
+                                phrases.add(.fmt('%1$^C1, прихвостень рыцарей, сейчас ты умрёшь!!!',victim));
+                                phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
+                                phrases.add(.fmt('С твоей смертью, %1$C1, Империя Зла станет сильнее!!!',victim));
+                                if((fiend.level-victim.level)>=10) {
+                                    phrases.add(.fmt('Зло милосердно к тебе, %1$C1, ты умрёшь быстро!!!',victim));
+                                    phrases.add(.fmt('Сегодня твой счастливый день, %1$C1, ты умрёшь быстро!!!',victim));
+                                }
+                                rare.add(.fmt('%1$^C1, настал час расплаты за добро причиненное тобой!!!',victim));
+                                rare.add(.fmt('%1$^C1, ты нам никогда не нравил%1$Gось|ся|ась! УМРИ!!!',victim));
+                                rare.add('ЗА ВДВ!!!');
+                                rare.add(.fmt('Вот и всё, %1$^C1! ВОТ И ВСЁ!!!',victim));
+                            }
                             if(.chance(98))
                                 fiend.interpret('yell '+phrases.random());
                             else
@@ -981,7 +1003,11 @@ fiendInit = function(){
             //test
             // if(fiend.epidemy.plan!=null) fiend.interpret('say onEntry[план:'+fiend.epidemy.plan+'] start'); else fiend.interpret('say onEntry[план:null] start');
 
-            fiend.epidemy.plan = null;
+            if(fiend.in_room.items.size()>0 && fiend.epidemy.last_room_looted!=fiend.in_room) {
+                fiend.epidemy.plan = null;
+            } else if(fiend.in_room.ppl.size()>1) {
+                fiend.epidemy.plan = null;
+            }
 
             //2do перенести loot? genocid? в fiend_plan_check
             /*this = .tmp.epidemy;
