@@ -190,6 +190,7 @@ this = .tmp.epidemy;
             if(victimsList[vnum]!=null && victimsList[vnum]>1) continue;
 
             for(mob in .get_mob_index(vnum).instances) {
+                if(mob.imm_flags & .tables.imm_flags.weapon) continue; //пуленепробиваемые засранцы
                 if(min_level!=null && mob.level<min_level) continue;
                 if(max_level!=null && mob.level>max_level) continue;
                 mobList.push_back(mob);
