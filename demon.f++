@@ -14,23 +14,14 @@ this = .tmp.epidemy;
 
     get_demon_name = function() {
         this = .tmp.epidemy;
-        var l,dl,c,n,i;
-        dl=.List();
-        l = demons.clone();
-        c = l.size();
-        for(i=0;i<c;i=i+1) {
-            n = l.back().name.getOneArgument();
-            dl.push_back(n);
-            l.pop_back();
-        }
-        l = demon_list.keys.clone();
-        c = dl.size();
-        for(i=0;i<c;i=i+1) {
-            l.sub(dl.back());
-            dl.pop_back();
+        var dl;
+        dl=demon_list.keys.clone();
+
+        for(demon in demons) {
+            dl.sub(demon.name.getOneArgument());
         }
 
-        return l.random();
+        return dl.random();
     };
     get_one_demon = function(room) {
         this = .tmp.epidemy;
@@ -47,8 +38,9 @@ this = .tmp.epidemy;
 
         demon.epidemy = .Map();
         demon.epidemy.fiends = .List();
+        demon.epidemy.fiends_names = .Array();
         demon.epidemy.victimsVnums = .List();
-        demon.epidemy.unricheble = .List();
+        demon.epidemy.unreachable = .List();
 
         //выдаём демону имя
         demon_name = get_demon_name();
@@ -157,7 +149,7 @@ this = .tmp.epidemy;
             }
             var mob;
             for(vnum in i.resetMobiles) {
-                if(demon.epidemy.unricheble.has(vnum)) continue;
+                if(demon.epidemy.unreachable.has(vnum)) continue;
 
                 mob = .get_mob_index(vnum).instances.front();
 
@@ -270,7 +262,7 @@ this = .tmp.epidemy;
                 if(demon.epidemy.plan_way.size()==0) {
                     //test
                     demon.say('нет пути к %1$C1, удаляю %2$i',demon.epidemy.victim,demon.epidemy.victim.pIndexData.vnum);
-                    demon.epidemy.unricheble.push_back(demon.epidemy.victim.pIndexData.vnum);
+                    demon.epidemy.unreachable.push_back(demon.epidemy.victim.pIndexData.vnum);
                     demon.epidemy.victimsVnums.sub(demon.epidemy.victim.pIndexData.vnum);
                 } else {
                     demon.interpret('emote делает странные пассы руками... немного помогая себе хвостом и надбровными дугами.');
@@ -306,7 +298,7 @@ this = .tmp.epidemy;
             demons.sub(demon);
         };
 
-        Demon.onExtract = function(demon) {
+        Demon.onExtract = function(demon, count) {
             this = .tmp.epidemy;
             //выпиливаемся из списка
             demons.sub(demon);

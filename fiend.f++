@@ -15,11 +15,11 @@ fiendInit = function(){
 
         this = .tmp.epidemy;
 
-        var fiendFst, fiendSnd;
+        var fiendFst, fiendSnd, fiendNames;
 
         fiendFst = get_one_fiend(demon, victim);
         fiendSnd = get_one_fiend(demon, victim);
-        set_fiends_name(fiendFst, fiendSnd);
+        fiendNames = set_fiends_name(fiendFst, fiendSnd);
 
         fiendFst.epidemy.snd = fiendSnd;
         fiendFst.epidemy.fst = true;
@@ -30,11 +30,9 @@ fiendInit = function(){
         fiendFst.char_to_room(demon.in_room);
         fiendSnd.char_to_room(demon.in_room);
 
-        demon.in_room.ppl.forEach( function(demon){
-            act('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
-            act('...Из врат выходят два исчадия, готовых исполнить волю %1$C2...',demon);
-            act('...Врата со скрипом и грохотом затворяются. Вопли истязаемых душ стихают.');
-        },demon );
+        demon.in_room.echo('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
+        demon.in_room.echo('...из врат выходят исчадия %2$N1 и %3$N1, готовых исполнить волю %1$C2...',demon,fiendNames.snd,fiendNames.fst);
+        demon.in_room.echo('...врата со скрипом и грохотом затворяются. Вопли истязаемых душ стихают.');
 
     };
 
@@ -94,12 +92,39 @@ fiendInit = function(){
 
     set_fiends_name = function(fst,snd) {
         this = .tmp.epidemy;
-        var names;
-        names = fiends_names[fiends_names.keys.random()];
-        fst.short_descr = fst.short_descr + ' ' + names.values.front();
-        fst.name = fst.name + ' ' + names.keys.front();
-        snd.short_descr = snd.short_descr + ' ' + names.values.back();
-        snd.name = snd.name + ' ' + names.keys.back();
+
+        var name_key, name_keys, fiendNames;
+        name_keys = .List();
+        fiendNames = .Map(); //вернем из функции
+        if(fst.epidemy.demon.epidemy.fiends_names==null)
+            fst.epidemy.demon.epidemy.fiends_names = .Array(); //массив уже выданных ключей от имён
+
+        for(key in fiends_names.keys) {
+            if(fst.epidemy.demon.epidemy.fiends_names[key]!=null && fst.epidemy.demon.epidemy.fiends_names[key]>0)
+                continue;
+            name_keys.push_back(key);
+        }
+
+        name_key = name_keys.random();
+
+        if(fst.epidemy.demon.epidemy.fiends_names[name_key]==null) {
+            fst.epidemy.demon.epidemy.fiends_names[name_key]=2;
+        } else {
+            fst.epidemy.demon.epidemy.fiends_names[name_key]=fst.epidemy.demon.epidemy.fiends_names[name_key]+2;
+        }
+
+        fiendNames.fst = fiends_names_descr[name_key].front();
+        fiendNames.snd = fiends_names_descr[name_key].back();
+
+        fst.short_descr = fst.short_descr + ' ' + fiendNames.fst;
+        fst.name = fst.name + ' ' + fiends_names[name_key].front();
+        fst.epidemy.name_key = name_key;
+
+        snd.short_descr = snd.short_descr + ' ' + fiendNames.snd;
+        snd.name = snd.name + ' ' + fiends_names[name_key].back();
+        snd.epidemy.name_key = name_key;
+
+        return fiendNames;
     };
 
     find_way = function(mob,room){
@@ -194,7 +219,7 @@ fiendInit = function(){
                     //test
                     // fiend.say('fiend_plan_check: основная цель померла.');
 
-                    if(fiend.epidemy.snd!=null
+                    if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
                         && fiend.epidemy.snd.epidemy.victim!=null && !fiend.epidemy.snd.epidemy.victim.dead) {
                         //test
                         // fiend.say('fiend_plan_check: берём цель братюни.');
@@ -252,7 +277,7 @@ fiendInit = function(){
                     //test
                     // fiend.say('fiend_plan_check: маршрута нет.');
 
-                    if(fiend.epidemy.snd!=null && fiend.epidemy.snd.in_room==fiend.in_room && fiend.epidemy.snd.epidemy.plan_way!=null) {
+                    if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead && fiend.epidemy.snd.in_room==fiend.in_room && fiend.epidemy.snd.epidemy.plan_way!=null) {
                         //test
                         // fiend.say('fiend_plan_check: берем маршрут у напарника.');
                         fiend.epidemy.plan_room = fiend.epidemy.snd.epidemy.plan_room;
@@ -270,8 +295,9 @@ fiendInit = function(){
                         if(fiend.epidemy.plan_way.size()==0) {
                             //test
                             // fiend.interpret('say ' + fiend.epidemy.victim.name + '('+fiend.epidemy.victim.pIndexData.vnum+')'+' находится в '+fiend.epidemy.victim.in_room.name+'. Пожалуй убьем другого... и вычеркнем из списка демона!');
-                            //вычеркиваем из списка демона
-                            fiend.epidemy.demon.epidemy.victimsVnums.sub(fiend.epidemy.victim.pIndexData.vnum);
+                            //вычеркиваем из списка демона если демон еще жив
+                            if(!fiend.epidemy.demon.dead)
+                                fiend.epidemy.demon.epidemy.victimsVnums.sub(fiend.epidemy.victim.pIndexData.vnum);
                             if(fiend.epidemy.snd!=null
                                 && fiend.epidemy.snd.epidemy.victim==fiend.epidemy.victim) {
                                 //test
@@ -282,7 +308,7 @@ fiendInit = function(){
                             //clearPlan(fiend);
                             result = 0;
                         } else {
-                            if(fiend.epidemy.snd!=null && fiend.epidemy.snd.in_room==fiend.in_room) {
+                            if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead && fiend.epidemy.snd.in_room==fiend.in_room) {
                                 //test
                                 // fiend.say('fiend_plan_check: напарнику тот же маршрут.');
                                 fiend.epidemy.snd.epidemy.plan_room = fiend.epidemy.plan_room;
@@ -878,7 +904,19 @@ fiendInit = function(){
     fill_fiend_triggers = function(Fiend){
         this = Fiend;
 
-        onSpec=null;
+        onSpec = function(fiend) {
+            this = .tmp.epidemy;
+
+            if(fiend.dead) { // || fiend.fighting!=null
+                return;
+            } else if(fiend.epidemy.plan == null) {
+                //test
+                // fiend.say('postSpec[plan:null]: Плана нет.');
+                if(fiend.epidemy.primary_target!=null) {
+                    fiend.epidemy.plan = fiend_plan_check(fiend);
+                }
+            }
+        };
 
         postSpec = function(fiend) {
             try{
@@ -887,21 +925,9 @@ fiendInit = function(){
 
                 this = .tmp.epidemy;
 
-                //2do заблудились, как добраться до цели не знаем - идём к демону
-                //2do нет больше виктимов - надо новых - идём к демону
-                //2do не знаем как пройти к демону - грустим! (или нет)
-                if(fiend.dead) { // || fiend.fighting!=null
-                    return;
-                } else if(fiend.epidemy.plan == null) {
-                    //test
-                    // fiend.say('postSpec[plan:null]: Плана нет.');
-                    if(fiend.epidemy.primary_target!=null) {
-                        fiend.epidemy.plan = fiend_plan_check(fiend);
-                    }
-                }
-
                 if(fiend.epidemy.plan == 0) {
                     if(fiend.epidemy.snd!=null
+                        && !fiend.epidemy.snd.dead
                         && fiend.epidemy.snd.epidemy.plan==null
                         && fiend.epidemy.snd.in_room==fiend.in_room
                         && fiend.epidemy.snd.fighting==null) {
@@ -909,85 +935,92 @@ fiendInit = function(){
                     }
                     //test
                     // fiend.interpret('say postSpec[plan 0]: Я видимо должен что-то сделать, но не знаю что?!');
-                } else if(fiend.epidemy.plan == 1) { //ходим
-                    make_your_move(fiend);
-                } else if(fiend.epidemy.plan == 2) { //бьем
-                    if(fiend.fighting==null) {
-                        var victim;
+                } else {
+                    .scheduler.sleep(.number_range(0,5)); //пытаюсь разнести чуток по времени
+                    if(fiend.dead || fiend.epidemy.plan==null)
+                        return;
 
-                        if(fiend.epidemy.genocide!=null && !fiend.epidemy.genocide.dead
-                            && fiend.epidemy.genocide.in_room==fiend.in_room) {
-                            victim = fiend.epidemy.genocide;
-                        } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
-                            && fiend.in_room == fiend.epidemy.victim.in_room) { //если добрались до цели
-                            victim = fiend.epidemy.victim;
-                        }
+                    if(fiend.epidemy.plan == 1) { //ходим
+                        make_your_move(fiend);
+                    } else if(fiend.epidemy.plan == 2) { //бьем
+                        if(fiend.fighting==null) {
+                            var victim;
 
-                        if(victim==null || victim.dead || victim.in_room!=fiend.in_room) {
-                            clearPlan(fiend);
-                        } else {
-                            var phrases, rare;
-                            rare = .List();
-                            phrases = .List();
-                            if(victim.fighting!=null && victim.fighting.pIndexData==Fiend) {
-                                //если вписываемся за братюню
-                                phrases.add('ЗА ЗЛО!!! ЗА ЗАХВАТЧИКОВ!!! ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
-                                phrases.add('ЗА ЗЛО!!!');
-                                phrases.add('ЗА ЗАХВАТЧИКОВ!!!');
-                                phrases.add('ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
-                                rare.add('НАШИХ БЬЮТ!!!');
-                                rare.add('ЗА ВДВ!!!');
-                            } else {
-                                //если просто геноцид
-                                phrases.add(.fmt('%1$^C1, твои преступления против Империи Зла не остались незамеченными! Приготовься умереть!!!',victim));
-                                phrases.add(.fmt('Отныне здесь нет места добру! %1$^C1, сейчас ты умрёшь!!!',victim));
-                                phrases.add(.fmt('Ты слишком добр%1$Gое||а, %1$C1, за это ты поплатишься жизнью!!!',victim));
-                                phrases.add(.fmt('Твои добрые дела, %1$C1, не останутся безнаказанными! Приготовься к смерти!!!',victim));
-                                phrases.add(.fmt('Деяния твои, %1$C1, не остались незамеченными! Умри же!!!',victim));
-                                phrases.add(.fmt('Именем %2$^C2, %1$C1, ты умрёшь!!!',victim,fiend.epidemy.demon));
-                                phrases.add(.fmt('%1$^C1, прихвостень рыцарей, сейчас ты умрёшь!!!',victim));
-                                phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
-                                phrases.add(.fmt('С твоей смертью, %1$C1, Империя Зла станет сильнее!!!',victim));
-                                if((fiend.level-victim.level)>=10) {
-                                    phrases.add(.fmt('Зло милосердно к тебе, %1$C1, ты умрёшь быстро!!!',victim));
-                                    phrases.add(.fmt('Сегодня твой счастливый день, %1$C1, ты умрёшь быстро!!!',victim));
-                                }
-                                rare.add(.fmt('%1$^C1, настал час расплаты за добро причиненное тобой!!!',victim));
-                                rare.add(.fmt('%1$^C1, ты нам никогда не нравил%1$Gось|ся|ась! УМРИ!!!',victim));
-                                rare.add('ЗА ВДВ!!!');
-                                rare.add(.fmt('Вот и всё, %1$^C1! ВОТ И ВСЁ!!!',victim));
+                            if(fiend.epidemy.genocide!=null && !fiend.epidemy.genocide.dead
+                                && fiend.epidemy.genocide.in_room==fiend.in_room) {
+                                victim = fiend.epidemy.genocide;
+                            } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
+                                && fiend.in_room == fiend.epidemy.victim.in_room) { //если добрались до цели
+                                victim = fiend.epidemy.victim;
                             }
-                            if(.chance(98))
+
+                            if(victim==null || victim.dead || victim.in_room!=fiend.in_room) {
+                                clearPlan(fiend);
+                            } else {
+                                var phrases, rare;
+                                rare = .List();
+                                phrases = .List();
+                                if(victim.fighting!=null && victim.fighting.pIndexData==Fiend) {
+                                    //если вписываемся за братюню
+                                    phrases.add('ЗА ЗЛО!!! ЗА ЗАХВАТЧИКОВ!!! ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
+                                    phrases.add('ЗА ЗЛО!!!');
+                                    phrases.add('ЗА ЗАХВАТЧИКОВ!!!');
+                                    phrases.add('ВО СЛАВУ ТЁМНОГО ВЛАСТЕЛИНА!!!');
+                                    rare.add('НАШИХ БЬЮТ!!!');
+                                    rare.add('ЗА ВДВ!!!');
+                                } else {
+                                    //если просто геноцид
+                                    phrases.add(.fmt('%1$^C1, твои преступления против Империи Зла не остались незамеченными! Приготовься умереть!!!',victim));
+                                    phrases.add(.fmt('Отныне здесь нет места добру! %1$^C1, сейчас ты умрёшь!!!',victim));
+                                    phrases.add(.fmt('Ты слишком добр%1$Gое||а, %1$C1, за это ты поплатишься жизнью!!!',victim));
+                                    phrases.add(.fmt('Твои добрые дела, %1$C1, не останутся безнаказанными! Приготовься к смерти!!!',victim));
+                                    phrases.add(.fmt('Деяния твои, %1$C1, не остались незамеченными! Умри же!!!',victim));
+                                    phrases.add(.fmt('%1$^C1, прихвостень рыцарей, сейчас ты умрёшь!!!',victim));
+                                    phrases.add(.fmt('Во славу Тёмного Властелина, %1$C1, сейчас ты умрёшь!!!',victim));
+                                    phrases.add(.fmt('С твоей смертью, %1$C1, Империя Зла станет сильнее!!!',victim));
+                                    phrases.add(.fmt('%1$^C1, настал час расплаты за добро причиненное тобой!!!',victim));
+                                    if(!fiend.epidemy.demon.dead)
+                                        phrases.add(.fmt('Именем %2$^C2, %1$C1, ты умрёшь!!!',victim,fiend.epidemy.demon));
+                                    if((fiend.level-victim.level)>=10) {
+                                        phrases.add(.fmt('Зло милосердно к тебе, %1$C1, ты умрёшь быстро!!!',victim));
+                                        phrases.add(.fmt('Сегодня твой счастливый день, %1$C1, ты умрёшь быстро!!!',victim));
+                                    }
+                                    rare.add(.fmt('%1$^C1, ты нам никогда не нравил%1$Gось|ся|ась! УМРИ!!!',victim));
+                                    rare.add('ЗА ВДВ!!!');
+                                    rare.add(.fmt('Вот и всё, %1$^C1! ВОТ И ВСЁ!!!',victim));
+                                }
+                                if(.chance(98))
                                 fiend.interpret('yell '+phrases.random());
                             else
                                 fiend.interpret('yell '+rare.random());
-                            //2do не ввязываемяс если у нас меньше 50% жизни
-                            fiend.multi_hit(victim);
-                        }
-                    } else {
-                        //test
-                        // fiend.say('postSpec[plan 2]: уже дубашу %1$^C2!', fiend.fighting);
-                    }
-                } else if(fiend.epidemy.plan==3) {// стоим в очереди на сбор урожая
-                    //test
-                    //fiend.say('postSpec[plan 3]: ready for loot.');
-                    if(time_to_loot(fiend)) {
-                        fiend.epidemy.plan = 4;
-                    }
-                } else if(fiend.epidemy.plan==4) {//plan 4 - собираем
-
-                    if(fiend.in_room!=fiend.epidemy.last_room_looted) {
-                        //test
-                        // fiend.say('postSpec[plan 4]: start looting.');
-                        if(scavenge(fiend, fiend.in_room.items, corpse)){
-                            //test
-                            // fiend.say('postSpec[plan 4]: end looting.');
-
-                            fiend.epidemy.plan = null;
+                                //2do не ввязываемяс если у нас меньше 50% жизни
+                                fiend.multi_hit(victim);
+                            }
                         } else {
                             //test
-                            // fiend.say('postSpec[plan 4->3]: неудачный loot. начинаем заново.');
-                            fiend.epidemy.plan = 3;
+                            // fiend.say('postSpec[plan 2]: уже дубашу %1$^C2!', fiend.fighting);
+                        }
+                    } else if(fiend.epidemy.plan==3) {// стоим в очереди на сбор урожая
+                        //test
+                        //fiend.say('postSpec[plan 3]: ready for loot.');
+                        if(time_to_loot(fiend)) {
+                            fiend.epidemy.plan = 4;
+                        }
+                    } else if(fiend.epidemy.plan==4) {//plan 4 - собираем
+
+                        if(fiend.in_room!=fiend.epidemy.last_room_looted) {
+                            //test
+                            // fiend.say('postSpec[plan 4]: start looting.');
+                            if(scavenge(fiend, fiend.in_room.items, corpse)){
+                                //test
+                                // fiend.say('postSpec[plan 4]: end looting.');
+
+                                fiend.epidemy.plan = null;
+                            } else {
+                                //test
+                                // fiend.say('postSpec[plan 4->3]: неудачный loot. начинаем заново.');
+                                fiend.epidemy.plan = 3;
+                            }
                         }
                     }
                 }
@@ -1098,8 +1131,10 @@ fiendInit = function(){
             }
 
             //выпиливаемся из списка
-            if(fiend.epidemy.demon!=null && !fiend.epidemy.demon.dead)
+            if(fiend.epidemy.demon!=null && !fiend.epidemy.demon.dead) {
                 fiend.epidemy.demon.epidemy.fiends.sub(fiend);
+                fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]=fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]-1;
+            }
         };
 
         onArea = function(fiend) {
@@ -1116,107 +1151,118 @@ fiendInit = function(){
     };
     fill_fiends_names = function() {
         this = .tmp.epidemy;
-        fiends_names[0] = .Array();
-        fiends_names[0]['lyolik'] = 'Лёлик||а|у|а|ом|е';
-        fiends_names[0]['bolyk'] = 'Болик||а|у|а|ом|е';
-        fiends_names[1] = .Array();
-        fiends_names[1]['chuk'] = 'Чук||а|у|а|ом|е';
-        fiends_names[1]['gek'] = 'Гек||а|у|а|ом|е';
-        fiends_names[2] = .Array();
-        fiends_names[2]['rimsky'] = 'Римск|ий|ого|ому|ого|им|ом';
-        fiends_names[2]['korsakov'] = 'Корсаков||а|у|а|ым|е';
-        fiends_names[3] = .Array();
-        fiends_names[3]['batman'] = 'Бэтмен||а|у|а|ом|е';
-        fiends_names[3]['robin'] = 'Робин||а|у|а|ом|е';
-        fiends_names[4] = .Array();
-        fiends_names[4]['miya'] = 'Ми|я|и|е|ю|ей|е';
-        fiends_names[4]['moto'] = 'Мот|о|ы|е|у|ой|е';
-        fiends_names[5] = .Array();
-        fiends_names[5]['baskin'] = 'Баскин||а|у|а|ом|е';
-        fiends_names[5]['robbins'] = 'Роббинс||а|у|а|ом|е';
-        fiends_names[6] = .Array();
-        fiends_names[6]['byaka'] = 'Бяк|а|и|е|у|ой|е';
-        fiends_names[6]['buka'] = 'Бук|а|и|е|у|ой|е';
-        fiends_names[7] = .Array();
-        fiends_names[7]['kuala'] = 'Куал|а|ы|е|у|ой|е';
-        fiends_names[7]['lumpur'] = 'Лумпур||а|у|а|ом|е';
-        fiends_names[8] = .Array();
-        fiends_names[8]['sancho'] = 'Санч|о|и|е|у|ей|е';
-        fiends_names[8]['panza'] = 'Панс|а|ы|е|у|ой|е';
-        fiends_names[9] = .Array();
-        fiends_names[9]['spock'] = 'Спок||а|у|а|ом|е';
-        fiends_names[9]['kirk'] = 'Кирк||а|у|а|ом|е';
-        fiends_names[10] = .Array();
-        fiends_names[10]['Luigi'] = 'Луидж|и|а|у|а|ем|е'; //я их специально склонял
-        fiends_names[10]['Mario'] = 'Марио';
-        fiends_names[11] = .Array();
-        fiends_names[11]['Harley'] = 'Харли';
-        fiends_names[11]['Joker'] = 'Джокер||а|у|а|ом|е';
-        fiends_names[12] = .Array();
-        fiends_names[12]['Buzz'] = 'Базз||а|у|а|ом|е';
-        fiends_names[12]['Woody'] = 'Вуди';
-        fiends_names[13] = .Array();
-        fiends_names[13]['Patrick'] = 'Партик||а|у|а|ом|е';
-        fiends_names[13]['bob'] = 'Боб||а|у|а|ом|е';
-        fiends_names[14] = .Array();
-        fiends_names[14]['Vincent'] = 'Винсент||а|у|а|ом|е';
-        fiends_names[14]['Jules'] = 'Джулс||а|у|а|ом|е';
-        fiends_names[15] = .Array();
-        fiends_names[15]['fox'] = 'Фокс||а|у|а|ом|е';
-        fiends_names[15]['Dana'] = 'Дан|a|ы|у|у|ом|е';
-        fiends_names[16] = .Array();
-        fiends_names[16]['chip'] = 'Чип||а|у|а|ом|е';
-        fiends_names[16]['dale'] = 'Дейл||а|у|а|ом|е';
-        fiends_names[17] = .Array();
-        fiends_names[17]['ta'] = 'Та';
-        fiends_names[17]['hi'] = 'Хи';
-        fiends_names[18] = .Array();
-        fiends_names[18]['sha'] = 'Ша';
-        fiends_names[18]['zam'] = 'Зам||а|у|а|ом|е';
-        fiends_names[19] = .Array();
-        fiends_names[19]['biba'] = 'Биб|а|ы|е|у|ой|е';
-        fiends_names[19]['boba'] = 'Боб|а|ы|е|у|ой|е';
-        fiends_names[20] = .Array();
-        fiends_names[20]['right'] = 'Райт||а|у|а|ом|е';
-        fiends_names[20]['now'] = 'Нау||а|у|а|ом|е';
-        fiends_names[21] = .Array();
-        fiends_names[21]['Urfin'] = 'Урфин||а|у|а|ом|е';
-        fiends_names[21]['Jus'] = 'Джюс||а|у|а|ом|е';
-        fiends_names[22] = .Array();
-        fiends_names[22]['Seeta'] = 'Зит|а|ы|е|у|ой|е';
-        fiends_names[22]['Geeta'] = 'Гит|а|ы|е|у|ой|е';
-        fiends_names[23] = .Array();
-        fiends_names[23]['ruf'] = 'Руф||а|у|а|ом|е';
-        fiends_names[23]['fina'] = 'Фин|а|ы|e|у|ой|е';
-        fiends_names[24] = .Array();
-        fiends_names[24]['Taj'] = 'Тадж||а|у|а|ем|е';
-        fiends_names[24]['Mahal'] = 'Махал||а|у|а|ом|е';
-        fiends_names[24] = .Array();
-        fiends_names[24]['greby'] = 'Греб|и|а|у|а|ом|е';
-        fiends_names[24]['grebu'] = 'Греб|у|а|у|а|ом|е';
-        fiends_names[25] = .Array();
-        fiends_names[25]['Timon'] = 'Тимон||а|у|а|ом|е';
-        fiends_names[25]['Pumbaa'] = 'Пумб|a|ы|е|у|ой|е';
-        fiends_names[26] = .Array();
-        fiends_names[26]['ravshan'] = 'Равшан||а|у|а|ом|е';
-        fiends_names[26]['Jus'] = 'Джамшут||а|у|а|ом|е';
-        fiends_names[27] = .Array();
-        fiends_names[27]['tom'] = 'Том||а|у|а|ом|е';
-        fiends_names[27]['Jerry'] = 'Джери';
-        fiends_names[28] = .Array();
-        fiends_names[28]['Ichtyandr'] = 'Ихтиандр||а|у|а|ом|е';
-        fiends_names[28]['Gutiere'] = 'Гуттиэре';
-        fiends_names[29] = .Array();
-        fiends_names[29]['Gargantua'] = 'Гаргантюа';
-        fiends_names[29]['Pantagruel'] = 'Пантагрюэл|ь|я|ю|я|ем|е';
-        fiends_names[30] = .Array();
-        fiends_names[30]['Alyonushka'] = 'Алёнушк|а|и|е|у|ой|е';
-        fiends_names[30]['Ivanushka'] = 'Иванушк|а|и|е|у|ой|е';
-        fiends_names[30] = .Array();
-        fiends_names[30]['hansel'] = 'Гензел|ь|ь|ю|я|ем|е';
-        fiends_names[30]['gretel'] = 'Гретел|ь|ь|ю|я|ем|е';
 
-        //алёнушка и иванушка
+        if(fiends_names==null) {
+            fiends_names = .Array();
+        }
+        if(fiends_names_descr==null) {
+            fiends_names_descr=.Array();
+        }
+        fiends_names[0] = .List('lyolik','bolyk');
+        fiends_names_descr['lyolik'] = 'Лёлик||а|у|а|ом|е';
+        fiends_names_descr['bolyk'] = 'Болик||а|у|а|ом|е';
+        fiends_names[1] = .List('chuk','gek');
+        fiends_names_descr['chuk'] = 'Чук||а|у|а|ом|е';
+        fiends_names_descr['gek'] = 'Гек||а|у|а|ом|е';
+        fiends_names[2] = .List('rimsky','korsakov');
+        fiends_names_descr['rimsky'] = 'Римск|ий|ого|ому|ого|им|ом';
+        fiends_names_descr['korsakov'] = 'Корсаков||а|у|а|ым|е';
+        fiends_names[3] = .List('batman','robin');
+        fiends_names_descr['batman'] = 'Бэтмен||а|у|а|ом|е';
+        fiends_names_descr['robin'] = 'Робин||а|у|а|ом|е';
+        fiends_names[4] = .List('miya','moto');
+        fiends_names_descr['miya'] = 'Ми|я|и|е|ю|ей|е';
+        fiends_names_descr['moto'] = 'Мот|о|ы|е|у|ой|е';
+        fiends_names[5] = .List('baskin','robbins');
+        fiends_names_descr['baskin'] = 'Баскин||а|у|а|ом|е';
+        fiends_names_descr['robbins'] = 'Роббинс||а|у|а|ом|е';
+        fiends_names[6] = .List('byaka','buka');
+        fiends_names_descr['byaka'] = 'Бяк|а|и|е|у|ой|е';
+        fiends_names_descr['buka'] = 'Бук|а|и|е|у|ой|е';
+        fiends_names[7] = .List('kuala','lumpur');
+        fiends_names_descr['kuala'] = 'Куал|а|ы|е|у|ой|е';
+        fiends_names_descr['lumpur'] = 'Лумпур||а|у|а|ом|е';
+        fiends_names[8] = .List('sancho','panza');
+        fiends_names_descr['sancho'] = 'Санч|о|и|е|у|ей|е';
+        fiends_names_descr['panza'] = 'Панс|а|ы|е|у|ой|е';
+        fiends_names[9] = .List('spock','kirk');
+        fiends_names_descr['spock'] = 'Спок||а|у|а|ом|е';
+        fiends_names_descr['kirk'] = 'Кирк||а|у|а|ом|е';
+        fiends_names[10] = .List('Mario','Luigi');
+        fiends_names_descr['Mario'] = 'Марио';
+        fiends_names_descr['Luigi'] = 'Луидж|и|а|у|а|ем|е'; //я их специально склонял
+        fiends_names[11] = .List('Joker','Harley');
+        fiends_names_descr['Joker'] = 'Джокер||а|у|а|ом|е';
+        fiends_names_descr['Harley'] = 'Харли';
+        fiends_names[12] = .List('Woody','Buzz');
+        fiends_names_descr['Woody'] = 'Вуди';
+        fiends_names_descr['Buzz'] = 'Базз||а|у|а|ом|е';
+        fiends_names[13] = .List('bob','patrick');
+        fiends_names_descr['bob'] = 'Боб||а|у|а|ом|е';
+        fiends_names_descr['patrick'] = 'Партик||а|у|а|ом|е';
+        fiends_names[14] = .List('Vincent','Jules');
+        fiends_names_descr['Vincent'] = 'Винсент||а|у|а|ом|е';
+        fiends_names_descr['Jules'] = 'Джулс||а|у|а|ом|е';
+        fiends_names[15] = .List('fox','dana');
+        fiends_names_descr['fox'] = 'Фокс||а|у|а|ом|е';
+        fiends_names_descr['dana'] = 'Дан|a|ы|у|у|ом|е';
+        fiends_names[16] = .List('chip','dale');
+        fiends_names_descr['chip'] = 'Чип||а|у|а|ом|е';
+        fiends_names_descr['dale'] = 'Дейл||а|у|а|ом|е';
+        fiends_names[17] = .List('ta','hi');
+        fiends_names_descr['ta'] = 'Та';
+        fiends_names_descr['hi'] = 'Хи';
+        fiends_names[18] = .List('sha','zam');
+        fiends_names_descr['sha'] = 'Ша';
+        fiends_names_descr['zam'] = 'Зам||а|у|а|ом|е';
+        fiends_names[19] = .List('biba','boba');
+        fiends_names_descr['biba'] = 'Биб|а|ы|е|у|ой|е';
+        fiends_names_descr['boba'] = 'Боб|а|ы|е|у|ой|е';
+        fiends_names[20] = .List('right','now');
+        fiends_names_descr['right'] = 'Райт||а|у|а|ом|е';
+        fiends_names_descr['now'] = 'Нау||а|у|а|ом|е';
+        fiends_names[21] = .List('Urfin','Jus');
+        fiends_names_descr['Urfin'] = 'Урфин||а|у|а|ом|е';
+        fiends_names_descr['Jus'] = 'Джюс||а|у|а|ом|е';
+        fiends_names[22] = .List('Seeta','Geeta');
+        fiends_names_descr['Seeta'] = 'Зит|а|ы|е|у|ой|е';
+        fiends_names_descr['Geeta'] = 'Гит|а|ы|е|у|ой|е';
+        fiends_names[23] = .List('ruf','fina');
+        fiends_names_descr['ruf'] = 'Руф||а|у|а|ом|е';
+        fiends_names_descr['fina'] = 'Фин|а|ы|e|у|ой|е';
+        fiends_names[24] = .List('Taj','Mahal');
+        fiends_names_descr['Taj'] = 'Тадж||а|у|а|ем|е';
+        fiends_names_descr['Mahal'] = 'Махал||а|у|а|ом|е';
+        fiends_names[24] = .List('','');
+        fiends_names_descr['greby'] = 'Греб|и|а|у|а|ом|е';
+        fiends_names_descr['grebu'] = 'Греб|у|а|у|а|ом|е';
+        fiends_names[25] = .List('Timon','Pumbaa');
+        fiends_names_descr['Timon'] = 'Тимон||а|у|а|ом|е';
+        fiends_names_descr['Pumbaa'] = 'Пумб|a|ы|е|у|ой|е';
+        fiends_names[26] = .List('ravshan','Jamshut');
+        fiends_names_descr['ravshan'] = 'Равшан||а|у|а|ом|е';
+        fiends_names_descr['Jamshut'] = 'Джамшут||а|у|а|ом|е';
+        fiends_names[27] = .List('tom','Jerry');
+        fiends_names_descr['tom'] = 'Том||а|у|а|ом|е';
+        fiends_names_descr['Jerry'] = 'Джери';
+        fiends_names[28] = .List('Ichtyandr','Gutiere');
+        fiends_names_descr['Ichtyandr'] = 'Ихтиандр||а|у|а|ом|е';
+        fiends_names_descr['Gutiere'] = 'Гуттиэре';
+        fiends_names[29] = .List('Gargantua','Pantagruel');
+        fiends_names_descr['Gargantua'] = 'Гаргантюа';
+        fiends_names_descr['Pantagruel'] = 'Пантагрюэл|ь|я|ю|я|ем|е';
+        fiends_names[30] = .List('Alyonushka','Ivanushka');
+        fiends_names_descr['Alyonushka'] = 'Алёнушк|а|и|е|у|ой|е';
+        fiends_names_descr['Ivanushka'] = 'Иванушк|а|и|е|у|ой|е';
+        fiends_names[30] = .List('hansel','gretel');
+        fiends_names_descr['hansel'] = 'Гензел|ь|ь|ю|я|ем|е';
+        fiends_names_descr['gretel'] = 'Гретел|ь|ь|ю|я|ем|е';
+        fiends_names[31] = .List('beavis','butthead');
+        fiends_names_descr['beavis'] = 'Бивис||а|у|а|ом|е';
+        fiends_names_descr['butthead'] = 'Баттхед||а|у|а|ом|е';
+        fiends_names[32] = .List('sly','butthead');
+        fiends_names_descr['sly'] = 'Сла|й|я|ю|я|ем|е';
+        fiends_names_descr['arnie'] = 'Арни';
 /*
         1 Именительный: кто? что?                колдун
         2 Родительный: бред кого? чего?          колдуна
