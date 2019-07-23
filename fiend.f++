@@ -121,8 +121,8 @@ fiendInit = function(){
         fiendNames.snd = fiends_names_descr[fiends_names[name_key].back()];
 
         //test
-        //me.ptc('set_fiends_name: fst:'+fiends_names[name_key].front()+'->'+fiendNames.fst+'\n');
-        //me.ptc('set_fiends_name: snd:'+fiends_names[name_key].back()+'->'+fiendNames.snd+'\n');
+        // me.ptc('set_fiends_name: fst:'+fiends_names[name_key].front()+'->'+fiendNames.fst+'\n');
+        // me.ptc('set_fiends_name: snd:'+fiends_names[name_key].back()+'->'+fiendNames.snd+'\n');
 
         fst.short_descr = fst.short_descr + ' ' + fiendNames.fst;
         fst.name = fst.name + ' ' + fiends_names[name_key].front()+' '+.fmt('%1$N1',fiendNames.fst);
@@ -1246,7 +1246,7 @@ fiendInit = function(){
         fiends_names[23] = .List(); fiends_names[23].add('ruf','fina');
         fiends_names_descr['ruf'] = 'Руф||а|у|а|ом|е';
         fiends_names_descr['fina'] = 'Фин|а|ы|e|у|ой|е';
-        fiends_names[24] = .List(); fiends_names[24].add('','');
+        fiends_names[24] = .List(); fiends_names[24].add('greby','grebu');
         fiends_names_descr['greby'] = 'Греб|и|а|у|а|ом|е';
         fiends_names_descr['grebu'] = 'Греб|у|а|у|а|ом|е';
         fiends_names[25] = .List(); fiends_names[25].add('Timon','Pumbaa');
@@ -1270,7 +1270,7 @@ fiendInit = function(){
         fiends_names[31] = .List(); fiends_names[31].add('beavis','butthead');
         fiends_names_descr['beavis'] = 'Бивис||а|у|а|ом|е';
         fiends_names_descr['butthead'] = 'Баттхед||а|у|а|ом|е';
-        fiends_names[32] = .List(); fiends_names[32].add('sly','butthead');
+        fiends_names[32] = .List(); fiends_names[32].add('sly','arnie');
         fiends_names_descr['sly'] = 'Сла|й|я|ю|я|ем|е';
         fiends_names_descr['arnie'] = 'Арни';
         fiends_names[33] = .List(); fiends_names[33].add('Taj','Mahal');

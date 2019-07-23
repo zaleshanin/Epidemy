@@ -269,7 +269,7 @@ this = .tmp.epidemy;
                     .scheduler.sleep(2);
                     get_fiends(demon,demon.epidemy.victim);
                     .scheduler.sleep(2);
-                    demon.recho('%1$^C1 произносит \'{gУбить %2$C4!\'{x',demon, demon.epidemy.victim);
+                    demon.say('{gУбить %1$C4!\'{x', demon.epidemy.victim);
                 }
                 demon.epidemy.victim = null;
                 demon.epidemy.plan_way = null;
