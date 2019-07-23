@@ -7,6 +7,8 @@ fiendInit = function(){
 
     if(fiends_names==null)
         fiends_names = .Array();
+    if(fiends_names_descr==null)
+        fiends_names = .Array();
     var fill_fiends_names;
 
     get_fiends = function(demon, victim) {
@@ -31,7 +33,7 @@ fiendInit = function(){
         fiendSnd.char_to_room(demon.in_room);
 
         demon.in_room.echo('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
-        demon.in_room.echo('...из врат выходят исчадия %2$N1 и %3$N1, готовых исполнить волю %1$C2...',demon,fiendNames.snd,fiendNames.fst);
+        demon.in_room.echo('...из врат выходят исчадия %2$N1 и %3$N1, готовых исполнить волю %1$C2...',demon,fiendNames.fst,fiendNames.snd);
         demon.in_room.echo('...врата со скрипом и грохотом затворяются. Вопли истязаемых душ стихают.');
 
     };
@@ -106,6 +108,8 @@ fiendInit = function(){
         }
 
         name_key = name_keys.random();
+        //test
+        // me.ptc('set_fiends_name: random name_key:'+name_key+'\n');
 
         if(fst.epidemy.demon.epidemy.fiends_names[name_key]==null) {
             fst.epidemy.demon.epidemy.fiends_names[name_key]=2;
@@ -113,16 +117,27 @@ fiendInit = function(){
             fst.epidemy.demon.epidemy.fiends_names[name_key]=fst.epidemy.demon.epidemy.fiends_names[name_key]+2;
         }
 
-        fiendNames.fst = fiends_names_descr[name_key].front();
-        fiendNames.snd = fiends_names_descr[name_key].back();
+        fiendNames.fst = fiends_names_descr[fiends_names[name_key].front()];
+        fiendNames.snd = fiends_names_descr[fiends_names[name_key].back()];
+
+        //test
+        //me.ptc('set_fiends_name: fst:'+fiends_names[name_key].front()+'->'+fiendNames.fst+'\n');
+        //me.ptc('set_fiends_name: snd:'+fiends_names[name_key].back()+'->'+fiendNames.snd+'\n');
 
         fst.short_descr = fst.short_descr + ' ' + fiendNames.fst;
-        fst.name = fst.name + ' ' + fiends_names[name_key].front();
+        fst.name = fst.name + ' ' + fiends_names[name_key].front()+' '+.fmt('%1$N1',fiendNames.fst);
         fst.epidemy.name_key = name_key;
 
         snd.short_descr = snd.short_descr + ' ' + fiendNames.snd;
-        snd.name = snd.name + ' ' + fiends_names[name_key].back();
+        snd.name = snd.name + ' ' + fiends_names[name_key].back()+' '+.fmt('%1$N1',fiendNames.snd);
         snd.epidemy.name_key = name_key;
+
+        //test
+        // me.ptc('set_fiends_name: fst_descr:'+fst.short_descr+'\n');
+        // me.ptc('set_fiends_name: fst_name:'+fst.name+'\n');
+        //test
+        // me.ptc('set_fiends_name: snd_descr:'+snd.short_descr+'\n');
+        // me.ptc('set_fiends_name: snd_name:'+snd.name+'\n');
 
         return fiendNames;
     };
@@ -1087,10 +1102,11 @@ fiendInit = function(){
                     clearPlan(fiend.epidemy.snd);
                 }
             } else if (fiend.epidemy.genocide==ch) {
-                if(fiend.epidemy.snd!=null && fiend.epidemy.snd.epidemy.genocide==fiend.epidemy.genocide) {
+                if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
+                    && fiend.epidemy.snd.epidemy.genocide!=null
+                    && fiend.epidemy.snd.epidemy.genocide==fiend.epidemy.genocide) {
                     fiend.epidemy.snd.epidemy.genocide = null;
                     fiend.epidemy.snd.epidemy.plan = null;
-
                 }
                 fiend.epidemy.genocide=null;
             }
@@ -1158,111 +1174,111 @@ fiendInit = function(){
         if(fiends_names_descr==null) {
             fiends_names_descr=.Array();
         }
-        fiends_names[0] = .List('lyolik','bolyk');
+        fiends_names[0] = .List(); fiends_names[0].add('lyolik','bolyk');
         fiends_names_descr['lyolik'] = 'Лёлик||а|у|а|ом|е';
         fiends_names_descr['bolyk'] = 'Болик||а|у|а|ом|е';
-        fiends_names[1] = .List('chuk','gek');
+        fiends_names[1] = .List(); fiends_names[1].add('chuk','gek');
         fiends_names_descr['chuk'] = 'Чук||а|у|а|ом|е';
         fiends_names_descr['gek'] = 'Гек||а|у|а|ом|е';
-        fiends_names[2] = .List('rimsky','korsakov');
+        fiends_names[2] = .List(); fiends_names[2].add('rimsky','korsakov');
         fiends_names_descr['rimsky'] = 'Римск|ий|ого|ому|ого|им|ом';
         fiends_names_descr['korsakov'] = 'Корсаков||а|у|а|ым|е';
-        fiends_names[3] = .List('batman','robin');
+        fiends_names[3] = .List(); fiends_names[3].add('batman','robin');
         fiends_names_descr['batman'] = 'Бэтмен||а|у|а|ом|е';
         fiends_names_descr['robin'] = 'Робин||а|у|а|ом|е';
-        fiends_names[4] = .List('miya','moto');
+        fiends_names[4] = .List(); fiends_names[4].add('miya','moto');
         fiends_names_descr['miya'] = 'Ми|я|и|е|ю|ей|е';
         fiends_names_descr['moto'] = 'Мот|о|ы|е|у|ой|е';
-        fiends_names[5] = .List('baskin','robbins');
+        fiends_names[5] = .List(); fiends_names[5].add('baskin','robbins');
         fiends_names_descr['baskin'] = 'Баскин||а|у|а|ом|е';
         fiends_names_descr['robbins'] = 'Роббинс||а|у|а|ом|е';
-        fiends_names[6] = .List('byaka','buka');
+        fiends_names[6] = .List(); fiends_names[6].add('byaka','buka');
         fiends_names_descr['byaka'] = 'Бяк|а|и|е|у|ой|е';
         fiends_names_descr['buka'] = 'Бук|а|и|е|у|ой|е';
-        fiends_names[7] = .List('kuala','lumpur');
+        fiends_names[7] = .List(); fiends_names[7].add('kuala','lumpur');
         fiends_names_descr['kuala'] = 'Куал|а|ы|е|у|ой|е';
         fiends_names_descr['lumpur'] = 'Лумпур||а|у|а|ом|е';
-        fiends_names[8] = .List('sancho','panza');
+        fiends_names[8] = .List(); fiends_names[8].add('sancho','panza');
         fiends_names_descr['sancho'] = 'Санч|о|и|е|у|ей|е';
         fiends_names_descr['panza'] = 'Панс|а|ы|е|у|ой|е';
-        fiends_names[9] = .List('spock','kirk');
+        fiends_names[9] = .List(); fiends_names[9].add('spock','kirk');
         fiends_names_descr['spock'] = 'Спок||а|у|а|ом|е';
         fiends_names_descr['kirk'] = 'Кирк||а|у|а|ом|е';
-        fiends_names[10] = .List('Mario','Luigi');
+        fiends_names[10] = .List(); fiends_names[10].add('Mario','Luigi');
         fiends_names_descr['Mario'] = 'Марио';
         fiends_names_descr['Luigi'] = 'Луидж|и|а|у|а|ем|е'; //я их специально склонял
-        fiends_names[11] = .List('Joker','Harley');
+        fiends_names[11] = .List(); fiends_names[11].add('Joker','Harley');
         fiends_names_descr['Joker'] = 'Джокер||а|у|а|ом|е';
         fiends_names_descr['Harley'] = 'Харли';
-        fiends_names[12] = .List('Woody','Buzz');
+        fiends_names[12] = .List(); fiends_names[12].add('Woody','Buzz');
         fiends_names_descr['Woody'] = 'Вуди';
         fiends_names_descr['Buzz'] = 'Базз||а|у|а|ом|е';
-        fiends_names[13] = .List('bob','patrick');
+        fiends_names[13] = .List(); fiends_names[13].add('bob','patrick');
         fiends_names_descr['bob'] = 'Боб||а|у|а|ом|е';
         fiends_names_descr['patrick'] = 'Партик||а|у|а|ом|е';
-        fiends_names[14] = .List('Vincent','Jules');
+        fiends_names[14] = .List(); fiends_names[14].add('Vincent','Jules');
         fiends_names_descr['Vincent'] = 'Винсент||а|у|а|ом|е';
         fiends_names_descr['Jules'] = 'Джулс||а|у|а|ом|е';
-        fiends_names[15] = .List('fox','dana');
+        fiends_names[15] = .List(); fiends_names[15].add('fox','dana');
         fiends_names_descr['fox'] = 'Фокс||а|у|а|ом|е';
         fiends_names_descr['dana'] = 'Дан|a|ы|у|у|ом|е';
-        fiends_names[16] = .List('chip','dale');
+        fiends_names[16] = .List(); fiends_names[16].add('chip','dale');
         fiends_names_descr['chip'] = 'Чип||а|у|а|ом|е';
         fiends_names_descr['dale'] = 'Дейл||а|у|а|ом|е';
-        fiends_names[17] = .List('ta','hi');
+        fiends_names[17] = .List(); fiends_names[17].add('ta','hi');
         fiends_names_descr['ta'] = 'Та';
         fiends_names_descr['hi'] = 'Хи';
-        fiends_names[18] = .List('sha','zam');
+        fiends_names[18] = .List(); fiends_names[18].add('sha','zam');
         fiends_names_descr['sha'] = 'Ша';
         fiends_names_descr['zam'] = 'Зам||а|у|а|ом|е';
-        fiends_names[19] = .List('biba','boba');
+        fiends_names[19] = .List(); fiends_names[19].add('biba','boba');
         fiends_names_descr['biba'] = 'Биб|а|ы|е|у|ой|е';
         fiends_names_descr['boba'] = 'Боб|а|ы|е|у|ой|е';
-        fiends_names[20] = .List('right','now');
+        fiends_names[20] = .List(); fiends_names[20].add('right','now');
         fiends_names_descr['right'] = 'Райт||а|у|а|ом|е';
         fiends_names_descr['now'] = 'Нау||а|у|а|ом|е';
-        fiends_names[21] = .List('Urfin','Jus');
+        fiends_names[21] = .List(); fiends_names[21].add('Urfin','Jus');
         fiends_names_descr['Urfin'] = 'Урфин||а|у|а|ом|е';
         fiends_names_descr['Jus'] = 'Джюс||а|у|а|ом|е';
-        fiends_names[22] = .List('Seeta','Geeta');
+        fiends_names[22] = .List(); fiends_names[22].add('Seeta','Geeta');
         fiends_names_descr['Seeta'] = 'Зит|а|ы|е|у|ой|е';
         fiends_names_descr['Geeta'] = 'Гит|а|ы|е|у|ой|е';
-        fiends_names[23] = .List('ruf','fina');
+        fiends_names[23] = .List(); fiends_names[23].add('ruf','fina');
         fiends_names_descr['ruf'] = 'Руф||а|у|а|ом|е';
         fiends_names_descr['fina'] = 'Фин|а|ы|e|у|ой|е';
-        fiends_names[24] = .List('Taj','Mahal');
-        fiends_names_descr['Taj'] = 'Тадж||а|у|а|ем|е';
-        fiends_names_descr['Mahal'] = 'Махал||а|у|а|ом|е';
-        fiends_names[24] = .List('','');
+        fiends_names[24] = .List(); fiends_names[24].add('','');
         fiends_names_descr['greby'] = 'Греб|и|а|у|а|ом|е';
         fiends_names_descr['grebu'] = 'Греб|у|а|у|а|ом|е';
-        fiends_names[25] = .List('Timon','Pumbaa');
+        fiends_names[25] = .List(); fiends_names[25].add('Timon','Pumbaa');
         fiends_names_descr['Timon'] = 'Тимон||а|у|а|ом|е';
         fiends_names_descr['Pumbaa'] = 'Пумб|a|ы|е|у|ой|е';
-        fiends_names[26] = .List('ravshan','Jamshut');
+        fiends_names[26] = .List(); fiends_names[26].add('ravshan','Jamshut');
         fiends_names_descr['ravshan'] = 'Равшан||а|у|а|ом|е';
         fiends_names_descr['Jamshut'] = 'Джамшут||а|у|а|ом|е';
-        fiends_names[27] = .List('tom','Jerry');
+        fiends_names[27] = .List(); fiends_names[27].add('tom','Jerry');
         fiends_names_descr['tom'] = 'Том||а|у|а|ом|е';
         fiends_names_descr['Jerry'] = 'Джери';
-        fiends_names[28] = .List('Ichtyandr','Gutiere');
+        fiends_names[28] = .List(); fiends_names[28].add('Ichtyandr','Gutiere');
         fiends_names_descr['Ichtyandr'] = 'Ихтиандр||а|у|а|ом|е';
         fiends_names_descr['Gutiere'] = 'Гуттиэре';
-        fiends_names[29] = .List('Gargantua','Pantagruel');
+        fiends_names[29] = .List(); fiends_names[29].add('Gargantua','Pantagruel');
         fiends_names_descr['Gargantua'] = 'Гаргантюа';
         fiends_names_descr['Pantagruel'] = 'Пантагрюэл|ь|я|ю|я|ем|е';
-        fiends_names[30] = .List('Alyonushka','Ivanushka');
-        fiends_names_descr['Alyonushka'] = 'Алёнушк|а|и|е|у|ой|е';
-        fiends_names_descr['Ivanushka'] = 'Иванушк|а|и|е|у|ой|е';
-        fiends_names[30] = .List('hansel','gretel');
+        fiends_names[30] = .List(); fiends_names[30].add('hansel','gretel');
         fiends_names_descr['hansel'] = 'Гензел|ь|ь|ю|я|ем|е';
         fiends_names_descr['gretel'] = 'Гретел|ь|ь|ю|я|ем|е';
-        fiends_names[31] = .List('beavis','butthead');
+        fiends_names[31] = .List(); fiends_names[31].add('beavis','butthead');
         fiends_names_descr['beavis'] = 'Бивис||а|у|а|ом|е';
         fiends_names_descr['butthead'] = 'Баттхед||а|у|а|ом|е';
-        fiends_names[32] = .List('sly','butthead');
+        fiends_names[32] = .List(); fiends_names[32].add('sly','butthead');
         fiends_names_descr['sly'] = 'Сла|й|я|ю|я|ем|е';
         fiends_names_descr['arnie'] = 'Арни';
+        fiends_names[33] = .List(); fiends_names[33].add('Taj','Mahal');
+        fiends_names_descr['Taj'] = 'Тадж||а|у|а|ем|е';
+        fiends_names_descr['Mahal'] = 'Махал||а|у|а|ом|е';
+        fiends_names[34] = .List(); fiends_names[34].add('Alyonushka','Ivanushka');
+        fiends_names_descr['Alyonushka'] = 'Алёнушк|а|и|е|у|ой|е';
+        fiends_names_descr['Ivanushka'] = 'Иванушк|а|и|е|у|ой|е';
 /*
         1 Именительный: кто? что?                колдун
         2 Родительный: бред кого? чего?          колдуна
