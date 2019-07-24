@@ -105,7 +105,6 @@ epidemyInit = function() {
 
         mob.epidemy.description = mob.description;
         mob.description = description;
-        //2do: хорошо бы надевать на петов ошейник с именем
 
         mob.epidemy.name = mob.name;
         mob.name = name;

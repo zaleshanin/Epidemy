@@ -246,6 +246,11 @@ this = .tmp.epidemy;
 
             if(demon.fighting != null)
                 return;
+
+            if(!(demon.position&.tables.position_table.stand)){
+                demon.interpret('stand');
+                return;
+            }
             if(demon.epidemy.plan==null){
                 //test
                 demon.interpret('say чем бы заняться?');
