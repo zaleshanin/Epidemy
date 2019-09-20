@@ -245,7 +245,7 @@ fiendInit = function(){
                         //test
                         // fiend.say('fiend_plan_check: выбираем новую основную цель.');
                         fiend.epidemy.victim = get_victim(fiend.epidemy.primary_target);
-                    } else {
+                    } else if(fiend.epidemy.demon!=null && !fiend.epidemy.demon.dead) {
                         //test
                         // fiend.say('fiend_plan_check: ищу новую цель через демона.');
                         var minlvl;
