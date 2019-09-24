@@ -6,7 +6,7 @@ odif yltsaeb~
 ~
 	Odif is a small dog that has been reversed by some god.
 */
-invadersEpidemyInit = function() {
+allEpidemyInit = function() {
     if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     if(.tmp.epidemy.infected==null) .tmp.epidemy.infected = .List();
     if(.tmp.epidemy.warlocks==null) .tmp.epidemy.warlocks = .List();
