@@ -940,6 +940,9 @@ fiendInit = function(){
 
                 this = .tmp.epidemy;
 
+                if(fiend.dead)
+                    return;
+
                 if(!(fiend.position&.tables.position_table.stand)){
                     fiend.interpret('stand');
                     return;
