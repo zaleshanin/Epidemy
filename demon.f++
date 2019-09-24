@@ -2,7 +2,7 @@ demonInit = function() {
 if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 this = .tmp.epidemy;
 
-    var add_demon_triggers, make_demon_list, fillDemonTriggers;
+    var add_demon_triggers, make_demon_list;/*, fillDemonTriggers;*/
 
     if(demons==null)
         demons = .List();
@@ -244,6 +244,9 @@ this = .tmp.epidemy;
             //2do похоже не работает assist_align
             this = .tmp.epidemy;
 
+            if(demon.dead)
+                return;
+
             if(demon.fighting != null)
                 return;
 
@@ -352,7 +355,7 @@ this = .tmp.epidemy;
 
     };
 
-    fillDemonTrigers();
+    //fillDemonTrigers();
 
     Demon = .get_mob_index(762);
     add_demon_triggers();
