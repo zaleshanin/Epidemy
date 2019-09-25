@@ -279,6 +279,10 @@ fiendInit = function(){
         if(result == 1) {
             //test
             // fiend.say('fiend_plan_check: перед тем как идти...');
+            if(fiend.epidemy.victim != null && fiend.epidemy.victim.dead) {
+                result=0;fiend.epidemy.victim==null;
+                return;
+            }
 
             if(fiend.epidemy.victim.in_room == fiend.in_room) {
                 //test
