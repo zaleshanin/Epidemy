@@ -35,6 +35,7 @@ allEpidemyInit = function() {
     epidemyInit();
     demonInit();
     fiendInit();
+    impInit();
 
     //----------------------------------------------------------------//
 
