@@ -22,7 +22,7 @@ epidemyInit = function() {
     transform = function(mob) {
         this = .tmp.epidemy;
         //тёмные силы победили! УРА!
-        //выворачиваем зверюгу наизнанку если она не пет
+        //выворачиваем зверюгу наизнанку
         mob = evert(mob);
         mob = setSickTriggers(mob);
         clearPlan(mob);
@@ -116,8 +116,8 @@ epidemyInit = function() {
     };
     reverseStr = function(str) {
         //test
-        var me;
-        me = .get_char_world('miyamoto');
+        // var me;
+        // me = .get_char_world('miyamoto');
         var newStr;
         var alfa;
         var i;
@@ -231,7 +231,7 @@ epidemyInit = function() {
         result = 0;
 
         //test
-        mob.interpret('say plan_check:'+city+', '+room.name);
+        //mob.interpret('say plan_check:'+city+', '+room.name);
         /*
         * 0 - ты не последний зараженный
         * 1 - все заражены - собираемся до кучи
@@ -240,7 +240,7 @@ epidemyInit = function() {
         */
         if(mob.epidemy.plan_room==null && mob.epidemy.plan==null) {
             //test
-            mob.interpret('say plan_check: am i last one? (plan_room==null)');
+            //mob.interpret('say plan_check: am i last one? (plan_room==null)');
 
             mlist = .tmp.epidemy.infected.clone();
             total = mlist.size();
@@ -259,12 +259,12 @@ epidemyInit = function() {
                 }
             }
             //test
-            mob.interpret('say infected in city:'+icount);
+            //mob.interpret('say infected in city:'+icount);
 
             //должны быть заражены все fido-like, зараженных не меньше 13
             if(fidovnum!=null && icount >= 13 ) {
                 //test
-                mob.interpret('say fido vnum:'+fidovnum);
+                //mob.interpret('say fido vnum:'+fidovnum);
 
                 mlist = .get_mob_index(fidovnum).instances.clone();
 
@@ -283,8 +283,8 @@ epidemyInit = function() {
 
                 //if(planG) {
                 //test
-                if(planG)mob.interpret('say attantion: planG!!!');
-                else mob.interpret('say attantion: NO planG! plan 0 for All!!!');
+                // if(planG)mob.interpret('say attantion: planG!!!');
+                // else mob.interpret('say attantion: NO planG! plan 0 for All!!!');
 
                 mlist = .tmp.epidemy.infected.clone();
                 total = mlist.size();
@@ -309,19 +309,19 @@ epidemyInit = function() {
             }
         }
         //test
-        if(planD)mob.interpret('say checking for planD');
+        //if(planD)mob.interpret('say checking for planD');
 
         //если план Д еще не отменился, проверим...
         //test
-        mob.interpret('say planD:'+planD);
+        //mob.interpret('say planD:'+planD);
         if(planD) {
             if(mob.in_room == mob.epidemy.plan_room) {
                 //test
-                mob.interpret('say я на месте!');
+                //mob.interpret('say я на месте!');
                 result = 2;
             } else {
                 //test
-                mob.interpret('say какой может быть планД если я не на месте?');
+                //mob.interpret('say какой может быть планД если я не на месте?');
                 result = 1;
                 planD = false;
             }
@@ -332,7 +332,7 @@ epidemyInit = function() {
                 m = mlist.back();
                 if(m.in_room.areaname==city && m.in_room!=room){
                     //test
-                    mob.interpret('say непорядок '+m.name+' всё еще в '+m.in_room.name+'('+m.in_room.vnum+')');
+                    //mob.interpret('say непорядок '+m.name+' всё еще в '+m.in_room.name+'('+m.in_room.vnum+')');
                     planD = false;
                 }
 
@@ -342,20 +342,20 @@ epidemyInit = function() {
                 mlist.pop_back();
             }
             //test
-            mob.interpret('say infected in city:'+icount);
+            //mob.interpret('say infected in city:'+icount);
 
             //если планД утвержден, назначем ответственного за геноцид
             //test
 //            if(planD && icount>=10) {
             if(planD && icount>=13) {
                 //test
-                mob.interpret('EPIDEMY: PLAN D!!!');
+                //mob.interpret('EPIDEMY: PLAN D!!!');
 
                 result = 3;
             }
         }
         //test
-        mob.interpret('say end of plan_check! result:'+result);
+        //mob.interpret('say end of plan_check! result:'+result);
 
         return result;
     };
@@ -457,7 +457,7 @@ epidemyInit = function() {
                     //и если план без изменений
                     if(epidemy.plan == 3) {
                         //test
-                        interpret('say DEMON TIME!!!');
+                        //interpret('say DEMON TIME!!!');
                         var demon_room;
 
                         demon_room = in_room;
@@ -472,7 +472,7 @@ epidemyInit = function() {
                 //собака-кусака!
                 if(epidemy.victims.size() && .chance(10)) {
                     //test
-                    interpret('say Я собака-кусака!!!');
+                    //interpret('say Я собака-кусака!!!');
                     //кусаем если есть кого
                     var vict;
                     vict = epidemy.victims.random();
@@ -480,7 +480,7 @@ epidemyInit = function() {
                         //изчез куда-то гад!!!
                         epidemy.victims = null;
                         //test
-                        interpret('say where is '+vict.name+'?!');
+                        //interpret('say where is '+vict.name+'?!');
                     } else {
                         /*---некотролируемая эпидемия начинается здесь---*/
                         act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
@@ -505,23 +505,23 @@ epidemyInit = function() {
                         throw('собака-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
 
                     //test
-                    interpret('say Я собака-гуляка!!! иду в '+epidemy.plan_room.name);
+                    //interpret('say Я собака-гуляка!!! иду в '+epidemy.plan_room.name);
                     if(epidemy.plan_way==null) {
                         if(!epidemy.plan_room.isCommon()) {
                             //test
-                            interpret('say Нам в '+epidemy.plan_room.name+' нельзя!');
+                            //interpret('say Нам в '+epidemy.plan_room.name+' нельзя!');
                             epidemy.plan = null;
                             epidemy.plan_room = null;
                             //return;
                         } else {
                             //test
-                            interpret('say надо вспомнить как пройти в '+epidemy.plan_room.name+'.');
+                            //interpret('say надо вспомнить как пройти в '+epidemy.plan_room.name+'.');
                             //ищем путь
                             interpret('ponder');
                             epidemy.plan_way = .tmp.epidemy.find_way(this,epidemy.plan_room);
                             if(epidemy.plan_way.size()>0){
                                 //test
-                                interpret('say маршрут построен. стартуем из: '+in_room.name);
+                                //interpret('say маршрут построен. стартуем из: '+in_room.name);
                                 epidemy.plan_waypoint = in_room;
                                 return;
                             } else {
@@ -587,14 +587,14 @@ epidemyInit = function() {
                         }
                     }
                     //test
-                    interpret('say вот такая вот гуляка - решила никуда не ходить.');
+                    //interpret('say вот такая вот гуляка - решила никуда не ходить.');
                     //return;
                 }
 
                 //собака-кривляка!
                 if(.chance(5)) {
                     //test
-                    interpret('say Я собака-кривляка!');
+                    //interpret('say Я собака-кривляка!');
                     //спамим всякими социалами
                     if (in_room.ppl.size()<2)
                         return;
@@ -694,12 +694,20 @@ epidemyInit = function() {
         //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         triggers.sickOnDeath = function(ch) {
             //выпиливаемся из списка
-        .tmp.epidemy.infected.sub(this);
+            .tmp.epidemy.infected.sub(this);
 
             //отменяем план
             if(epidemy.plan!=null)
                 .tmp.epidemy.plan_cancel(this);
+
             //вылупляем импа
+            if(.tmp.epidemy.imp_list!=null && .tmp.epidemy.imp_list.size()>0 && .tmp.epidemy.initImp!=null) {
+                var imp;
+                imp = .tmp.epidemy.imp_list.random().create();
+                .tmp.epidemy.initImp(imp);
+                imp.char_to_room(ch.in_room);
+                ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',this,imp);
+            }
         };
 
     };
