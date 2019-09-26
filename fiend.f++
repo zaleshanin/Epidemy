@@ -362,6 +362,8 @@ fiendInit = function(){
         this = .tmp.epidemy;
         //test
         // mob.interpret('say make_your_move: start!');
+        if(mob.dead)
+            return;
 
         //на эту проверку не должно попадать, но вдруг...
         if(mob.fighting!=null) {
@@ -922,6 +924,46 @@ fiendInit = function(){
 
     fill_fiend_triggers = function(Fiend){
         this = Fiend;
+
+        /*onHit скопирован из demon*/
+        onHit = function(demon, demon_slayer, dam, damType, wield) {
+            if(wield==null){
+                for(ch in .players) {
+                    if(ch.in_room==demon.in_room) {
+                        ch.act('%1$^C1 корчится и кричит от боли.',demon);
+                    } else if (ch.in_room.areaname == demon.in_room.areaname){
+                        ch.act('До тебя доносятся нечеловеческие крики боли %1$C2.',demon);
+                    }
+                }
+            }else {
+                for(ch in demon.in_room.ppl) {
+                    ch.act('%1$^O1 оставляет глубокие раны на теле %2$C2.',wield,demon);
+                }
+            }
+
+        };
+
+
+        /*onImmune скопирован из demon*/
+        onImmune = function(demon, attacker, dam, damType, wield, dam_flag, skillName) {
+            if (damType == 'holy') {
+                return dam * 30;
+            }
+
+            if(wield!=null) {
+                if(wield.extra_flags&.tables.extra_flags.bless) {
+                    if(!(wield.extra_flags&.tables.extra_flags.evil || wield.extra_flags&.tables.extra_flags.anti_good)) {
+                        return dam * 10;
+                    }
+                }
+                if(wield.value4&.tables.weapon_type2.holy) {
+                    return dam * 50;
+                }
+            }
+
+            return 0;
+        };
+
 
         onSpec = function(fiend) {
             this = .tmp.epidemy;
