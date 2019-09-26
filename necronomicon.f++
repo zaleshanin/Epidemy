@@ -142,9 +142,9 @@ bookInit = function() {
                                 result = result + ch.seeName(aWk['link'],1);
                             }
                             result = result + ' находится в месте под названием'
-                                +' "{W'+aWk['link'].in_room.name+'{x".'
+                                +' "{W'+aWk['link'].in_room.name+'{x".';
                                 //test
-                                +' ('+aWk['link'].in_room.vnum+')\n';
+                                //+' ('+aWk['link'].in_room.vnum+')\n';
                         }
                         if(aWk['found']=='room') {
                             result = result + ', но ты не видишь {Dтёмного мага{x.\n'
