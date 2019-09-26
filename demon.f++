@@ -10,7 +10,7 @@ this = .tmp.epidemy;
         triggers=.Map();
 
     //test
-    me = .get_char_world('miyamoto');
+    //me = .get_char_world('miyamoto');
 
     get_demon_name = function() {
         this = .tmp.epidemy;
@@ -211,22 +211,22 @@ this = .tmp.epidemy;
             if(demon.epidemy.fiends.size()>=10) {
                 demon.epidemy.plan=null;
                 //test
-                demon.interpret('say развелось исчадий, не протолкнуться!');
+                //demon.interpret('say развелось исчадий, не протолкнуться!');
                 plan = 0;
             } else {
                 //test
-                demon.interpret('say дело было вечером делать было нечего!');
+                //demon.interpret('say дело было вечером делать было нечего!');
                 victim = get_one_good(demon,12,null);
 
                 if(victim == null) {
                     plan = 0;
                     //test
-                    demon.interpret('say а где все?!');
+                    //demon.interpret('say а где все?!');
                 } else {
                     plan = 1;
                     demon.epidemy.victim = victim;
                     //test
-                    demon.interpret('say похоже будем убивать!');
+                    //demon.interpret('say похоже будем убивать!');
                 }
             }
         }
@@ -256,7 +256,7 @@ this = .tmp.epidemy;
             }
             if(demon.epidemy.plan==null){
                 //test
-                demon.interpret('say чем бы заняться?');
+                //demon.interpret('say чем бы заняться?');
                 demon.epidemy.plan = demon_plan_check(demon);
             }
 
@@ -269,7 +269,7 @@ this = .tmp.epidemy;
                 demon.epidemy.plan_way = find_way(demon,demon.epidemy.victim.in_room);
                 if(demon.epidemy.plan_way.size()==0) {
                     //test
-                    demon.say('нет пути к %1$C1, удаляю %2$i',demon.epidemy.victim,demon.epidemy.victim.pIndexData.vnum);
+                    //demon.say('нет пути к %1$C1, удаляю %2$i',demon.epidemy.victim,demon.epidemy.victim.pIndexData.vnum);
                     demon.epidemy.unreachable.push_back(demon.epidemy.victim.pIndexData.vnum);
                     demon.epidemy.victimsVnums.sub(demon.epidemy.victim.pIndexData.vnum);
                 } else {
@@ -318,7 +318,7 @@ this = .tmp.epidemy;
                     if(ch.in_room==demon.in_room) {
                         ch.act('%1$^C1 корчится и кричит от боли.',demon);
                     } else if (ch.in_room.area == demon.in_room.area){
-                        ch.act('Ты слышишь нечеловеческие крики боли %1$C2.',demon);
+                        ch.act('До тебя доносятся нечеловеческие крики боли %1$C2.',demon);
                     }
                 }
             }else {
