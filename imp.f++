@@ -1,4 +1,5 @@
-impInit = function() {
+.apply(function() {
+//impInit = function() {
     if(.tmp.epidemy==null)
 .tmp.epidemy = .Map();
 
@@ -96,13 +97,9 @@ impInit = function() {
                     epidemy.plan = null;
                 }
 
-                //test
-                //interpret('say (plan==null)='+(epidemy.plan == null)+' (plan==0)='+(epidemy.plan == 0));
                 if(epidemy.plan == null) {
                     epidemy.plan = .tmp.epidemy.plan_check(this);
                 }
-                //test
-                //interpret('say (plan==null)='+(epidemy.plan == null)+' (plan==0)='+(epidemy.plan == 0));
 
                 if(epidemy.plan == 2 && epidemy.plan_room!=in_room) {
                     epidemy.plan = 1;
@@ -111,16 +108,11 @@ impInit = function() {
                     epidemy.plan = 2;
                 }
 
-                //test
-                //interpret('say plan:'+epidemy.plan+', '+.tmp.epidemy.infected.size()+' infected');
-
                 if(epidemy.plan == 3) {
                     //бывает что какая-то зверюга убегает в последний момент
                     epidemy.plan = .tmp.epidemy.plan_check(this);
                     //и если план без изменений
                     if(epidemy.plan == 3) {
-                        //test
-                        //interpret('say DEMON TIME!!!');
                         var demon_room;
 
                         demon_room = in_room;
@@ -134,16 +126,12 @@ impInit = function() {
 
                 //собака-кусака!
                 if(epidemy.victims.size() && .chance(10)) {
-                    //test
-                    //interpret('say Я собака-кусака!!!');
                     //кусаем если есть кого
                     var vict;
                     vict = epidemy.victims.random();
                     if(vict.dead || vict.in_room!=in_room || vict.epidemy!=null){
                         //изчез куда-то гад!!!
                         epidemy.victims = null;
-                        //test
-                        //interpret('say where is '+vict.name+'?!');
                     } else {
                         /*---некотролируемая эпидемия начинается здесь---*/
                         act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
@@ -167,28 +155,20 @@ impInit = function() {
                     if(epidemy.plan_room==null)
                         throw('собака-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
 
-                    //test
-                    //interpret('say Я собака-гуляка!!! иду в '+epidemy.plan_room.name);
                     if(epidemy.plan_way==null) {
                         if(!epidemy.plan_room.isCommon()) {
-                            //test
-                            //interpret('say Нам в '+epidemy.plan_room.name+' нельзя!');
                             epidemy.plan = null;
                             epidemy.plan_room = null;
                             //return;
                         } else {
-                            //test
-                            //interpret('say надо вспомнить как пройти в '+epidemy.plan_room.name+'.');
                             //ищем путь
                             interpret('ponder');
                             epidemy.plan_way = .tmp.epidemy.find_way(this,epidemy.plan_room);
                             if(epidemy.plan_way.size()>0){
-                                //test
-                                //interpret('say маршрут построен. стартуем из: '+in_room.name);
                                 epidemy.plan_waypoint = in_room;
                                 return;
                             } /*else {
-                                interpret('say беда! пустой маршрут!');
+                                //беда! пустой маршрут!
                             }*/
                         }
                     } else if(epidemy.plan_nextroom == null) {
@@ -237,16 +217,11 @@ impInit = function() {
 
                         }
                     }
-                    //test
-                    //interpret('say вот такая вот гуляка - решила никуда не ходить.');
-                    //return;
                 }
 
                 //собака-кривляка!
                 /*
                                 if(.chance(5)) {
-                                    //test
-                                    interpret('say Я собака-кривляка!');
                                     //спамим всякими социалами
                                     if (in_room.ppl.size()<2)
                                         return;
@@ -294,7 +269,7 @@ impInit = function() {
 
     fillTriggers();
 
-}
+})
 //импрув моба: https://github.com/dreamland-mud/dreamland_code/blob/master/plug-ins/fight/fight_exp.cpp
 
 

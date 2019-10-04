@@ -1,4 +1,5 @@
-demonInit = function() {
+.apply(function() {
+//demonInit = function() {
 if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 this = .tmp.epidemy;
 
@@ -8,9 +9,6 @@ this = .tmp.epidemy;
         demons = .List();
     if(triggers==null)
         triggers=.Map();
-
-    //test
-    //me = .get_char_world('miyamoto');
 
     get_demon_name = function() {
         this = .tmp.epidemy;
@@ -210,23 +208,15 @@ this = .tmp.epidemy;
             //2do количество исчадий
             if(demon.epidemy.fiends.size()>=10) {
                 demon.epidemy.plan=null;
-                //test
-                //demon.interpret('say развелось исчадий, не протолкнуться!');
                 plan = 0;
             } else {
-                //test
-                //demon.interpret('say дело было вечером делать было нечего!');
                 victim = get_one_good(demon,12,null);
 
                 if(victim == null) {
                     plan = 0;
-                    //test
-                    //demon.interpret('say а где все?!');
                 } else {
                     plan = 1;
                     demon.epidemy.victim = victim;
-                    //test
-                    //demon.interpret('say похоже будем убивать!');
                 }
             }
         }
@@ -238,8 +228,6 @@ this = .tmp.epidemy;
         this = .tmp.epidemy;
         Demon.postSpec = function(demon){
             try {
-            //test
-            // demon.say('demon.postSpec start');
             //2do социалов добавить бы
             //2do похоже не работает assist_align
             this = .tmp.epidemy;
@@ -255,8 +243,6 @@ this = .tmp.epidemy;
                 return;
             }
             if(demon.epidemy.plan==null){
-                //test
-                //demon.interpret('say чем бы заняться?');
                 demon.epidemy.plan = demon_plan_check(demon);
             }
 
@@ -268,8 +254,6 @@ this = .tmp.epidemy;
 
                 demon.epidemy.plan_way = find_way(demon,demon.epidemy.victim.in_room);
                 if(demon.epidemy.plan_way.size()==0) {
-                    //test
-                    //demon.say('нет пути к %1$C1, удаляю %2$i',demon.epidemy.victim,demon.epidemy.victim.pIndexData.vnum);
                     demon.epidemy.unreachable.push_back(demon.epidemy.victim.pIndexData.vnum);
                     demon.epidemy.victimsVnums.sub(demon.epidemy.victim.pIndexData.vnum);
                 } else {
@@ -284,9 +268,7 @@ this = .tmp.epidemy;
                 demon.epidemy.plan = 0;
             }
             } catch (e) {
-                //test
-                // .print('epidemy.demon.postSpec:'+e);
-                .get_char_world('miyamoto').ptc('epidemy.demon.postSpec:'+e);
+                //.get_char_world('miyamoto').ptc('epidemy.demon.postSpec:'+e);
             }
         };
         Demon.onArea = function(demon){
@@ -353,50 +335,13 @@ this = .tmp.epidemy;
 где spell - англ название умения. Вызывается дважды, причем before будет равно true перед кастом,
 и false - после каста. Если вернуть true из первого вызова, то заклинание выполнено не будет.
 Если вернуть true из второго вызова, то отрицательной реакции на атакующее заклинание не последует.  */
-        //test
-        // demonOnSpell = function(demon,ch,spell,before) {
-        /*demon.onSpell = function(ch,spell,before) {
-            //dispel evil
-            if(before){
-                //test
-                /!*if(spell == 'dispel evil' || spell == 'ray of truth'
-                    || spell == 'wrath' || spell == 'banishment') {
-                    recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", this);
-                    return true;
-                }*!/
-                //test
-                .tmp.epidemy.me.ptc('onSpell.before: '+ch.name+'->'+spell+'\n');
-            } else {
-                //test
-                /!*if(spell == 'dispel evil' || spell == 'ray of truth'
-                    || spell == 'wrath' || spell == 'banishment') {
-                .tmp.epidemy.heal(this);
-                    return true;
-                }*!/
-                //test
-                .tmp.epidemy.me.ptc('onSpell.after: '+ch.name+'->'+spell+'\n');
-
-            }
-            //ray of truth
-        };*/
-
-        /*onHit(ch, dam, damType, wield) - ch нанес нам повреждения размером dam, типом дамаги damType и оружием wield (wield==null при сражении голыми руками).*/
-        //test
-        //demonOnHit = function(demon, ch, dam, damType, wield) {
-        /*demon.onHit = function(ch, dam, damType, wield) {
-            var str;
-            if(wield==null) {str='голыми руками';} else {str=wield.name;}
-            .tmp.epidemy.me.ptc('onHit: '+ch.name+'->'+str+' dam:'+dam+' damType:'+damType+'\n');
-        };*/
 
     };
 
-    //fillDemonTrigers();
-
-    Demon = .get_mob_index(762);
+     Demon = .get_mob_index(762);
     add_demon_triggers();
     make_demon_list();
-}
+})
 
 /*       //demon.spec_fun = 'spec_breath_fire';
         //demon.alignment = -1000;

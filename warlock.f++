@@ -1,5 +1,5 @@
-warlockInit = function() {
-    var fillWKTriggers;
+.apply(function() {
+//warlockInit = function() {
     if(.tmp.epidemy==null)
         .tmp.epidemy = .Map();
     if(.tmp.epidemy.warlocks==null)
@@ -9,17 +9,14 @@ warlockInit = function() {
 
     this = .tmp.epidemy;
 
-    fillWKTriggers = function () {
-        this = .tmp.epidemy.triggers;
-
-        wkOnDeath = function (ch) {
-            .tmp.epidemy.clearWarlock(this);
-            return false;
-        };
-        wkOnExtract = function(count) {
-            .tmp.epidemy.clearWarlock(this);
-        };
-        wkPostGreet = function(ch) {
+    triggers.wkOnDeath = function (ch) {
+        .tmp.epidemy.clearWarlock(this);
+        return false;
+    };
+    triggers.wkOnExtract = function(count) {
+        .tmp.epidemy.clearWarlock(this);
+    };
+    triggers.wkPostGreet = function(ch) {
             try {
                 var piece;
 
@@ -57,8 +54,6 @@ warlockInit = function() {
 
         };
 
-    };
-
     Warlock = function(mage) {
         if(mage.epidemy==null) {
             mage.epidemy=.Map();
@@ -84,6 +79,5 @@ warlockInit = function() {
     .tmp.epidemy.warlocks.sub(mage);
     };
 
-    fillWKTriggers();
 
-}
+})

@@ -1,5 +1,5 @@
-bookKeeperInit = function() {
-    var BookKeeper;
+.apply(function() {
+//bookKeeperInit = function() {
     if(.tmp.epidemy==null)
         .tmp.epidemy = .Map();
     if(.tmp.epidemy.books==null)
@@ -7,10 +7,10 @@ bookKeeperInit = function() {
 
     this = .tmp.epidemy;
 
-    BookKeeper = function(ndx) {
-        this = ndx;
+    if(bookkeeper == null)
+        bookkeeper = .get_mob_index(761);
 
-        postGreet = function(mob, ch) {
+    bookkeeper.postGreet = function(mob, ch) {
             var book;
 
             if((.tmp.epidemy.books[ch.name]!=null && !.tmp.epidemy.books[ch.name].dead)
@@ -44,8 +44,5 @@ bookKeeperInit = function() {
             }
 
         };
-    };
 
-    bookkeeper = .get_mob_index(761);
-    BookKeeper(bookkeeper);
-}
+})

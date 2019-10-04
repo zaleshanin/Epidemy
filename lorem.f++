@@ -1,4 +1,5 @@
-loremInit = function() {
+.apply(function() {
+//loremInit = function() {
     var fillPieceTriggers;
     if (.tmp.epidemy == null)
         .tmp.epidemy = .Map();
@@ -9,6 +10,9 @@ loremInit = function() {
     if (.tmp.epidemy.triggers == null)
         .tmp.epidemy.triggers = .Map();
     this = .tmp.epidemy;
+
+    if(piece == null)
+        piece = .get_obj_index(9607);
 
     setPieceNames = function(piece, spell) {
         var extradesc;
@@ -45,8 +49,9 @@ loremInit = function() {
             if (i.pc != null)
                 continue;
             //если у моба уже есть бумажка
-            if(i.epidemy!=null)
+            if(i.epidemy!=null){
                 continue;
+            }
             //пусть ходят по разным зонам
             if(areas.has(i.in_room.areaname))
                 continue;
@@ -102,9 +107,6 @@ loremInit = function() {
             for(i=0 ; i<loremArray.size() ; i=i+1){
                 wk = wl.back();
                 wl.pop_back();
-
-                //test
-            //.get_char_world('miyamoto').ptc(''+i+loremArray[i]+'->'+wk.name+'('+wk.in_room.vnum+')'+'\n');
 
                 //готовим из "холста" клочок заклинания
                 onePiece = LoremPiece(i,i,loremArray[i], book.epidemy.ownerName);
@@ -188,11 +190,20 @@ loremInit = function() {
         разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
         чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
         pieceOnExtract = function (count) {
-            if(count && epidemy!=null) {
-            .tmp.epidemy.piece_to_warlock(
+            if(epidemy!=null && .tmp.epidemy.books[epidemy.ownerName] != null && count) {
+                .tmp.epidemy.piece_to_warlock(
                     .tmp.epidemy.LoremPiece(epidemy.spellIndexMin,epidemy.spellIndexMax,epidemy.spellName, epidemy.ownerName),
-            .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back())
-            );
+                    .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back())
+                );
+            }
+            if(carried_by!=null) {
+                if(carried_by.epidemy!=null && carried_by.epidemy.pieces!=null) {
+                    carried_by.epidemy.pieces[epidemy.ownerName]=null;
+
+                    if(carried_by.epidemy.pieces.keys.size()==0) {
+                        carried_by.epidemy==null;
+                    }
+                }
             }
         };
 
@@ -209,12 +220,9 @@ loremInit = function() {
         /*onPut(ch,obj,cont) - ch кладет obj в контейнер cont.
         Триггер вызывается для всех троих.*/
         /*piece.onPut = function(book, ch, obj, cont) {
-            //test
-            .tmp.epidemy.me.ptc('');
         };*/
 
     };
 
-    piece = .get_obj_index(9607);
     fillPieceTriggers();
-}
+})
