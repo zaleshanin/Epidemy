@@ -118,9 +118,9 @@
                         //наш маг из списка
                         if(.tmp.epidemy.warlocks.has(aWk['link'])) {
                             if(aWk['link'].act&.tables.act_flags.mage)
-                            result = result + ' {Dчернокнижника{x.\n';
-                            if(aWk['link'].act&.tables.act_flags.necromancer)
-                            result = result + ' {Dнекроманта{x.\n';
+                                result = result + ' {Dчернокнижника{x.\n';
+                            else if(aWk['link'].act&.tables.act_flags.necromancer)
+                                result = result + ' {Dнекроманта{x.\n';
 
                             result = result + aWk['link'].description;
 
