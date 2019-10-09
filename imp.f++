@@ -23,7 +23,7 @@
         mob.postSpec = .tmp.epidemy.triggers.impPostSpec;
         //подходят тригеры от фидошек:
         mob.onDeath = .tmp.epidemy.triggers.sickOnDeath;
-        mob.onDeath = .tmp.epidemy.triggers.infectedOnExtract;
+        mob.onExtract = .tmp.epidemy.triggers.sickOnExtract;
         mob.onLeave = .tmp.epidemy.triggers.sickOnLeave;
         mob.onEntry = .tmp.epidemy.triggers.sickOnEntry;
         mob.onGreet = .tmp.epidemy.triggers.sickOnGreet;

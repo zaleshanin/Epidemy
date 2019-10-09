@@ -33,8 +33,6 @@
         infected.push_back(mob);
 
         mob = setInfectedTriggers(mob);
-
-
     };
     transform = function(mob) {
         this = .tmp.epidemy;
@@ -48,13 +46,8 @@
         var count,i,l,vict;
         var result;
 
-        l = mob.in_room.ppl.clone();
         result = .List();
-        count = l.size();
-
-        for(i=0;i<count;i=i+1) {
-            vict = l.back();
-            l.pop_back();
+        for(vict in mob.in_room.ppl) {
             if(vict==mob) continue;
             if(!vict.is_npc()) continue;
             if(vict.epidemy!=null) continue;
@@ -64,7 +57,6 @@
                 result.push_back(vict);
             }
         }
-
         return result;
     };
     evert = function(mob) {
@@ -213,7 +205,10 @@
 
         for( i=1 ; i<=total ; i=i+1 ) {
             m = l.back();
-            if(m.in_room.areaname==city) {
+            if(m.dead) {
+                infected.sub(m);
+                continue;
+            } else if(m.in_room.areaname==city) {
                 clearPlan(m);
             }
             l.pop_back();
@@ -257,6 +252,13 @@
             for( i=1 ; i<=total ; i=i+1 ) {
                 m = mlist.back();
                 mlist.pop_back();
+                if(m.dead) {
+                    .tmp.epidemy.infected.sub(m);
+                    continue;
+                }
+                if(!m.online || (m.leader!=null && m.leader.pet==m)) {
+                    continue;
+                }
                 //тварь в нашем городе
                 if (m.in_room.areaname == city){
                     icount=icount+1;
@@ -622,11 +624,11 @@
         //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         triggers.infectedOnDeath = function(ch) {
             //выпиливаемся из списка
-        .tmp.epidemy.infected.sub(this);
+            .tmp.epidemy.infected.sub(this);
         };
         triggers.infectedOnExtract = function(count) {
             //выпиливаемся из списка
-        .tmp.epidemy.infected.sub(this);
+            .tmp.epidemy.infected.sub(this);
         };
 
         //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
@@ -654,7 +656,8 @@
                 .tmp.epidemy.plan_cancel(this);
 
             //вылупляем импа
-            if(.tmp.epidemy.imp_list!=null && .tmp.epidemy.imp_list.size()>0 && .tmp.epidemy.initImp!=null) {
+            if(.tmp.epidemy.imp_list!=null && .tmp.epidemy.imp_list.size()>0
+                && .tmp.epidemy.initImp!=null && .tmp.epidemy.imp_list.has(pIndexData)) {
                 var imp;
                 imp = .tmp.epidemy.imp_list.random().create();
             .tmp.epidemy.initImp(imp);
@@ -678,6 +681,8 @@
     };
 
     setInfectedTriggers = function(mob) {
+        mob.onSpec = null;
+
         mob.postSpec = .tmp.epidemy.triggers.infectedPostSpec;
         mob.onSpell = .tmp.epidemy.triggers.infectedOnSpell;
         mob.onDeath = .tmp.epidemy.triggers.infectedOnDeath;

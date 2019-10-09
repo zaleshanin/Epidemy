@@ -103,15 +103,14 @@
 
                 }
             } else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
-                if(book.epidemy.isLorem) {
+                aWk = .tmp.epidemy.get_wk_array(ch.name); //получаем список магов с нашими бумажками
+                if(aWk.size()==0 || book.epidemy.isLorem) {
                     result  = 'Ты тщательно вглядываешся в рисунки на странице:\nИзображения темных магов выглядят потухшами и безжизненными.';
                 } else {
-                    aWk = .tmp.epidemy.get_wk_array(ch.name);
-
                     //test
-                    if(aWk.size()==0) {
+                    /*if(aWk.size()==0) {
                         throw('empty aWk\n');
-                    }
+                    }*/
 
                     result = 'Ты тщательно вглядываешь в изображение';
                     //бумажка на руках
