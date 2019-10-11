@@ -427,7 +427,7 @@
                 ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, this);
                 this.extract(true);
                 //а вот тут заражаем!
-                target.onSpec = function(){.tmp.epidemy.infect(this);};
+                target.postSpec = function(){.tmp.epidemy.infect(this);};
             }
             return true;
         };

@@ -305,6 +305,11 @@
 
     make_your_move = function(mob) {
         this = .tmp.epidemy;
+        debug(mob,'make_your_move 0:start');
+        if(mob.epidemy.plan_room!=null) debug(mob,'make_your_move 0: plan_room:'+mob.epidemy.plan_room.vnum); else debug(mob,'make_your_move 0: no plan_room');
+        if(mob.epidemy.plan_way!=null) debug(mob,'make_your_move 0: plan_way:'+mob.epidemy.plan_way.size()); else debug(mob,'make_your_move 0: no plan_way');
+        if(mob.epidemy.plan_waypoint!=null) debug(mob,'make_your_move 0: plan_waypoint:'+mob.epidemy.plan_waypoint.vnum); else debug(mob,'make_your_move 0: no plan_waypoint');
+        if(mob.epidemy.plan_nextroom!=null) debug(mob,'make_your_move 0: plan_nextroom:'+mob.epidemy.plan_nextroom.vnum); else debug(mob,'make_your_move 0: no plan_nextroom');
         if(mob.dead)
             return;
 
@@ -315,27 +320,37 @@
         }
 
         if(mob.epidemy.plan_way == null) {
+            debug(mob,'make_your_move [bug]: нет маршрута');
             //не должно сюда попадать
 
             //[ВНЕЗАПНО!] нет маршрута... Бедааааа!
 
             mob.epidemy.plan = null;
         } else {
+            debug(mob,'make_your_move 1: plan_way:'+mob.epidemy.plan_way.size());
             //Сверимся с маршрутом
             if(mob.epidemy.plan_waypoint==null){
+                debug(mob,'make_your_move 1.1: нет вэйпоинта');
                 //ГДЕ Я???
                 clearPlan(mob);//.epidemy.plan = null;
             } else if(mob.epidemy.plan_waypoint != mob.in_room) {
+                debug(mob,'make_your_move 1.2: ушел с маршрута, пытаюсь вернуться ');
                 //cбился с пути, пытаюсь вернуться на маршрут
                 if(back_on_way(mob)) {
+                    debug(mob,'make_your_move 1.2.1: получилось вернуться');
                     //Cнова на маршруте
                 } else {
+                    debug(mob,'make_your_move 1.2.2: потерялося я');
                     //(чистим всё) Поретялося я! Нужен новый маршрут!!
                     clearPlan(mob);
                 }
             } else {
+                debug(mob,'make_your_move 1.3: мы в вейпоинте');
+
                 if(mob.epidemy.plan_nextroom==null) {
+                    debug(mob,'make_your_move 1.3.1: нет следующей комнаты');
                     if(mob.epidemy.plan_way.size()==0) {
+                        debug(mob,'make_your_move 1.3.1.1: пустой маршрут');
                         if(mob.in_room!=mob.epidemy.plan_room) {
                             //Маршрут закончился, на место не прибыли. Может где-то рядом?
                             if (back_on_way(mob)) {
@@ -345,20 +360,29 @@
                                 clearPlan(mob);
                             }
                         } else {
-                            mob.epidemy.plan_room = where_is_victim(mob);
-                            if(mob.epidemy.plan_room==null) {
-                                //(чистим всё) цель, возможно, переместилась
-                                clearPlan(mob);
-                            } else {
-                                //цель найдена! преследуем!
-                                mob.epidemy.plan_nextroom = mob.epidemy.plan_room;
-                                mob.epidemy.plan_waypoint = mob.in_room;
-                                if(mob.epidemy.snd!=null
-                                    && mob.epidemy.snd.in_room==mob.in_room
-                                    && mob.epidemy.snd.victim==mob.epidemy.victim) {
-                                    mob.epidemy.snd.plan_nextroom = mob.epidemy.plan_nextroom;
-                                    mob.epidemy.snd.plan_waypoint = mob.epidemy.plan_waypoint;
+                            //Маршрут закончился, прибыли на место. Мы в последней комнате маршрута.
+
+
+                            if(mob.epidemy.victim!=null) {
+                                //исчадие, преследует жертву
+                                mob.epidemy.plan_room = where_is_victim(mob);
+
+                                if(mob.epidemy.plan_room==null) {
+                                    //(чистим всё) цель, возможно, переместилась
+                                    clearPlan(mob);
+                                } else {
+                                    //цель найдена! преследуем!
+                                    mob.epidemy.plan_nextroom = mob.epidemy.plan_room;
+                                    mob.epidemy.plan_waypoint = mob.in_room;
+                                    if(mob.epidemy.snd!=null
+                                        && mob.epidemy.snd.in_room==mob.in_room
+                                        && mob.epidemy.snd.victim==mob.epidemy.victim) {
+                                        mob.epidemy.snd.plan_nextroom = mob.epidemy.plan_nextroom;
+                                        mob.epidemy.snd.plan_waypoint = mob.epidemy.plan_waypoint;
+                                    }
                                 }
+                            } else {
+                                mob.epidemy.plan = null;
                             }
                         }
                     } else {
@@ -366,31 +390,40 @@
                         mob.epidemy.plan_way.pop_front();
                     }
                 } else {
+                    debug(mob,'make_your_move 1.3.1: есть plan_nextroom'+mob.epidemy.plan_nextroom.vnum);
                     //2do
                     //getExitFlags        (имя или номер выхода): флаги этого выхода (таблица .tables.exit_flags)
                     //.tables.exit_flags.closed locked isdoor
                     var door;
                     door = mob.in_room.doorTo(mob.epidemy.plan_nextroom);
                     if(door < 0) {
+                        debug(mob,'make_your_move 1.3.1.0: похоже тупик. чистим план.');
                         //сюда тоже не должно попадать, но вдруг...
                         //(чистим всё) В нужную комнату от сюда не попасть
                         clearPlan(mob);//.epidemy.plan = null;
-                    }else{
+                    } else {
+                        debug(mob,'make_your_move 1.3.1.1: выход есть...');
                         if(mob.in_room.getExitFlags(door) & .tables.exit_flags.closed){
                             //здесь закрытая дверь
                             if(mob.in_room.getExitFlags(door) & .tables.exit_flags.locked) {
+                                debug(mob,'make_your_move 1.3.1.1.1: запертая дверь!!!');
                                 //дверь закрыта. еще и заперта!
                                 mob.recho('%1$^C1 дергает за ручку %2$N2.',mob,mob.in_room.exitShortDescr(door));
                            } else {
+                                debug(mob,'make_your_move 1.3.1.1.2: открываем дверь');
                                 //открывать нужно правильную дверь
                                 mob.interpret('open '+mob.in_room.doorName(door)); // doorName() вернет название направления
                             }
                         } else {
+                            debug(mob,'make_your_move 1.3.1.2: проход свободен');
                             if(mob.in_room == mob.epidemy.plan_nextroom
                                 || mob.move_char(door)){
                                 mob.epidemy.plan_waypoint = mob.epidemy.plan_nextroom;
                                 mob.epidemy.plan_nextroom = null;
+                                debug(mob,'make_your_move 1.3.1.2.1: переход удался');
                                 if(mob.in_room == mob.epidemy.plan_room) {
+                                    debug(mob,'make_your_move 1.3.1.2.2: я на месте');
+                                    //mob.epidemy.plan=null;
                                     //Похоже я на месте! Что дальше?
                                 }
                             } else {
@@ -402,6 +435,12 @@
                 }
             }
         }
+        debug(mob,'make_your_move 99:end');
+        if(mob.epidemy.plan_room!=null) debug(mob,'make_your_move 99: plan_room:'+mob.epidemy.plan_room.vnum); else debug(mob,'make_your_move 99: no plan_room');
+        if(mob.epidemy.plan_way!=null) debug(mob,'make_your_move 99: plan_way:'+mob.epidemy.plan_way.size()); else debug(mob,'make_your_move 99: no plan_way');
+        if(mob.epidemy.plan_waypoint!=null) debug(mob,'make_your_move 99: plan_waypoint:'+mob.epidemy.plan_waypoint.vnum); else debug(mob,'make_your_move 99: no plan_waypoint');
+        if(mob.epidemy.plan_nextroom!=null) debug(mob,'make_your_move 99: plan_nextroom:'+mob.epidemy.plan_nextroom.vnum); else debug(mob,'make_your_move 99: no plan_nextroom');
+
     };
     back_on_way = function(mob) {
         if(mob.move_char(mob.in_room.doorTo(mob.epidemy.plan_waypoint))) {

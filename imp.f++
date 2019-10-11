@@ -1,11 +1,256 @@
 .apply(function() {
 //impInit = function() {
     if(.tmp.epidemy==null)
-.tmp.epidemy = .Map();
+        .tmp.epidemy = .Map();
 
     this=.tmp.epidemy;
 
-    var fillTriggers;
+    if(triggers == null)
+        triggers = .Map();
+
+    triggers.impOnHit = function(demon_slayer, dam, damType, wield) {
+        if(wield==null){
+            for(ch in .players) {
+                if(ch.in_room==in_room) {
+                    ch.act('%1$^C1 корчится и кричит от боли.',this);
+                } else if (ch.in_room.areaname == demon.in_room.areaname){
+                    ch.act('До тебя доносятся нечеловеческие крики боли %1$C2.',this);
+                }
+            }
+        }else {
+            for(ch in in_room.ppl) {
+                ch.act('%1$^O1 оставляет глубокие раны на теле %2$C2.',wield,this);
+            }
+        }
+    };
+    /*onImmune скопирован из demon*/
+    triggers.impOnImmune = function(attacker, dam, damType, wield, dam_flag, skillName) {
+        if (damType == 'holy') {
+            return dam * 30;
+        }
+
+        if(wield!=null) {
+            if(wield.extra_flags&.tables.extra_flags.bless) {
+                if(!(wield.extra_flags&.tables.extra_flags.evil || wield.extra_flags&.tables.extra_flags.anti_good)) {
+                    return dam * 10;
+                }
+            }
+            if(wield.value4&.tables.weapon_type2.holy) {
+                return dam * 50;
+            }
+        }
+
+        return 0;
+    };
+    triggers.impPostSpec = function (imp) {
+        this = .tmp.epidemy;
+
+        try {
+            if(imp.dead) return;
+
+            if(imp.epidemy==null) throw('imp:NO epidemy Map\n');
+
+            if(imp.epidemy.victims==null) {
+                imp.epidemy.victims = getVictims(imp);
+            }
+            if(imp.epidemy.cowards==null) {
+                imp.epidemy.cowards = getCowards(imp);
+            }
+
+            if(imp.epidemy.plan != null && imp.epidemy.plan >= 1 && imp.epidemy.plan_room==null) {
+                imp.epidemy.plan = null;
+            }
+
+            if(imp.epidemy.plan == null) {
+                imp.epidemy.plan = plan_check(imp);
+            }
+
+            if(imp.epidemy.plan == 2 && imp.epidemy.plan_room!=imp.in_room) {
+                imp.epidemy.plan = 1;
+            }
+            if(imp.epidemy.plan == 1 && imp.epidemy.plan_room==imp.in_room) {
+                imp.epidemy.plan = null;
+            }
+
+            if(imp.epidemy.plan == 3) {
+                //бывает что какая-то зверюга убегает в последний момент
+                imp.epidemy.plan = plan_check(imp);
+                //и если план без изменений
+                if(imp.epidemy.plan == 3) {
+                    var demon_room;
+
+                    demon_room = imp.in_room;
+                    //взорвать всех зверюг в комнате
+                    explode_in_room(demon_room);
+                    //вызывать демона
+                    get_one_demon(demon_room);
+                    return;
+                }
+            }
+
+            //чертяка-кусака!
+            if(imp.epidemy.victims.size() && .chance(10)) {
+                //кусаем если есть кого
+                var vict;
+                vict = imp.epidemy.victims.random();
+                if(vict.dead || vict.in_room!=imp.in_room || vict.epidemy!=null){
+                    //изчез куда-то гад!!!
+                    imp.epidemy.victims = null;
+                } else {
+                    /*---некотролируемая эпидемия начинается здесь---*/
+                    imp.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
+                    vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя!", imp);
+                    imp.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4!", imp, vict);
+                    vict.postSpec = function(){if(.chance(10)) .tmp.epidemy.infect(this);};
+                    /*----------------------------------------------*/
+                    imp.epidemy.victims.sub(vict);
+                }
+                return;
+            }
+
+            //чертяка-пугака
+            if(imp.epidemy.cowards.size() && .chance(50)) {
+                debug(imp, 'imp: has a cowards');
+                var vict;
+                vict = imp.epidemy.cowards.random();
+
+                fearYou(imp, vict);
+
+                return;
+            }
+
+
+            //чертяка-гуляка!
+            /*plan:
+            * 0 - ты не последний зараженный
+            * 1 - все заражены - собираемся до кучи
+            * 2 - ты в куче, ждем остальных
+            * 3 - я последний - вызываем "КРАКЕНА"
+            */
+            if(imp.epidemy.plan==1 && .chance(50)) {
+                if(imp.epidemy.plan_room==null)
+                    throw('imp-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
+
+                if(imp.epidemy.plan_way==null) {
+                    if(!imp.epidemy.plan_room.isCommon()) {
+                        imp.epidemy.plan = null;
+                        imp.epidemy.plan_room = null;
+                        //return;
+                    } else {
+                        //ищем путь
+                        imp.interpret('ponder');
+                        imp.epidemy.plan_way = find_way(imp,imp.epidemy.plan_room);
+                        if(imp.epidemy.plan_way.size()>0){
+                            imp.epidemy.plan_waypoint = imp.in_room;
+                            return;
+                        } /*else {
+                                //беда! пустой маршрут!
+                            }*/
+                    }
+                } else if(imp.epidemy.plan_nextroom == null) {
+                    make_your_move(imp);
+                } else if (imp.epidemy.plan_waypoint!=imp.in_room) { //сбились с маршрута
+                    imp.epidemy.plan_waypoint = null;
+                    imp.epidemy.plan_nextroom = null;
+                    imp.epidemy.plan_way = null;
+                } else { //маршрут есть и мы с него не сбились
+                    if(.chance(20)) {
+                        var exitDoor;
+                        exitDoor = imp.in_room.doorTo(imp.epidemy.plan_nextroom);
+
+                        if(imp.in_room.getExitFlags(exitDoor) & .tables.exit_flags.closed) {
+
+                            if(.chanceOneOf(3))
+                            {
+                                imp.recho('%1$^C1 скребет когтями %2$N4. Тщетно.',imp, in_room.exitShortDescr(exitDoor));
+                            }
+                        else if (.chanceOneOf(2))
+                            {
+                                var ppllist, sucker;
+                                ppllist = in_room.ppl.clone();
+                                ppllist.sub(this);
+                                if(ppllist.size()>0) {
+                                    sucker = ppllist.random();
+                                    sucker.recho('%1$^C1 садится перед %2$N5, и жалобно смотрит в глаза %3$C3.',imp, in_room.exitShortDescr(exitDoor), sucker);
+                                    sucker.act('%1$^C1 садится перед %2$N5, и жалобно смотрит тебе в глаза.',imp, in_room.exitShortDescr(exitDoor));
+                                } else {
+                                    imp.recho('%1$^C1 садится перед %2$N5, и жалобно хнычет.',imp, in_room.exitShortDescr(exitDoor));
+                                }
+                            }
+                        else
+                            {
+                                imp.recho('%1$C1 бубтин себе под нос \'Всё приходится делать само%1$Gму|му|й.\'',imp);
+                                imp.interpret('open '+in_room.doorName(exitDoor));
+                            }
+
+                            return;
+                        } else {
+                            make_your_move(imp);
+
+                            return;
+                        }
+
+
+                    }
+                }
+            }
+
+            //чертяка-кривляка!
+            /*
+                            if(.chance(5)) {
+                                //спамим всякими социалами
+                                if (in_room.ppl.size()<2)
+                                    return;
+
+                                var numba,temotes,emotes;
+                                emotes = .tmp.epidemy.emoteArray.keys.size();
+                                temotes = .tmp.epidemy.emoteTargArray.keys.size();
+                                numba = .number_range(0, (temotes+emotes-1));
+
+                                if (numba > (emotes-1)) {
+                                    var target;
+                                    var str;
+                                    numba = numba - emotes;
+
+                                    if(.tmp.epidemy.emoteTargArray[numba]==null)
+                                    throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
+
+                                    for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
+
+                                    str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
+                                    interpret(str);
+                                } else {
+                                    interpret(.tmp.epidemy.emoteArray[numba]);
+                                }
+                                return;
+                            }
+            */
+        } catch(e){
+            var me;
+            me = .get_char_world('miyamoto');
+            if(me!=null)
+                me.ptc('epidemy.postSpec:'+e);
+        }
+    };
+    triggers.impOnAttack = function(imp,ch,vict) {
+        if(!imp.epidemy.fearList.has(ch))
+            imp.epidemy.fearList.push_back(ch);
+    };
+    triggers.impOnLeave = function(imp, ch, from_room, movetype){
+    .tmp.epidemy.debug(imp,'onLeave '+ch.name);
+        .tmp.epidemy.triggers.sickOnLeave(imp, ch, from_room, movetype);
+        imp.epidemy.cowards=null;
+    };
+    triggers.impOnEntry = function(imp){
+    .tmp.epidemy.debug(imp,'onEntry');
+        .tmp.epidemy.triggers.sickOnEntry(imp);
+        imp.epidemy.cowards=null;
+    };
+    triggers.impOnGreet = function(imp, ch){
+        .tmp.epidemy.debug(imp,'onGreet '+ch.name);
+    .tmp.epidemy.triggers.sickOnGreet(imp, ch);
+        imp.epidemy.cowards=null;
+    };
 
     initImp = function(mob) {
         this = .tmp.epidemy;
@@ -14,19 +259,21 @@
         if(mob.epidemy==null)
             mob.epidemy = .Map();
         mob.epidemy.infected = true;
+        mob.epidemy.fearList = .List();
 
         infected.push_back(mob);
 
         //заполняем тригера
         mob.onHit = .tmp.epidemy.triggers.impOnHit;
         mob.onImmune = .tmp.epidemy.triggers.impOnImmune;
-        mob.postSpec = .tmp.epidemy.triggers.impPostSpec;
+        mob.postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
         //подходят тригеры от фидошек:
-        mob.onDeath = .tmp.epidemy.triggers.sickOnDeath;
-        mob.onExtract = .tmp.epidemy.triggers.sickOnExtract;
-        mob.onLeave = .tmp.epidemy.triggers.sickOnLeave;
-        mob.onEntry = .tmp.epidemy.triggers.sickOnEntry;
-        mob.onGreet = .tmp.epidemy.triggers.sickOnGreet;
+        mob.onDeath = function(ch){.tmp.epidemy.triggers.infectedOnDeath(this,ch);};
+        mob.onExtract = function(count){.tmp.epidemy.triggers.infectedOnExtract(this,count);};
+        mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.impOnLeave(this,ch, from_room, movetype);};
+        mob.onEntry = function(){.tmp.epidemy.triggers.impOnEntry(this);};
+        mob.onGreet = function(ch){.tmp.epidemy.triggers.impOnGreet(this, ch);};
+        mob.onAttack = function(ch,vict) {.tmp.epidemy.triggers.impOnAttack(this,ch,vict);};
 
         /*
      dodge fade fast kick_dirt tail disarm trip
@@ -42,220 +289,73 @@
         //demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.tail);
 
     };
+    
+    fearYou = function(imp, ch) {
+        var fear;
+        //([skill[,level,duration,location,mod,where,bits]])
+        fear = .Affect("fear",              //skill
+            ch.getModifyLevel(),            //level
+            .number_range(0, 2),            //duration
+            0, 0,                           //location,mod
+            .tables.affwhere_flags.detects, //where
+            .tables.detect_flags.fear);     //bits
 
-    fillTriggers = function() {
-        this = .tmp.epidemy;
+        if (ch.isAffected(fear.type))
+            return;
 
-        if(triggers == null)
-            triggers = .Map();
+        ch.affectAdd(fear);
 
-        triggers.impOnHit = function(demon_slayer, dam, damType, wield) {
-            if(wield==null){
-                for(ch in .players) {
-                    if(ch.in_room==in_room) {
-                        ch.act('%1$^C1 корчится и кричит от боли.',this);
-                    } else if (ch.in_room.areaname == demon.in_room.areaname){
-                        ch.act('До тебя доносятся нечеловеческие крики боли %1$C2.',this);
-                    }
-                }
-            }else {
-                for(ch in in_room.ppl) {
-                    ch.act('%1$^O1 оставляет глубокие раны на теле %2$C2.',wield,this);
-                }
+        ch.act("%1$^C1 страшным магическим словом '{gБууу!{x' повергает тебя в ужас!", imp);
+        imp.rvecho(ch, "%1$^C1 страшным магическим словом '{gБууу!{x' повергает %2$C4 в ужас!", imp, ch);
+
+        var escape;
+        escape = ch.in_room.doorTo(getEscapeRooms(ch).random());
+
+        if(ch.in_room.getExitFlags(escape) & .tables.exit_flags.closed) {
+            ch.interpret('open '+ch.in_room.doorName(escape));
+        }
+
+        if(!ch.move_char(escape,'running')){
+            ch.act("Ты пытаешься убежать, но что-то идёт не так!");
+            ch.recho("%1$^C1 пытается убежать, но что-то идёт не так.", ch);
+        }
+
+
+
+    };
+    getEscapeRooms = function(ch) {
+        var result;
+        result = .List();
+
+        for(exit in .List().add(ch.in_room.north,ch.in_room.east,ch.in_room.south,ch.in_room.west,ch.in_room.up,ch.in_room.down)) {
+            if(exit==null)
+                continue;
+
+            var door;
+            door = ch.in_room.doorTo(exit);
+            if(ch.in_room.getExitFlags(door) & .tables.exit_flags.locked)
+                continue;
+
+            result.push_back(exit);
+        }
+
+        return result;
+    };
+
+    getCowards = function(imp) {
+        .tmp.epidemy.debug(imp,'imp: getCovards()');
+        var result;
+        result = .List();
+        if(imp.epidemy.fearList.size()==0)
+            return result;
+
+        for(coward in imp.epidemy.fearList) {
+            if(imp.in_room.ppl.has(coward)){
+                result.push_back(coward);
             }
-        };
+        }
 
-        /*onImmune скопирован из demon*/
-        triggers.impOnImmune = function(attacker, dam, damType, wield, dam_flag, skillName) {
-            if (damType == 'holy') {
-                return dam * 30;
-            }
-
-            if(wield!=null) {
-                if(wield.extra_flags&.tables.extra_flags.bless) {
-                    if(!(wield.extra_flags&.tables.extra_flags.evil || wield.extra_flags&.tables.extra_flags.anti_good)) {
-                        return dam * 10;
-                    }
-                }
-                if(wield.value4&.tables.weapon_type2.holy) {
-                    return dam * 50;
-                }
-            }
-
-            return 0;
-        };
-        triggers.impPostSpec = function () {
-            try {
-                if(dead) return;
-
-                if(epidemy==null && !dead) throw('imp:NO epidemy Map\n');
-
-                if(epidemy.victims==null) {
-                    epidemy.victims = .tmp.epidemy.getVictims(this);
-                }
-                if(epidemy.plan != null && epidemy.plan >= 1 && epidemy.plan_room==null) {
-                    epidemy.plan = null;
-                }
-
-                if(epidemy.plan == null) {
-                    epidemy.plan = .tmp.epidemy.plan_check(this);
-                }
-
-                if(epidemy.plan == 2 && epidemy.plan_room!=in_room) {
-                    epidemy.plan = 1;
-                }
-                if(epidemy.plan == 1 && epidemy.plan_room==in_room) {
-                    epidemy.plan = 2;
-                }
-
-                if(epidemy.plan == 3) {
-                    //бывает что какая-то зверюга убегает в последний момент
-                    epidemy.plan = .tmp.epidemy.plan_check(this);
-                    //и если план без изменений
-                    if(epidemy.plan == 3) {
-                        var demon_room;
-
-                        demon_room = in_room;
-                        //взорвать всех зверюг в комнате
-                    .tmp.epidemy.explode_in_room(demon_room);
-                        //вызывать демона
-                    .tmp.epidemy.get_one_demon(demon_room);
-                        return;
-                    }
-                }
-
-                //собака-кусака!
-                if(epidemy.victims.size() && .chance(10)) {
-                    //кусаем если есть кого
-                    var vict;
-                    vict = epidemy.victims.random();
-                    if(vict.dead || vict.in_room!=in_room || vict.epidemy!=null){
-                        //изчез куда-то гад!!!
-                        epidemy.victims = null;
-                    } else {
-                        /*---некотролируемая эпидемия начинается здесь---*/
-                        act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
-                        vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя!", this);
-                        rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4!", this, vict);
-                        vict.postSpec = function(){if(.chance(10)) .tmp.epidemy.infect(this);};
-                        /*----------------------------------------------*/
-                        epidemy.victims.sub(vict);
-                    }
-                    return;
-                }
-
-                //собака - гуляка!
-                /*plan:
-                * 0 - ты не последний зараженный
-                * 1 - все заражены - собираемся до кучи
-                * 2 - ты в куче, ждем остальных
-                * 3 - я последний - вызываем "КРАКЕНА"
-                */
-                if(epidemy.plan==1 && .chance(50)) {
-                    if(epidemy.plan_room==null)
-                        throw('собака-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
-
-                    if(epidemy.plan_way==null) {
-                        if(!epidemy.plan_room.isCommon()) {
-                            epidemy.plan = null;
-                            epidemy.plan_room = null;
-                            //return;
-                        } else {
-                            //ищем путь
-                            interpret('ponder');
-                            epidemy.plan_way = .tmp.epidemy.find_way(this,epidemy.plan_room);
-                            if(epidemy.plan_way.size()>0){
-                                epidemy.plan_waypoint = in_room;
-                                return;
-                            } /*else {
-                                //беда! пустой маршрут!
-                            }*/
-                        }
-                    } else if(epidemy.plan_nextroom == null) {
-                    .tmp.epidemy.make_your_move(this);
-                    } else if (epidemy.plan_waypoint!=in_room) { //сбились с маршрута
-                        epidemy.plan_waypoint = null;
-                        epidemy.plan_nextroom = null;
-                        epidemy.plan_way = null;
-                    } else { //маршрут есть и мы с него не сбились
-                        if(.chance(20)) {
-                            var exitDoor;
-                            exitDoor = in_room.doorTo(epidemy.plan_nextroom);
-
-                            if(in_room.getExitFlags(exitDoor) & .tables.exit_flags.closed) {
-
-                                if(.chanceOneOf(3))
-                                {
-                                    recho('%1$^C1 скребет когтями %2$N4. Тщетно.',this, in_room.exitShortDescr(exitDoor));
-                                }
-                            else if (.chanceOneOf(2))
-                                {
-                                    var ppllist, sucker;
-                                    ppllist = in_room.ppl.clone();
-                                    ppllist.sub(this);
-                                    if(ppllist.size()>0) {
-                                        sucker = ppllist.random();
-                                        sucker.recho('%1$^C1 садится перед %2$N5, и жалобно смотрит в глаза %3$C3.',this, in_room.exitShortDescr(exitDoor), sucker);
-                                        sucker.act('%1$^C1 садится перед %2$N5, и жалобно смотрит тебе в глаза.',this, in_room.exitShortDescr(exitDoor));
-                                    } else {
-                                        recho('%1$^C1 садится перед %2$N5, и жалобно хнычет.',this, in_room.exitShortDescr(exitDoor));
-                                    }
-                                }
-                            else
-                                {
-                                    recho('%1$C1 бубтин себе под нос \'Всё приходится делать само%1$Gму|му|й.\'',this);
-                                    interpret('open '+in_room.doorName(exitDoor));
-                                }
-
-                                return;
-                            } else {
-                            .tmp.epidemy.make_your_move(this);
-
-                                return;
-                            }
-
-
-                        }
-                    }
-                }
-
-                //собака-кривляка!
-                /*
-                                if(.chance(5)) {
-                                    //спамим всякими социалами
-                                    if (in_room.ppl.size()<2)
-                                        return;
-
-                                    var numba,temotes,emotes;
-                                    emotes = .tmp.epidemy.emoteArray.keys.size();
-                                    temotes = .tmp.epidemy.emoteTargArray.keys.size();
-                                    numba = .number_range(0, (temotes+emotes-1));
-
-                                    if (numba > (emotes-1)) {
-                                        var target;
-                                        var str;
-                                        numba = numba - emotes;
-
-                                        if(.tmp.epidemy.emoteTargArray[numba]==null)
-                                        throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
-
-                                        for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
-
-                                        str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
-                                        interpret(str);
-                                    } else {
-                                        interpret(.tmp.epidemy.emoteArray[numba]);
-                                    }
-                                    return;
-                                }
-                */
-            } catch(e){
-                var me;
-                me = .get_char_world('miyamoto');
-                if(me!=null)
-                    me.ptc('epidemy.postSpec:'+e);
-            }
-        };
+        return result;
     };
 
     /*
@@ -266,8 +366,6 @@
     imp_list.push_back(.get_mob_index(18608));
     imp_list.push_back(.get_mob_index(9236));
     imp_list.push_back(.get_mob_index(6309));
-
-    fillTriggers();
 
 })
 //импрув моба: https://github.com/dreamland-mud/dreamland_code/blob/master/plug-ins/fight/fight_exp.cpp
