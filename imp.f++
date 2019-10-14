@@ -8,6 +8,12 @@
     if(triggers == null)
         triggers = .Map();
 
+    if(emoteImpArray == null)
+        emoteImpArray = .Array();
+
+    if(emoteImpTargArray == null)
+        emoteImpTargArray = .Array();
+
     triggers.impOnHit = function(demon_slayer, dam, damType, wield) {
         if(wield==null){
             for(ch in .players) {
@@ -199,35 +205,35 @@
             }
 
             //чертяка-кривляка!
-            /*
-                            if(.chance(5)) {
-                                //спамим всякими социалами
-                                if (in_room.ppl.size()<2)
-                                    return;
 
-                                var numba,temotes,emotes;
-                                emotes = .tmp.epidemy.emoteArray.keys.size();
-                                temotes = .tmp.epidemy.emoteTargArray.keys.size();
-                                numba = .number_range(0, (temotes+emotes-1));
+            if(.chance(5)) {
+                //спамим всякими социалами
+                if (in_room.ppl.size()<2)
+                    return;
 
-                                if (numba > (emotes-1)) {
-                                    var target;
-                                    var str;
-                                    numba = numba - emotes;
+                var numba,temotes,emotes;
+                emotes = .tmp.epidemy.emoteImpArray.keys.size();
+                temotes = .tmp.epidemy.emoteImpTargArray.keys.size();
+                numba = .number_range(0, (temotes+emotes-1));
 
-                                    if(.tmp.epidemy.emoteTargArray[numba]==null)
-                                    throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
+                if (numba > (emotes-1)) {
+                    var target;
+                    var str;
+                    numba = numba - emotes;
 
-                                    for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
+                    if(.tmp.epidemy.emoteTargArray[numba]==null)
+                    throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
 
-                                    str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
-                                    interpret(str);
-                                } else {
-                                    interpret(.tmp.epidemy.emoteArray[numba]);
-                                }
-                                return;
-                            }
-            */
+                    for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
+
+                    str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
+                    interpret(str);
+                } else {
+                    interpret(.tmp.epidemy.emoteArray[numba]);
+                }
+                return;
+            }
+
         } catch(e){
             var me;
             me = .get_char_world('miyamoto');
@@ -371,6 +377,27 @@
     /*
      dodge fade fast kick_dirt tail disarm trip
     */
+
+    var fillEmotes;
+    fillEmotes = function(){
+        this = .tmp.epidemy;
+
+        //массивы социалов для чертят/бесят
+        emoteArray = .Array();
+        emoteArray[0] = 'buff';  emoteArray[1] = 'cheer'; //??
+        emoteArray[2] = 'curse';  emoteArray[3] = 'flare';
+        emoteArray[4] = 'giggle';  emoteArray[5] = 'grin';
+        emoteArray[6] = 'glare';  emoteArray[7] = 'highfive';
+        emoteArray[8] = 'hop';  emoteArray[9] = 'innocent';
+        emoteArray[10] = 'lick';  emoteArray[11] = 'mischievous';
+        emoteArray[12] = 'smirk';  emoteArray[13] = 'snicker';
+        emoteArray[14] = 'snort';
+
+        emoteTargArray = .Array();
+        /*emoteTargArray[0] = "flare";
+        emoteTargArray[1] = "giggle";*/
+    };
+    fillEmotes();
 
     imp_list = .List();
     imp_list.push_back(.get_mob_index(18608));
