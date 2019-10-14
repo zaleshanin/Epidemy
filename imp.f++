@@ -46,6 +46,7 @@
         this = .tmp.epidemy;
 
         try {
+            debug(imp,'impPostSpec.');
             if(imp.dead) return;
 
             if(imp.epidemy==null) throw('imp:NO epidemy Map\n');
@@ -90,6 +91,7 @@
 
             //чертяка-кусака!
             if(imp.epidemy.victims.size() && .chance(10)) {
+                debug(imp,'impPostSpec: кусака');
                 //кусаем если есть кого
                 var vict;
                 vict = imp.epidemy.victims.random();
@@ -110,7 +112,7 @@
 
             //чертяка-пугака
             if(imp.epidemy.cowards.size() && .chance(50)) {
-                debug(imp, 'imp: has a cowards');
+                debug(imp, 'impPostSpec: has a cowards');
                 var vict;
                 vict = imp.epidemy.cowards.random();
 
@@ -128,6 +130,7 @@
             * 3 - я последний - вызываем "КРАКЕНА"
             */
             if(imp.epidemy.plan==1 && .chance(50)) {
+                debug(imp, 'impPostSpec: гуляка');
                 if(imp.epidemy.plan_room==null)
                     throw('imp-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
 
@@ -291,6 +294,9 @@
     };
     
     fearYou = function(imp, ch) {
+        if(ch.dead)
+            return;
+
         var fear;
         //([skill[,level,duration,location,mod,where,bits]])
         fear = .Affect("fear",              //skill
@@ -305,8 +311,10 @@
 
         ch.affectAdd(fear);
 
-        ch.act("%1$^C1 страшным магическим словом '{gБууу!{x' повергает тебя в ужас!", imp);
-        imp.rvecho(ch, "%1$^C1 страшным магическим словом '{gБууу!{x' повергает %2$C4 в ужас!", imp, ch);
+        var fearWord;
+        fearWord = .List().add('Бууу','Кыш','Брысь','Сгинь','Прочь').random();
+        ch.act("%1$^C1 страшным магическим словом '{g"+fearWord+"!{x' повергает тебя в ужас!", imp);
+        imp.rvecho(ch, "%1$^C1 страшным магическим словом '{g"+fearWord+"!{x' повергает %2$C4 в ужас!", imp, ch);
 
         var escape;
         escape = ch.in_room.doorTo(getEscapeRooms(ch).random());
@@ -316,8 +324,10 @@
         }
 
         if(!ch.move_char(escape,'running')){
-            ch.act("Ты пытаешься убежать, но что-то идёт не так!");
-            ch.recho("%1$^C1 пытается убежать, но что-то идёт не так.", ch);
+            ch.act("Ты пытаешься убежать, но не находишь выхода!");
+            ch.recho("%1$^C1 пытается убежать, но не находит выхода.", ch);
+        } else {
+            ch.act("Ты убегаешь.");
         }
 
 

@@ -374,7 +374,9 @@
         c = l.size();
         for(i=0;i<c;i=i+1){
             m = l.back();
-            if(m.in_room==room && m.is_npc()){
+            if(m.dead) {
+                .tmp.epidemy.infected.sub(m);
+            } else if(m.in_room==room && m.is_npc()){
                 ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
                 ash.obj_to_room(room);
                 ash.timer = 5;
@@ -789,9 +791,11 @@
         epidemy.plan_way = null;
         epidemy.plan_waypoint = null;
         epidemy.plan_nextroom = null;
+/*
         this = .tmp.epidemy.setInfectedTriggers(this);
         if(epidemy.name!=null)
             this = .tmp.epidemy.setSickTriggers(this);
+*/
 
     });
 })
