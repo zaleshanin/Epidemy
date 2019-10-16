@@ -275,8 +275,9 @@ this = .tmp.epidemy;
                 clearGPS(demon);
             }
 
-            if(demon.epidemy.victim==null || demon.epidemy.victim.dead) {
-                debug(demon,'жертвы нет или умерла');
+            if(demon.epidemy.victim==null || demon.epidemy.victim.dead
+                || demon.epidemy.victim.fighting!=null) {
+                debug(demon,'жертвы нет, дерётся или умерла');
                 return;
             } else {
                 if(demon.epidemy.plan_way==null) {

@@ -103,6 +103,8 @@
                 name = name + ' ';
         }
 
+        mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
+
         long_descr = long_descr.replace('#runame',short_descr);
         description = description.replace('#runame',short_descr);
 
@@ -121,8 +123,6 @@
 
         mob.epidemy.alignment = mob.alignment;
         mob.alignment = -1000;
-
-        mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
 
         return mob;
     };
