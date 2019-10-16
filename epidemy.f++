@@ -61,6 +61,8 @@
     };
     evert = function(mob) {
         this = .tmp.epidemy;
+        if(mob.epidemy==null)
+            mob.epidemy=.Map();
         var match;
 
         var long_descr;
@@ -104,7 +106,6 @@
         long_descr = long_descr.replace('#runame',short_descr);
         description = description.replace('#runame',short_descr);
 
-        mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
         // меняем описания, и сохраняем старые для выздоравливания.
         mob.epidemy.long_descr = mob.long_descr;
         mob.long_descr = long_descr;
@@ -120,6 +121,8 @@
 
         mob.epidemy.alignment = mob.alignment;
         mob.alignment = -1000;
+
+        mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
 
         return mob;
     };
@@ -391,6 +394,62 @@
         }*/
     };
 
+    str_utterance = function(str) {
+        var new_str, tmp_str;
+
+        var syl_table;
+        syl_table = .Array();
+        syl_table[' '] = ' ';
+        syl_table['ar'] = 'abra';
+        syl_table['au'] = 'kada';
+        syl_table['bless'] = 'fido';
+        syl_table['blind'] = 'nose';
+        syl_table['bur'] = 'mosa';
+        syl_table['cu'] = 'judi';
+        syl_table['de'] = 'oculo';
+        syl_table['en'] = 'unso';
+        syl_table['light'] = 'dies';
+        syl_table['lo'] = 'hi';
+        syl_table['mor'] = 'zak';
+        syl_table['move'] = 'sido';
+        syl_table['ness'] = 'lacri';
+        syl_table['ning'] = 'illa';
+        syl_table['per'] = 'duda';
+        syl_table['ra'] = 'gru';
+        syl_table['fresh'] = 'ima';
+        syl_table['re'] = 'candus';
+        syl_table['son'] = 'sabru';
+        syl_table['tect'] = 'infra';
+        syl_table['tri'] = 'cula';
+        syl_table['ven'] = 'nofo';
+        syl_table['ust'] = 'lon';
+        syl_table['a'] = 'a'; syl_table['b'] = 'b'; syl_table['c'] = 'q'; syl_table['d'] = 'e';
+        syl_table['e'] = 'z'; syl_table['f'] = 'y'; syl_table['g'] = 'o'; syl_table['h'] = 'p';
+        syl_table['i'] = 'u'; syl_table['j'] = 'y'; syl_table['k'] = 't'; syl_table['l'] = 'r';
+        syl_table['m'] = 'w'; syl_table['n'] = 'i'; syl_table['o'] = 'a'; syl_table['p'] = 's';
+        syl_table['q'] = 'd'; syl_table['r'] = 'f'; syl_table['s'] = 'g'; syl_table['t'] = 'h';
+        syl_table['u'] = 'j'; syl_table['v'] = 'z'; syl_table['w'] = 'x'; syl_table['x'] = 'n';
+        syl_table['y'] = 'l'; syl_table['z'] = 'k';
+        syl_table[''] = ''; syl_table['-'] = '-';
+
+        tmp_str = str; new_str = '';
+        var len,i; i = 100;
+        for(len=tmp_str.size();len>0;len=tmp_str.size()) {
+            for(old in syl_table.keys){
+                if(old.strPrefix(tmp_str)) {
+                    new_str=new_str+syl_table[old];
+                    tmp_str=tmp_str.substr(old.size());
+                }
+            }
+            i=i-1;
+            if(i<=0)
+                return str;
+        }
+
+        return new_str;
+
+    };
+
     fillEmotes = function(){
         this = .tmp.epidemy;
 
@@ -523,6 +582,11 @@
                 */
                 if(mob.epidemy.plan==1 && .chance(50) && !(mob.leader!=null && mob.leader.pet==mob)) {
                     debug(mob,'postSpec 10: собака-гуляка');
+                    if(!(mob.position&.tables.position_table.stand)){
+                        mob.interpret('stand');
+                        return;
+                    }
+
                     if(mob.epidemy.plan_room==null)
                         throw('собака-гуляка '+mob.name+':plan_room==null;in_room:'+mob.in_room.name+'('+mob.in_room.vnum+')\n');
 
@@ -804,4 +868,3 @@
 //Name: [alley cat feline кот] Vnum: [9543] Size: [small]
 //Name: [vulture стервятник] Vnum: [9544] Spec fun: [spec_fido] Size: [small]
 //eval looking4fido = function(sf,ch) {for(i=.char_list;i!=null;i=i.next) {if(i.pc!=null) {continue;} if(i.pIndexData.spec_fun==sf) ch.ptc(''+i.pIndexData.vnum+i.name+'\n');}}
-

@@ -137,6 +137,10 @@
             */
             if(imp.epidemy.plan==1 && .chance(50)) {
                 debug(imp, 'impPostSpec: гуляка');
+                if(!(imp.position&.tables.position_table.stand)){
+                    imp.interpret('stand');
+                    return;
+                }
                 if(imp.epidemy.plan_room==null)
                     throw('imp-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
 
@@ -205,32 +209,8 @@
             }
 
             //чертяка-кривляка!
-
             if(.chance(5)) {
-                //спамим всякими социалами
-                if (in_room.ppl.size()<2)
-                    return;
-
-                var numba,temotes,emotes;
-                emotes = .tmp.epidemy.emoteImpArray.keys.size();
-                temotes = .tmp.epidemy.emoteImpTargArray.keys.size();
-                numba = .number_range(0, (temotes+emotes-1));
-
-                if (numba > (emotes-1)) {
-                    var target;
-                    var str;
-                    numba = numba - emotes;
-
-                    if(.tmp.epidemy.emoteTargArray[numba]==null)
-                    throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
-
-                    for(target=in_room.ppl.random();target==this;target=in_room.ppl.random()) {}
-
-                    str = .tmp.epidemy.emoteTargArray[numba] + ' ' + target.name;
-                    interpret(str);
-                } else {
-                    interpret(.tmp.epidemy.emoteArray[numba]);
-                }
+                imp.interpret(.List().add('buff', 'cheer', 'curse', 'flare', 'giggle', 'grin', 'glare', 'highfive', 'hop', 'innocent', 'lick', 'mischievous', 'smirk', 'snicker', 'snort').random());
                 return;
             }
 
@@ -295,6 +275,8 @@
         mob.off_flags = .set_bit(mob.off_flags, .tables.off_flags.disarm);
         mob.off_flags = .set_bit(mob.off_flags, .tables.off_flags.trip);
         mob.off_flags = .set_bit(mob.off_flags, .tables.off_flags.tail);
+
+        mob.alignment = -1000;
         //demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.tail);
 
     };
@@ -318,9 +300,9 @@
         ch.affectAdd(fear);
 
         var fearWord;
-        fearWord = .List().add('Бууу','Кыш','Брысь','Сгинь','Прочь').random();
-        ch.act("%1$^C1 страшным магическим словом '{g"+fearWord+"!{x' повергает тебя в ужас!", imp);
-        imp.rvecho(ch, "%1$^C1 страшным магическим словом '{g"+fearWord+"!{x' повергает %2$C4 в ужас!", imp, ch);
+        fearWord = str_utterance(.List().add('GET OUTTA HERE MAN SHIET','get out of here','uidi ot syuda','ubiraisya proch po dobru po zdorovu','ubiraisya','nafig s plyazha','go away','begone').random());
+        ch.act("%1$^C1 страшным заклинанием '{g"+fearWord+"!{x' повергает тебя в ужас!", imp);
+        imp.rvecho(ch, "%1$^C1 страшным заклинанием '{g"+fearWord+"!{x' повергает %2$C4 в ужас!", imp, ch);
 
         var escape;
         escape = ch.in_room.doorTo(getEscapeRooms(ch).random());
@@ -378,6 +360,7 @@
      dodge fade fast kick_dirt tail disarm trip
     */
 
+/*
     var fillEmotes;
     fillEmotes = function(){
         this = .tmp.epidemy;
@@ -394,10 +377,11 @@
         emoteArray[14] = 'snort';
 
         emoteTargArray = .Array();
-        /*emoteTargArray[0] = "flare";
-        emoteTargArray[1] = "giggle";*/
+        /!*emoteTargArray[0] = "flare";
+        emoteTargArray[1] = "giggle";*!/
     };
     fillEmotes();
+*/
 
     imp_list = .List();
     imp_list.push_back(.get_mob_index(18608));
