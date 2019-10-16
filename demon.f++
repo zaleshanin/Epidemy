@@ -267,25 +267,25 @@ this = .tmp.epidemy;
 
         //демон обращает добрых в выернутых злых
         if(demon.epidemy.plan==0 && .chance(10)) {
-            debug(demon,'ищем жертву для обращения');
+//            debug(demon,'ищем жертву для обращения');
             if(demon.epidemy.victim==null || demon.epidemy.victim.dead
                 || demon.epidemy.victim.fighting!=null) {
-                debug(demon,'выбираем из списка');
+//                debug(demon,'выбираем из списка');
                 demon.epidemy.victim = get_one_good(demon,0,120,false);
                 clearGPS(demon);
             }
 
             if(demon.epidemy.victim==null || demon.epidemy.victim.dead
                 || demon.epidemy.victim.fighting!=null) {
-                debug(demon,'жертвы нет, дерётся или умерла');
+//                debug(demon,'жертвы нет, дерётся или умерла');
                 return;
             } else {
                 if(demon.epidemy.plan_way==null) {
-                    debug(demon,'нет пути к жертве');
+//                    debug(demon,'нет пути к жертве');
                     demon.epidemy.plan_way = find_way(demon,demon.epidemy.victim.in_room);
                 }
                 if(demon.epidemy.plan_way.size()==0 && demon.in_room != demon.epidemy.victim.in_room) {
-                    debug(demon,'путь закончен, к жертве не пришли');
+//                    debug(demon,'путь закончен, к жертве не пришли');
                     demon.epidemy.victim = null;
                     clearGPS(demon);
                     return;
@@ -296,7 +296,7 @@ this = .tmp.epidemy;
                     }
                 }
             }
-            debug(demon,.fmt('%1$C1 -> %2$d (%3$d)',demon.epidemy.victim,demon.epidemy.victim.in_room.vnum,demon.epidemy.plan_way.size()));
+//            debug(demon,.fmt('%1$C1 -> %2$d (%3$d)',demon.epidemy.victim,demon.epidemy.victim.in_room.vnum,demon.epidemy.plan_way.size()));
 
             if(demon.in_room == demon.epidemy.victim.in_room) {
                 if(demon.epidemy.victim.alignment!=-1000 && demon.epidemy.victim.epidemy==null) {
@@ -304,8 +304,9 @@ this = .tmp.epidemy;
                     demon.recho('%1$^C1 бомочет адским голосом \'{D'+str_utterance('You underestimate the power of the Dark Side')+'{x\'',demon);
                     //выворачиваем на изнанку
                     evert(demon.epidemy.victim);
-                    //вешаем тригера
+                    //вешаем тригера на лечение и на вылупление импа в случае убийства (имп заразный)
                     demon.epidemy.victim.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
+                    demon.epidemy.victim.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
                 }
                 demon.epidemy.victim = null;
                 clearGPS(demon);

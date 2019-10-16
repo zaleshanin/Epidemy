@@ -233,7 +233,7 @@
     plan_check = function(mob) {
         this = .tmp.epidemy;
 
-        debug(mob,'pl_chk 0:start');
+//        debug(mob,'pl_chk 0:start');
 
         var result;
         var total, city, plan_room;
@@ -251,7 +251,7 @@
         * 3 - я последний - вызываем "КРАКЕНА"
         */
         if(mob.epidemy.plan_room==null && mob.epidemy.plan==null) {
-            debug(mob,'pl_chk 1:no plan, no plan_room');
+//            debug(mob,'pl_chk 1:no plan, no plan_room');
 
             mlist = .tmp.epidemy.infected.clone();
             total = mlist.size();
@@ -279,7 +279,7 @@
 
             //должны быть заражены все fido-like, зараженных не меньше 13
             if(fidovnum!=null && icount >= 13 ) {
-                debug(mob,'pl_chk 2:fido:'+fidovnum+' count:'+icount);
+//                debug(mob,'pl_chk 2:fido:'+fidovnum+' count:'+icount);
 
                 mlist = .get_mob_index(fidovnum).instances.clone();
 
@@ -290,7 +290,7 @@
                     m = mlist.back();
                     //тварь в нашем городе, но не инфицирована
                     if(m.in_room.areaname==city && m.epidemy==null){
-                        debug(mob,'pl_chk 3: not infected fido in room:'+m.in_room.name+'['+m.in_room.vnum+']');
+//                        debug(mob,'pl_chk 3: not infected fido in room:'+m.in_room.name+'['+m.in_room.vnum+']');
                         planG = false; planD = false; result = 0;
                     }
                     mlist.pop_back();
@@ -307,12 +307,12 @@
                     if(m.in_room.areaname==city) {
                         clearGPS(m);
                         if(planG) {
-                            debug(mob,'pl_chk 4: plan=1 for '+m.name+' in room:'+m.in_room.name+'['+m.in_room.vnum+'] -> '+plan_room.name+'['+plan_room.vnum+']');
+//                            debug(mob,'pl_chk 4: plan=1 for '+m.name+' in room:'+m.in_room.name+'['+m.in_room.vnum+'] -> '+plan_room.name+'['+plan_room.vnum+']');
                             //если планГ утвержден, прописываем всем в городе
                             m.epidemy.plan = 1;
                             m.epidemy.plan_room = plan_room;
                         } else {
-                            debug(mob,'pl_chk 5: no plan for '+m.name+' in room:'+m.in_room.name+'['+m.in_room.vnum+']');
+//                            debug(mob,'pl_chk 5: no plan for '+m.name+' in room:'+m.in_room.name+'['+m.in_room.vnum+']');
                             //ни у кого нет плана
                             m.epidemy.plan = 0;
                             m.epidemy.plan_room = null;
@@ -321,19 +321,19 @@
                 }
                 //}
             } else {
-                debug(mob,'pl_chk 6: plan G fail. plan D fail.');
+//                debug(mob,'pl_chk 6: plan G fail. plan D fail.');
                 planG = false; planD = false;
             }
         }
 
         //если план Д еще не отменился, проверим...
         if(planD) {
-            debug(mob,'pl_chk 7: plan D check start.');
+//            debug(mob,'pl_chk 7: plan D check start.');
             if(mob.in_room == mob.epidemy.plan_room) {
-                debug(mob,'pl_chk 8: in plan room: '+mob.in_room.name+'['+mob.in_room.vnum+']');
+//                debug(mob,'pl_chk 8: in plan room: '+mob.in_room.name+'['+mob.in_room.vnum+']');
                 result = 2;
             } else {
-                debug(mob,'pl_chk 9: not in room');
+//                debug(mob,'pl_chk 9: not in room');
                 result = 1;
                 planD = false;
             }
@@ -355,7 +355,7 @@
 
             }
 
-            debug(mob,'pl_chk 10: plan D:'+planD+'. infected:'+icount);
+//            debug(mob,'pl_chk 10: plan D:'+planD+'. infected:'+icount);
 
             //если планД утвержден, назначем ответственного за геноцид
             if(planD && icount>=13) {
@@ -363,7 +363,7 @@
             }
         }
 
-        debug(mob,'pl_chk 11: end. result: '+result);
+//        debug(mob,'pl_chk 11: end. result: '+result);
 
         return result;
     };
@@ -501,44 +501,44 @@
 
             try {
                 if(mob.epidemy.plan!=null)
-                    debug(mob,'postSpec 0: start. plan:'+mob.epidemy.plan);
+//                    debug(mob,'postSpec 0: start. plan:'+mob.epidemy.plan);
                 else
-                    debug(mob,'postSpec 0: start. plan:null');
+//                    debug(mob,'postSpec 0: start. plan:null');
 
                 if(mob.epidemy==null) throw('NO epidemy Map\n');
 
                 if(mob.epidemy.victims==null) {
                     mob.epidemy.victims = getVictims(mob);
                 }
-               debug(mob,'postSpec 1: victims:'+mob.epidemy.victims.size());
+//               debug(mob,'postSpec 1: victims:'+mob.epidemy.victims.size());
 
                 if(mob.epidemy.plan != null && mob.epidemy.plan >= 1 && mob.epidemy.plan_room==null) {
                     mob.epidemy.plan = null;
-                    debug(mob,'postSpec 2: no plan_room -> plan=null');
+//                    debug(mob,'postSpec 2: no plan_room -> plan=null');
                 }
 
                 if(mob.epidemy.plan == null) {
                     mob.epidemy.plan = plan_check(mob);
-                    debug(mob,'postSpec 3: after plan_check: plan:'+mob.epidemy.plan);
+//                    debug(mob,'postSpec 3: after plan_check: plan:'+mob.epidemy.plan);
                 }
 
                 if(mob.epidemy.plan == 2 && mob.epidemy.plan_room!=mob.in_room) {
                     mob.epidemy.plan = 1;
-                    debug(mob,'postSpec 4: not in plan_room: plan:'+mob.epidemy.plan);
+//                    debug(mob,'postSpec 4: not in plan_room: plan:'+mob.epidemy.plan);
                 }
                 if(mob.epidemy.plan == 1 && mob.epidemy.plan_room==mob.in_room) {
                     mob.epidemy.plan = null;
-                    debug(mob,'postSpec 5: in plan_room: plan=null');
+//                    debug(mob,'postSpec 5: in plan_room: plan=null');
                 }
 
                 if(mob.epidemy.plan == 3) {
-                    debug(mob,'postSpec 6: plan:'+mob.epidemy.plan+'. check plan...');
+//                    debug(mob,'postSpec 6: plan:'+mob.epidemy.plan+'. check plan...');
                     //бывает что какая-то зверюга убегает в последний момент
                     mob.epidemy.plan = plan_check(mob);
-                    debug(mob,'postSpec 7: after plan_check plan:'+mob.epidemy.plan);
+//                    debug(mob,'postSpec 7: after plan_check plan:'+mob.epidemy.plan);
                     //и если план без изменений
                     if(mob.epidemy.plan == 3) {
-                        debug(mob,'postSpec 8: demon time.');
+//                        debug(mob,'postSpec 8: demon time.');
 
                         var demon_room;
 
@@ -554,7 +554,7 @@
 
                 //собака-кусака!
                 if(mob.epidemy.victims.size() && .chance(10)) {
-                    debug(mob,'postSpec 9: собака-кусака');
+//                    debug(mob,'postSpec 9: собака-кусака');
                     //кусаем если есть кого
                     var vict;
                     vict = mob.epidemy.victims.random();
@@ -581,7 +581,7 @@
                 * 3 - я последний - вызываем "КРАКЕНА"
                 */
                 if(mob.epidemy.plan==1 && .chance(50) && !(mob.leader!=null && mob.leader.pet==mob)) {
-                    debug(mob,'postSpec 10: собака-гуляка');
+//                    debug(mob,'postSpec 10: собака-гуляка');
                     if(!(mob.position&.tables.position_table.stand)){
                         mob.interpret('stand');
                         return;
@@ -591,15 +591,15 @@
                         throw('собака-гуляка '+mob.name+':plan_room==null;in_room:'+mob.in_room.name+'('+mob.in_room.vnum+')\n');
 
                     if(mob.epidemy.plan_way==null) {
-                        debug(mob,'postSpec 10.1: no plan_way');
+//                        debug(mob,'postSpec 10.1: no plan_way');
                         if(!mob.epidemy.plan_room.isCommon()) {
-                            debug(mob,'postSpec 10.1.1: plan_room isCommon');
+//                            debug(mob,'postSpec 10.1.1: plan_room isCommon');
                             mob.epidemy.plan = null;
                             mob.epidemy.plan_room = null;
                             //return;
                         } else {
                             //ищем путь
-                            debug(mob,'postSpec 10.1.2: try to find way');
+//                            debug(mob,'postSpec 10.1.2: try to find way');
                             mob.interpret('ponder');
                             mob.epidemy.plan_way = find_way(mob,mob.epidemy.plan_room);
                             if(mob.epidemy.plan_way.size()>0){
@@ -610,22 +610,22 @@
                             }
                         }
                     } else if(mob.epidemy.plan_nextroom == null) {
-                        debug(mob,'postSpec 10.2: plan_nextroom==null. try to make move');
+//                        debug(mob,'postSpec 10.2: plan_nextroom==null. try to make move');
                         make_your_move(mob);
                     } else if (mob.epidemy.plan_waypoint!=mob.in_room) { //сбились с маршрута
-                        debug(mob,'postSpec 10.3: plan_waypoint!=mob.in_room. сбились с маршрута');
+//                        debug(mob,'postSpec 10.3: plan_waypoint!=mob.in_room. сбились с маршрута');
                         mob.epidemy.plan_waypoint = null;
                         mob.epidemy.plan_nextroom = null;
                         mob.epidemy.plan_way = null;
                     } else { //маршрут есть и мы с него не сбились
-                        debug(mob,'postSpec 10.4: on my way');
+//                        debug(mob,'postSpec 10.4: on my way');
                         if(.chance(20)) {
-                            debug(mob,'postSpec 10.4.1: my chance');
+//                            debug(mob,'postSpec 10.4.1: my chance');
                             var exitDoor;
                             exitDoor = mob.in_room.doorTo(mob.epidemy.plan_nextroom);
 
                             if(mob.in_room.getExitFlags(exitDoor) & .tables.exit_flags.closed) {
-                                debug(mob,'postSpec 10.4.1.1: двери будь они неладны');
+//                                debug(mob,'postSpec 10.4.1.1: двери будь они неладны');
 
                                 if(.chanceOneOf(4))
                                 {
@@ -656,7 +656,7 @@
 
                                 return;
                             } else {
-                                debug(mob,'postSpec 10.4.1.2: need a second chance');
+//                                debug(mob,'postSpec 10.4.1.2: need a second chance');
 
                                 if(.chanceOneOf(3)) {
                                     mob.recho("%1$^C1 ходит кругами и нюхает следы. Этим что, можно ещё и нюхать?!",mob);
@@ -664,7 +664,7 @@
                                     mob.in_room.ppl.forEach(function (mob) {act("%1$^C1 принюхивается. Ты и представить себе не мог%2$Gло||ла, что ЭТИМ можно нюхать!",mob,this);},mob);
 
                                 } else {
-                                    debug(mob,'postSpec 10.4.1.2.3: try to make a move');
+//                                    debug(mob,'postSpec 10.4.1.2.3: try to make a move');
 
                                     make_your_move(mob);
 
@@ -674,7 +674,7 @@
 
 
                         } else {
-                            debug(mob,'postSpec 10.4.2: not a chance');
+//                            debug(mob,'postSpec 10.4.2: not a chance');
 
                         }
                     }
@@ -682,7 +682,7 @@
 
                 //собака-кривляка!
                 if(.chance(5)) {
-                    debug(mob,'postSpec 12: собака-кривляка');
+//                    debug(mob,'postSpec 12: собака-кривляка');
 
                     //спамим всякими социалами
                     if (mob.in_room.ppl.size()<2)
