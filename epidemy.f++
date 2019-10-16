@@ -1,26 +1,27 @@
 .apply(function() {
 //epidemyInit = function() {
     var fillEmotes, fillTriggers, fillInfected;
+
     if(.tmp.epidemy==null) .tmp.epidemy = .Map();
-    if(.tmp.epidemy.infected==null) .tmp.epidemy.infected = .List();
-    if(.tmp.epidemy.warlocks==null) .tmp.epidemy.warlocks = .List();
-    if(.tmp.epidemy.books==null) .tmp.epidemy.books=.Array();
-    if(.tmp.epidemy.demons==null) .tmp.epidemy.books=.List();
-
-    //this = .tmp.epidemy;
-
-.tmp.epidemy.bookkeeper = .get_mob_index(761);
-.tmp.epidemy.necronomicon = .get_obj_index(732);
-.tmp.epidemy.piece = .get_obj_index(9607);
-.tmp.epidemy.chocolatesVnumsList = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
-.tmp.epidemy.ashVnum = 39002; //пепел 39002
-.tmp.epidemy.roseVnum = 204; //роза   /*204 (rose black flower роза черная цветок)*/
-.tmp.epidemy.pitVnum = 3010;
-.tmp.epidemy.darkTempleVnum = 3072;
-.tmp.epidemy.Demon = .get_mob_index(762);
-.tmp.epidemy.Fiend = .get_mob_index(763);
 
     this = .tmp.epidemy;
+
+    if(infected==null) infected = .List();
+    if(warlocks==null) warlocks = .List();
+    if(books==null) books=.Array();
+    if(demons==null) books=.List();
+
+    bookkeeper = .get_mob_index(761);
+    necronomicon = .get_obj_index(732);
+    piece = .get_obj_index(9607);
+    chocolatesVnumsList = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
+    ashVnum = 39002; //пепел 39002
+    roseVnum = 204; //роза (rose black flower роза черная цветок)
+    pitVnum = 3010;
+    darkTempleVnum = 3072;
+    Demon = .get_mob_index(762);
+    Fiend = .get_mob_index(763);
+
 
     infect = function(mob) {
         this = .tmp.epidemy;

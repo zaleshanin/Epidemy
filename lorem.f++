@@ -94,7 +94,6 @@
             if(book.epidemy==null)
                 book.epidemy=.Map();
 
-
             loremArray = .Array();
             loremArray[0] = 'lorem';
             loremArray[1] = 'ipsum';
@@ -104,12 +103,15 @@
 
             wl = .tmp.epidemy.get_evil_mage(loremArray.size());
 
+            var c, cList; cList = .List().add(0,1,2,3,4);
             for(i=0 ; i<loremArray.size() ; i=i+1){
                 wk = wl.back();
                 wl.pop_back();
 
+                c = cList.random();
+                cList.sub(c);
                 //готовим из "холста" клочок заклинания
-                onePiece = LoremPiece(i,i,loremArray[i], book.epidemy.ownerName);
+                onePiece = LoremPiece(c,c,loremArray[c], book.epidemy.ownerName);
 
                 //готовим из найденого мага выдавателя бумажки
                 wk = .tmp.epidemy.Warlock(wk);
