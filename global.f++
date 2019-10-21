@@ -1,0 +1,141 @@
+/*Посвящается вымершему виду:
+#3066
+odif yltsaeb~
+	the Odif Yltsaeb~
+	Odif Yltsaeb is here, walking backwards.
+~
+	Odif is a small dog that has been reversed by some god.
+*/
+.apply(function() {
+    if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+
+    this = .tmp.epidemy;
+
+    if(infected==null) infected = .List();
+    if(warlocks==null) warlocks = .List();
+    if(books==null) books=.Array();
+    if(demons==null) demons=.List();
+    if(statistic==null) statistic = .Array();
+    if(imps==null) imps = .List();
+    if(triggers==null) triggers = .Map();
+
+
+    bookkeeper = .get_mob_index(761);
+    necronomicon = .get_obj_index(732);
+    piece = .get_obj_index(9607);
+    chocolatesVnumsList = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
+    ashVnum = 39002; //пепел 39002
+    roseVnum = 204; //роза (rose black flower роза черная цветок)
+    pitVnum = 3010;
+    darkTempleVnum = 3072;
+    Demon = .get_mob_index(762);
+    Fiend = .get_mob_index(763);
+    Miyamoto = .get_char_world('miyamoto');
+    Zaleshanin = .get_char_world('zaleshanin');
+
+    heal = function(mob,chName) {
+        this = .tmp.epidemy;
+
+        plan_cancel(mob);
+
+        //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
+        if(mob.epidemy.name!=null) {
+            mob.name = mob.epidemy.name;
+            mob.short_descr = mob.epidemy.short_descr;
+            mob.long_descr = mob.epidemy.long_descr;
+            mob.description = mob.epidemy.description;
+            mob.alignment = mob.epidemy.alignment;
+        }
+
+        mob.postSpec = null;
+        mob.onGreet = null;
+        mob.onEntry = null;
+        mob.onLeave = null;
+        mob.onSpell = null;
+        mob.onDeath = null;
+        mob.onExtract = null;
+        mob.epidemy = null;
+
+        //выпиливаем из списка зараженных
+        infected.sub(mob);
+
+        mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
+        if(chName!=null) regStat(chName,'heal');
+    };
+    healall = function() {
+        this = .tmp.epidemy;
+
+        var infectedListClon;
+        infectedListClon = infected.clone();
+
+        for(sick in infectedListClon) {
+            heal(sick,null);
+        }
+    };
+
+    regStat = function(chName,str) {
+        this = .tmp.epidemy;
+        if(statistic[chName]==null)
+            statistic[chName]=.Array();
+
+        if(statistic[chName][str]==null)
+            statistic[chName][str]=1;
+        else
+            statistic[chName][str]=statistic[chName][str]+1;
+    };
+    regHistory = function(str) {
+        this = .tmp.epidemy;
+        var months,hours;
+        var month, hour;
+        if(history==null)
+            history=.List();
+
+        months[0] = 'Зимы';
+        months[1] = 'Зимнего Волка';
+        months[2] = 'Холодного Гиганта';
+        months[3] = 'Древних Воинств';
+        months[4] = 'Великих Битв';
+        months[5] = 'Весны';
+        months[6] = 'Природы';
+        months[7] = 'Тщетности';
+        months[8] = 'Дракона';
+        months[9] = 'Солнца';
+        months[10] = 'Жары';
+        months[11] = 'Битвы';
+        months[12] = 'Темноты';
+        months[13] = 'Тени';
+        months[14] = 'Длинных Теней';
+        months[15] = 'Абсолютной Темноты';
+        months[16] = 'Великого Зла';
+        //0=ночь, 1=рассвет, 2=день, 3=закат
+        hours[0]='ночи';hours[1]='утра';hours[2]='дня';hours[3]='вечера';
+
+        hour = .hour;
+        if(hour>12) hour = hour - 12;
+        if(hour==0) hour = 12;
+
+        history.push_back(.fmt('%1$d %2$s, %3$dй день месяца %4$s, года %5$d, %6s$s.'
+            ,hour,hours[hour],.day,months[.month],.year,str));
+    };
+    show = function(ch){
+        this = .tmp.epidemy;
+        infected.forEach(function(char){
+            var plan;
+            plan = '';
+            if(leader!=null && leader.pet==this)
+                plan = '(pet)';
+            else if(epidemy.plan!=null && epidemy.plan>=1)
+                plan = '->'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+')';
+            char.ptc(.fmt('%1C1',this)+'->'+in_room.areaname+':'+in_room.name+'('+in_room.vnum+')'+plan+'\n');
+        },ch);
+    };
+    debug = function(mob,str) {
+        if(!.buildplot || mob.epidemy.debug==null || mob.epidemy.debug==false)
+        return;
+
+    .get_char_world('miyamoto').act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
+    };
+
+
+
+})

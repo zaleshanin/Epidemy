@@ -11,6 +11,10 @@
         bookkeeper = .get_mob_index(761);
 
     bookkeeper.postGreet = function(mob, ch) {
+        try {
+            if(ch.is_npc())
+                return;
+
             var book;
 
             if((.tmp.epidemy.books[ch.name]!=null && !.tmp.epidemy.books[ch.name].dead)
@@ -39,6 +43,16 @@
                 throw('Bookkeeper: loadLoremPieces not found!');
             }
 
-        };
+        } catch (e) {
+            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
+                .tmp.epidemy.Zaleshanin.ptc(e);
+            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
+                .tmp.epidemy.Miyamoto.ptc(e);
+            } else {
+                throw e;
+            }
+
+        }
+    };
 
 })

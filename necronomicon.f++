@@ -5,8 +5,8 @@
 
     this = .tmp.epidemy;
 
-    if(necronomicon==null)
-        necronomicon = .get_obj_index(732);
+    if(triggers==null) triggers = .Map();
+    if(necronomicon==null) necronomicon = .get_obj_index(732);
 
     necronomicon.onExtraDescr = function(book, ch, str) {
         //onExtraDescr(ch,str) - возвращает строку, которую надо показать чару ch,
@@ -127,9 +127,9 @@
                             result = result + '{DТемный маг{x';
                         } else {
                             result = result + ', но это не темный маг, а '
-                                + ch.seeName(aWk['link'],1) + '\n';
+                                + .fmt('%1$C1',aWk['link']) + '\n';
 
-                            result = result + ch.seeName(aWk['link'],1);
+                            result = result + .fmt('%1$C1',aWk['link']);
                         }
                         result = result + ' находится в месте под названием'
                             +' "{W'+aWk['link'].in_room.name+'{x".';
@@ -268,13 +268,15 @@
                 if(book.epidemy.is_rose != null
                     && book.epidemy.is_ash != null
                     && book.epidemy.is_choco !=null ) {
+                    var room;
+                    room = ch.in_room;
 
                 .scheduler.sleep(2);
-                    ch.in_room.ppl.call.act('Из %1$O1 начинает валить густой черный дым.', ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum));
+                    room.ppl.call.act('Из %1$O2 начинает валить густой черный дым.', ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum));
                 .scheduler.sleep(4);
-                    ch.in_room.ppl.call.act('Из %1$O1 вырываются фиолетовые языки пламени и разряды молний.', ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum));
+                    room.ppl.call.act('Из %1$O2 вырываются фиолетовые языки пламени и разряды молний.', ch.in_room.get_obj_vnum(.tmp.epidemy.pitVnum));
                 .scheduler.sleep(4);
-                    ch.in_room.ppl.call.act('ПУФ!!! Во вспышке {DТьмы{x всё изчезает.');
+                    room.ppl.call.act('ПУФ!!! Во вспышке {DТьмы{x всё изчезает.');
 
                     //ch.act('BINGO!!!');
                 .tmp.epidemy.Rose(book.epidemy.is_rose);
@@ -295,7 +297,13 @@
 
             }
         }catch(e) {
-        .get_char_world('miyamoto').ptc('postSpeech:'+e);
+            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
+            .tmp.epidemy.Zaleshanin.ptc(e);
+            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
+            .tmp.epidemy.Miyamoto.ptc(e);
+            } else {
+                throw e;
+            }
         }
     };
     //бывает и такая фигня, надо удалить из списка
@@ -392,6 +400,41 @@
         return result;
     };
 
+    triggers.roseOnUse = function(rose, ch, str) {
+        var target;
+
+        target = ch.get_char_room(str);
+
+        if(target == null)
+            ch.act("Этого нет здесь.");
+
+        if(!target.is_npc()) {
+            if(ch==target) {
+                ch.act("Ты размахиваешь %1$O5 у себя над головой, но ничего не происходит!", this);
+                ch.recho("%1$^C1 с непонятной целью машет %2$O5 у себя над головой!", ch, this);
+            } else {
+                ch.act("Ты взмахиваешь %2$O5 в сторону %1$C4, но ничего не происходит!", target, this);
+                target.act("%1$^C1 с непонятной целью машет в твою сторону %2$O5!", ch, this);
+                ch.rvecho(target, "%1$^C1 с непонятной целью машет %3$O5 в сторону %2$C4!", ch, target, this);
+            }
+        } else if(target.size > 1) {
+            ch.act("Призываемые тобой {Dтёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо поменьше!", target);
+            ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
+        } else if(target.pIndexData.spec_fun != 'spec_fido') {
+            ch.act("{DТёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо покровожаднее!", target);
+            ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
+        } else {
+            ch.act("Ты взмахиваешь %2$O5, и она, преврашившись в {Dоблако чёрного дыма{x, пронимает внутрь %1$C2!", target, this);
+            ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, this);
+            rose.extract(true);
+            //а вот тут заражаем!
+        .tmp.epidemy.preInfect(vict,ch);//target.postSpec = function(){.tmp.epidemy.infect(this);};
+        .tmp.epidemy.regStat(ch.name,'epidemy start');
+        .tmp.epidemy.regHistory(.fmt('%1$^C1 посеял%1$Gо||а зерно {DТьмы{x в %2$C4',ch,vict));
+        }
+        return true;
+    };
+
     Rose = function(rose) {
         rose.short_descr = '{D' + rose.short_descr + '{x';
         rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.hum);
@@ -399,38 +442,7 @@
         rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.dark);
         rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.evil);
 
-        rose.onUse = function(ch, str) {
-            var target;
-
-            target = ch.get_char_room(str);
-
-            if(target == null)
-                ch.act("Этого нет здесь.");
-
-            if(!target.is_npc()) {
-                if(ch==target) {
-                    ch.act("Ты размахиваешь %1$O5 у себя над головой, но ничего не происходит!", this);
-                    ch.recho("%1$^C1 с непонятной целью машет %2$O5 у себя над головой!", ch, this);
-                } else {
-                    ch.act("Ты взмахиваешь %2$O5 в сторону %1$C4, но ничего не происходит!", target, this);
-                    target.act("%1$^C1 с непонятной целью машет в твою сторону %2$O5!", ch, this);
-                    ch.rvecho(target, "%1$^C1 с непонятной целью машет %3$O5 в сторону %2$C4!", ch, target, this);
-                }
-            } else if(target.size > 1) {
-                ch.act("Призываемые тобой {Dтёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо поменьше!", target);
-                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
-            } else if(target.pIndexData.spec_fun != 'spec_fido') {
-                ch.act("{DТёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо покровожаднее!", target);
-                ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
-            } else {
-                ch.act("Ты взмахиваешь %2$O5, и она, преврашившись в {Dоблако чёрного дыма{x, пронимает внутрь %1$C2!", target, this);
-                ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, this);
-                this.extract(true);
-                //а вот тут заражаем!
-                target.postSpec = function(){.tmp.epidemy.infect(this);};
-            }
-            return true;
-        };
+        rose.onUse = function(ch, str) {return .tmp.epidemy.triggers.roseOnUse(this,ch,str);};
     };
 
 })

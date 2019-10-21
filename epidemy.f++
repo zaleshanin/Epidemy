@@ -7,28 +7,35 @@
     this = .tmp.epidemy;
 
     if(infected==null) infected = .List();
-    if(warlocks==null) warlocks = .List();
-    if(books==null) books=.Array();
-    if(demons==null) books=.List();
 
-    bookkeeper = .get_mob_index(761);
-    necronomicon = .get_obj_index(732);
-    piece = .get_obj_index(9607);
-    chocolatesVnumsList = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
-    ashVnum = 39002; //пепел 39002
-    roseVnum = 204; //роза (rose black flower роза черная цветок)
-    pitVnum = 3010;
-    darkTempleVnum = 3072;
-    Demon = .get_mob_index(762);
-    Fiend = .get_mob_index(763);
+    preInfect = function(vict, ch) {
+        var invaderName;
+        if(vict.epidemy==null)
+            vict.epidemy = .Map();
 
-
+        if(ch.is_npc()) {
+            if(ch.epidemy!=null) {
+                invaderName=ch.epidemy.invider;
+            } else {
+                invaderName='unknown';
+            }
+        } else {
+            invaderName = ch.russianName;
+            if(invaderName=='') invaderName = ch.name;
+        }
+        vict.epidemy.invader = invaderName;
+        vict.epidemy.status = 'inited';
+        vict.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);}};
+        regStat(ch.name,'infect');
+    };
     infect = function(mob) {
         this = .tmp.epidemy;
 
         //всё равно заболеет, заносим в список
-        if(mob.epidemy==null)
+        if(mob.epidemy==null) //должно быть создано в preInfect
             mob.epidemy = .Map();
+
+        mob.epidemy.status = 'infected';
         mob.epidemy.infected = true;
 
         infected.push_back(mob);
@@ -39,9 +46,14 @@
         this = .tmp.epidemy;
         //тёмные силы победили! УРА!
         //выворачиваем зверюгу наизнанку
-        mob = evert(mob);
-        mob = setSickTriggers(mob);
-        clearPlan(mob);
+        try{
+            mob = evert(mob);
+            mob = setSickTriggers(mob);
+            mob.epidemy.status = 'sick';
+            clearPlan(mob);
+        }catch(e) {
+            throw('->transform:'+e);
+        }
     };
     getVictims = function(mob) {
         var count,i,l,vict;
@@ -61,142 +73,106 @@
         return result;
     };
     evert = function(mob) {
-        this = .tmp.epidemy;
-        if(mob.epidemy==null)
-            mob.epidemy=.Map();
-        var match;
+        try{
+            this = .tmp.epidemy;
+            if(mob.epidemy==null)
+                mob.epidemy=.Map();
 
-        var long_descr;
-        var enName;
-        var regexp;
+            var match;
 
-        var short_descr;
-        var description;
+            var long_descr;
+            var enName;
+            var regexp;
 
-        var name;
-        var nameList;
-        long_descr = 'Вывернутое наизнанку существо {D#runame{x {Y(#enname{Y) ходит тут задом наперед.\n';
-        description = 'Отвратительное существо, вывернутое внутренностями наружу (несомненно какой-то\n' +
-            '{Dтемной{x магией), {D#runame{x ходит здесь задом наперед. Лучше держаться\n' +
-            'от ЭТОГО подальше, чтоб не укусило (страшно представить каким местом).\n' +
-            'Из черных глаз существа вырываются еле заметные языки феолетово-черного пламени.\n\n';
+            var short_descr;
+            var description;
 
-        short_descr = reverseStr(mob.seeName(mob));
+            var name, tmp_name;
+            var nameList;
+            long_descr = 'Вывернутое наизнанку существо {D#runame{x {Y(#enname{Y) ходит тут задом наперед.\n';
+            description = 'Отвратительное существо, вывернутое внутренностями наружу (несомненно какой-то\n' +
+                '{Dтемной{x магией), {D#runame{x ходит здесь задом наперед. Лучше держаться\n' +
+                'от ЭТОГО подальше, чтоб не укусило (страшно представить каким местом).\n' +
+                'Из черных глаз существа вырываются еле заметные языки феолетово-черного пламени.\n\n';
 
-        regexp = ' \\((' + mob.name.replace(' ','|') + ')\\) ';
-        match = mob.long_descr.matchGroups(regexp);
+            short_descr = reverseStr(.fmt('%1C1',mob));
 
-        if(match.size()) {
-            long_descr = long_descr.replace('#enname', '{D'+reverseStr(match.back())+'{x');
-        } else {
-            long_descr = long_descr.replace('\{Y\(#enname\{Y\) ','{Y');
-        }
+            tmp_name = mob.name.stripColour();
+            tmp_name = tmp_name.replace('  ',' ');
+            tmp_name = tmp_name.replace('(','');
+            tmp_name = tmp_name.replace(')','');
+            tmp_name = tmp_name.replace(']','');
+            tmp_name = tmp_name.replace('[','');
+            tmp_name = tmp_name.replace('{','');
+            tmp_name = tmp_name.replace('}','');
 
-        nameList = ((short_descr+' '+reverseStr(mob.name)).split(' ')).sort().unique();
+            regexp = ' \\((' + tmp_name.replace(' ','|') + ')\\) ';
+            match = mob.long_descr.matchGroups(regexp);
 
-        name = '';
-        var i; var size;
-        size = nameList.size();
-        for(i=1;i<=size;i=i+1) {
-            name = name+nameList.front();
-            nameList.pop_front();
-            if(i<size)
-                name = name + ' ';
-        }
-
-        mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
-
-        long_descr = long_descr.replace('#runame',short_descr);
-        description = description.replace('#runame',short_descr);
-
-        // меняем описания, и сохраняем старые для выздоравливания.
-        mob.epidemy.long_descr = mob.long_descr;
-        mob.long_descr = long_descr;
-
-        mob.epidemy.short_descr = mob.short_descr;
-        mob.short_descr = '{D'+short_descr+'{x';
-
-        mob.epidemy.description = mob.description;
-        mob.description = description;
-
-        mob.epidemy.name = mob.name;
-        mob.name = name;
-
-        mob.epidemy.alignment = mob.alignment;
-        mob.alignment = -1000;
-
-        return mob;
-    };
-    reverseStr = function(str) {
-        var newStr;
-        var alfa;
-        var i;
-
-        newStr = '';
-        str = str.stripColour();
-        for( i=0; i<80; i=i+1) {
-            alfa = str.substr(i,1).toLower();
-            if(alfa.match('[- йуёеъыаоэяиью]{1}|^$') && newStr.match('^[ьъ]')) {
-                newStr = newStr.substr(1);
+            if(match.size()) {
+                long_descr = long_descr.replace('#enname', '{D'+reverseStr(match.back())+'{x');
+            } else {
+                long_descr = long_descr.replace('\{Y\(#enname\{Y\) ','{Y');
             }
 
-            if(alfa=='')
-                break;
+            nameList = ((short_descr+' '+reverseStr(mob.name)).split(' ')).sort().unique();
 
-            newStr = alfa + newStr;
-        }
+            name = '';
+            var i; var size;
+            size = nameList.size();
+            for(i=1;i<=size;i=i+1) {
+                name = name+nameList.front();
+                nameList.pop_front();
+                if(i<size)
+                    name = name + ' ';
+            }
 
-        return newStr;
+            mob.recho("{DТёмные силы{x выворачивают %1$C4 наизнанку, превращая в {D"+short_descr+"{x. Фууууууу!", mob);
+
+            long_descr = long_descr.replace('#runame',short_descr);
+            description = description.replace('#runame',short_descr);
+
+            // меняем описания, и сохраняем старые для выздоравливания.
+            mob.epidemy.long_descr = mob.long_descr;
+            mob.long_descr = long_descr;
+
+            mob.epidemy.short_descr = mob.short_descr;
+            mob.short_descr = '{D'+short_descr+'{x';
+
+            mob.epidemy.description = mob.description;
+            mob.description = description;
+
+            mob.epidemy.name = mob.name;
+            mob.name = name;
+
+            mob.epidemy.alignment = mob.alignment;
+            mob.alignment = -1000;
+
+            return mob;
+        }catch(e){throw('->evert:'+e);}
     };
-    heal = function(mob) {
-        this = .tmp.epidemy;
+    reverseStr = function(str) {
+        try{
+            var newStr;
+            var alfa;
+            var i;
 
-        plan_cancel(mob);
+            newStr = '';
+            str = str.stripColour();
+            for( i=0; i<80; i=i+1) {
+                alfa = str.substr(i,1).toLower();
+                if(alfa.match('[- йуёеъыаоэяиью]{1}|^$') && newStr.match('^[ьъ]')) {
+                    newStr = newStr.substr(1);
+                }
 
-        //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
-        if(mob.epidemy.name!=null) {
-            mob.name = mob.epidemy.name;
-            mob.short_descr = mob.epidemy.short_descr;
-            mob.long_descr = mob.epidemy.long_descr;
-            mob.description = mob.epidemy.description;
-            mob.alignment = mob.epidemy.alignment;
-        }
+                if(alfa=='')
+                    break;
 
-        mob.postSpec = null;
-        mob.onGreet = null;
-        mob.onEntry = null;
-        mob.onLeave = null;
-        mob.onSpell = null;
-        mob.onDeath = null;
-        mob.onExtract = null;
-        mob.epidemy = null;
+                newStr = alfa + newStr;
+            }
 
-        //выпиливаем из списка зараженных
-        infected.sub(mob);
-
-        mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
-    };
-    healall = function() {
-        this = .tmp.epidemy;
-
-        var infectedListClon;
-        infectedListClon = infected.clone();
-
-        for(sick in infectedListClon) {
-            heal(sick);
-        }
-    };
-    show = function(ch){
-        this = .tmp.epidemy;
-        infected.forEach(function(char){
-            var plan;
-            plan = '';
-            if(leader!=null && leader.pet==this)
-                plan = '(pet)';
-            else if(epidemy.plan!=null && epidemy.plan>=1)
-                plan = '->'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+')';
-            char.ptc(char.seeName(this)+'->'+in_room.areaname+':'+in_room.name+'('+in_room.vnum+')'+plan+'\n');
-        },ch);
+            return newStr;
+        }catch(e){throw('->reverseStr:'+e);}
     };
     plan_cancel = function(mob) {
         this = .tmp.epidemy;
@@ -232,45 +208,56 @@
         mob.epidemy.plan_way = null;
     };
     plan_check = function(mob) {
-        this = .tmp.epidemy;
+        try{
+            /*
+            * 0 - ты не последний зараженный
+            * 1 - все заражены - собираемся до кучи
+            * 2 - ты в куче, ждем остальных
+            * 3 - я последний - вызываем "КРАКЕНА"
+            */
+            this = .tmp.epidemy;
 
-//        debug(mob,'pl_chk 0:start');
+            debug(mob,'pl_chk 0:start');
 
-        var result;
-        var total, city, plan_room;
-        var i,mlist,m,icount,fidovnum;
-        var planG, planD;
-        planG = true; planD = true;
-        city = mob.in_room.areaname;
-        plan_room = mob.in_room;
-        result = 0;
+            var result;
+            var total, city, plan_room;
+            var i,mlist,m,fidovnum;
+            var planG, planD;
+            var actualCityInfectedList;
+            planG = true; planD = true;
+            city = mob.in_room.areaname;
+            actualCityInfectedList = .List();
+            result = 3;
 
-        /*
-        * 0 - ты не последний зараженный
-        * 1 - все заражены - собираемся до кучи
-        * 2 - ты в куче, ждем остальных
-        * 3 - я последний - вызываем "КРАКЕНА"
-        */
-        if(mob.epidemy.plan_room==null && mob.epidemy.plan==null) {
-//            debug(mob,'pl_chk 1:no plan, no plan_room');
+            if(mob.epidemy.plan_room==null) {
+                plan_room = mob.in_room;
+                result=2;
+            } else {
+                plan_room = mob.epidemy.plan_room;
+                result=1;
+            }
+            debug(mob,'pl_chk 0.1: plan_room:'+plan_room.vnum);
 
-            mlist = .tmp.epidemy.infected.clone();
+            //пересчёт зараженных в городе
+            mlist = infected.clone();
             total = mlist.size();
-            //заражены должны быть все spec_fido, зараженных должно быть не меньше 13 на город
-            icount = 0; //зараженных в городе
             for( i=1 ; i<=total ; i=i+1 ) {
                 m = mlist.back();
                 mlist.pop_back();
                 if(m.dead) {
-                    .tmp.epidemy.infected.sub(m);
+                    infected.sub(m);
                     continue;
                 }
-                if(!m.online || (m.leader!=null && m.leader.pet==m)) {
+                if (!m.online || (m.leader != null && m.leader.pet == m)) {
                     continue;
                 }
                 //тварь в нашем городе
                 if (m.in_room.areaname == city){
-                    icount=icount+1;
+                    actualCityInfectedList.push_back(m);
+                    if(m.in_room != mob.in_room) {
+                        planD = false;
+                    }
+
                     //фидо-лайк-тварь (их и будем проверять)
                     if(m.pIndexData.spec_fun == 'spec_fido') {
                         fidovnum = m.pIndexData.vnum;
@@ -278,95 +265,60 @@
                 }
             }
 
-            //должны быть заражены все fido-like, зараженных не меньше 13
-            if(fidovnum!=null && icount >= 13 ) {
-//                debug(mob,'pl_chk 2:fido:'+fidovnum+' count:'+icount);
+            debug(mob,'pl_chk 1: infected:'+actualCityInfectedList.size()+' result:'+result);
 
-                mlist = .get_mob_index(fidovnum).instances.clone();
-
-                result = 1;
-                total = mlist.size();
-                //все ли spec_fido в городе заражены
-                for( i=1 ; i<=total ; i=i+1 ) {
-                    m = mlist.back();
-                    //тварь в нашем городе, но не инфицирована
-                    if(m.in_room.areaname==city && m.epidemy==null){
-//                        debug(mob,'pl_chk 3: not infected fido in room:'+m.in_room.name+'['+m.in_room.vnum+']');
-                        planG = false; planD = false; result = 0;
-                    }
-                    mlist.pop_back();
-                }
-
-                mlist = .tmp.epidemy.infected.clone();
-                total = mlist.size();
-                for( i=1 ; i<=total ; i=i+1 ) {
-                    m = mlist.back();
-                    mlist.pop_back();
-                    if(m.leader!=null && m.leader.pet==m){
-                        continue;
-                    }
-                    if(m.in_room.areaname==city) {
-                        clearGPS(m);
-                        if(planG) {
-//                            debug(mob,'pl_chk 4: plan=1 for '+m.name+' in room:'+m.in_room.name+'['+m.in_room.vnum+'] -> '+plan_room.name+'['+plan_room.vnum+']');
-                            //если планГ утвержден, прописываем всем в городе
-                            m.epidemy.plan = 1;
-                            m.epidemy.plan_room = plan_room;
-                        } else {
-//                            debug(mob,'pl_chk 5: no plan for '+m.name+' in room:'+m.in_room.name+'['+m.in_room.vnum+']');
-                            //ни у кого нет плана
-                            m.epidemy.plan = 0;
-                            m.epidemy.plan_room = null;
+            if(actualCityInfectedList.size()<13) {
+                planG = false; planD = false; result = 0;
+                debug(mob,'pl_chk 2.1: planD=false; planG=false; result='+result);
+            } else {
+                //должны быть заражены все fido-like
+                var allFidoInfected; allFidoInfected = true;
+                if(fidovnum!=null) {
+                    debug(mob,'pl_chk 2.2: fidovnum:'+fidovnum);
+                    for( m in .get_mob_index(fidovnum).instances) {
+                        //тварь в нашем городе, но не инфицирована
+                        if(m.in_room.areaname==city && m.epidemy==null){
+                            allFidoInfected = false;
+                            planG = false; planD = false; result = 0;
+                            debug(mob,'pl_chk 2.3: planD=false; planG=false; result='+result);
+                            break;
                         }
                     }
                 }
-                //}
-            } else {
-//                debug(mob,'pl_chk 6: plan G fail. plan D fail.');
-                planG = false; planD = false;
             }
-        }
+            debug(mob,'pl_chk 3:  result:'+result);
 
-        //если план Д еще не отменился, проверим...
-        if(planD) {
-//            debug(mob,'pl_chk 7: plan D check start.');
-            if(mob.in_room == mob.epidemy.plan_room) {
-//                debug(mob,'pl_chk 8: in plan room: '+mob.in_room.name+'['+mob.in_room.vnum+']');
-                result = 2;
-            } else {
-//                debug(mob,'pl_chk 9: not in room');
-                result = 1;
-                planD = false;
-            }
-            icount = 0;
-            mlist = .tmp.epidemy.infected.clone();
-            total = mlist.size();
-            for( i=1 ; i<=total ; i=i+1 ) {
-                m = mlist.back();
-                mlist.pop_back();
-                if(!m.online || (m.leader!=null && m.leader.pet==m)) {
-                    continue;
+            if(!planD) {
+                debug(mob,'pl_chk 4: no PlanD; result:'+result);
+
+                for (m in actualCityInfectedList) {
+                    clearGPS(m);
+                    if(planG) {
+                        //если планГ утвержден, прописываем всем в городе
+                        if(m.in_room==plan_room) {
+                            m.epidemy.plan = 2;
+                        } else {
+                            m.epidemy.plan = 1;
+                        }
+                        m.epidemy.plan_room = plan_room;
+                    } else {
+                        //ни у кого нет плана
+                        m.epidemy.plan = 0;
+                    }
                 }
-                if(m.in_room.areaname==city && m.in_room!=plan_room){
-                    planD = false;
-                }
-
-                if(planD)
-                    icount=icount+1;
-
-            }
-
-//            debug(mob,'pl_chk 10: plan D:'+planD+'. infected:'+icount);
-
-            //если планД утвержден, назначем ответственного за геноцид
-            if(planD && icount>=13) {
+            } else {
                 result = 3;
             }
-        }
 
-//        debug(mob,'pl_chk 11: end. result: '+result);
-
-        return result;
+            debug(mob,'pl_chk 11: end. result: '+result+' plan_room:'+plan_room.vnum);
+            if(mob.epidemy.plan==null) {
+                debug(mob,'pl_chk 11.1: end. mob.plan:null');
+            }
+            if(mob.epidemy.plan_room==null) {
+                debug(mob,'pl_chk 11.2: end. mob.plan_room:null');
+            }
+            return result;
+        }catch(e){}
     };
     explode_in_room = function(room) {
         var l,i,c,m;
@@ -379,12 +331,12 @@
         for(i=0;i<c;i=i+1){
             m = l.back();
             if(m.dead) {
-                .tmp.epidemy.infected.sub(m);
+            .tmp.epidemy.infected.sub(m);
             } else if(m.in_room==room && m.is_npc()){
                 ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
                 ash.obj_to_room(room);
                 ash.timer = 5;
-                ash.description = 'Горсть пепла (ash) останков '+m.seeName(m,2)+'{G лежит у твоих ног.{x';
+                ash.description = .fmt('Горсть пепла (ash) останков %1C2 лежит у твоих ног.', m);
 
                 m.extract(true);
             }
@@ -481,18 +433,26 @@
 
         triggers.infectedPostSpec = function(mob){
             try{
-            this = .tmp.epidemy;
-            if(.chance(1)) {
-                transform(mob);
-            } else if(.chance(5)) {
-                mob.act("Ты корчишься в мучениях сопротивляясь {Dтёмным силам{x внутри себя!");
-                mob.recho("%1$^C1 дрожит и корчится сопротивляясь {Dтёмным силам{x внутри себя!", mob);
-            }
+                this = .tmp.epidemy;
+                if(.chance(1)) {
+                    transform(mob);
+                } else if(.chance(5)) {
+                    mob.act("Ты корчишься в мучениях сопротивляясь {Dтёмным силам{x внутри себя!");
+                    mob.recho("%1$^C1 дрожит и корчится сопротивляясь {Dтёмным силам{x внутри себя!", mob);
+                }
             }catch(e){
-                var me;
-                me = .get_char_world('miyamoto');
-                if(me!=null)
-                    me.ptc('epidemy.infectedPostSpec:'+e);
+                e= 'epidemy.infectedPostSpec:'+e;
+                if(!mob.dead) {
+                    e = e + .fmt(' (%1$C1[%5$d] %2$s[%3$d](%4$s))',mob, mob.in_room.name,mob.in_room.vnum, mob.in_room.areaname, mob.pIndexData.vnum);
+                }
+
+                if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
+                .tmp.epidemy.Zaleshanin.ptc(e);
+                } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
+                .tmp.epidemy.Miyamoto.ptc(e);
+                } else {
+                    throw e;
+                }
             }
         };
         triggers.sickPostSpec = function (mob) {
@@ -502,34 +462,34 @@
 
             try {
                 if(mob.epidemy.plan!=null)
-//                    debug(mob,'postSpec 0: start. plan:'+mob.epidemy.plan);
+                    debug(mob,'postSpec 0: start. plan:'+mob.epidemy.plan);
                 else
-//                    debug(mob,'postSpec 0: start. plan:null');
+                    debug(mob,'postSpec 0: start. plan:null');
 
                 if(mob.epidemy==null) throw('NO epidemy Map\n');
 
                 if(mob.epidemy.victims==null) {
                     mob.epidemy.victims = getVictims(mob);
                 }
-//               debug(mob,'postSpec 1: victims:'+mob.epidemy.victims.size());
+                debug(mob,'postSpec 1: victims:'+mob.epidemy.victims.size());
 
                 if(mob.epidemy.plan != null && mob.epidemy.plan >= 1 && mob.epidemy.plan_room==null) {
                     mob.epidemy.plan = null;
-//                    debug(mob,'postSpec 2: no plan_room -> plan=null');
+                    debug(mob,'postSpec 2: no plan_room -> plan=null');
                 }
 
                 if(mob.epidemy.plan == null) {
                     mob.epidemy.plan = plan_check(mob);
-//                    debug(mob,'postSpec 3: after plan_check: plan:'+mob.epidemy.plan);
+                    debug(mob,'postSpec 3: after plan_check: plan:'+mob.epidemy.plan);
                 }
 
                 if(mob.epidemy.plan == 2 && mob.epidemy.plan_room!=mob.in_room) {
+                    debug(mob,'postSpec 4: in '+mob.in_room.vnum+' not in plan_room '+mob.epidemy.plan_room.vnum+': plan:'+mob.epidemy.plan+'->1');
                     mob.epidemy.plan = 1;
-//                    debug(mob,'postSpec 4: not in plan_room: plan:'+mob.epidemy.plan);
                 }
                 if(mob.epidemy.plan == 1 && mob.epidemy.plan_room==mob.in_room) {
                     mob.epidemy.plan = null;
-//                    debug(mob,'postSpec 5: in plan_room: plan=null');
+                    debug(mob,'postSpec 5: in plan_room: plan=null');
                 }
 
                 if(mob.epidemy.plan == 3) {
@@ -541,13 +501,14 @@
                     if(mob.epidemy.plan == 3) {
 //                        debug(mob,'postSpec 8: demon time.');
 
-                        var demon_room;
+                        var demon_room,invader;
 
                         demon_room = mob.in_room;
+                        invader = mob.epidemy.invader;
                         //взорвать всех зверюг в комнате
                         explode_in_room(demon_room);
                         //вызывать демона
-                        get_one_demon(demon_room);
+                        get_one_demon(demon_room,invader);
 
                         return;
                     }
@@ -555,11 +516,11 @@
 
                 //собака-кусака!
                 if(mob.epidemy.victims.size() && .chance(10)) {
-//                    debug(mob,'postSpec 9: собака-кусака');
+                    debug(mob,'postSpec 9: собака-кусака');
                     //кусаем если есть кого
                     var vict;
                     vict = mob.epidemy.victims.random();
-                    if(vict.dead || vict.in_room!=mob.in_room || vict.epidemy!=null){
+                    if(vict.dead || !vict.online || vict.in_room!=mob.in_room || vict.epidemy!=null){
                         //изчез куда-то гад!!!
                         mob.epidemy.victims = null;
                     } else {
@@ -567,7 +528,7 @@
                         mob.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
                         vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя!", mob);
                         mob.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4!", mob, vict);
-                        vict.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);}};
+                        preInfect(vict,mob);//.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);}};
                         /*----------------------------------------------*/
                         mob.epidemy.victims.sub(vict);
                     }
@@ -582,7 +543,7 @@
                 * 3 - я последний - вызываем "КРАКЕНА"
                 */
                 if(mob.epidemy.plan==1 && .chance(50) && !(mob.leader!=null && mob.leader.pet==mob)) {
-//                    debug(mob,'postSpec 10: собака-гуляка');
+                    debug(mob,'postSpec 10: собака-гуляка');
                     if(!(mob.position&.tables.position_table.stand)){
                         mob.interpret('stand');
                         return;
@@ -592,41 +553,43 @@
                         throw('собака-гуляка '+mob.name+':plan_room==null;in_room:'+mob.in_room.name+'('+mob.in_room.vnum+')\n');
 
                     if(mob.epidemy.plan_way==null) {
-//                        debug(mob,'postSpec 10.1: no plan_way');
+                        debug(mob,'postSpec 10.1: no plan_way');
                         if(!mob.epidemy.plan_room.isCommon()) {
-//                            debug(mob,'postSpec 10.1.1: plan_room isCommon');
+                            debug(mob,'postSpec 10.1.1: plan_room isCommon');
                             mob.epidemy.plan = null;
                             mob.epidemy.plan_room = null;
                             //return;
                         } else {
                             //ищем путь
-//                            debug(mob,'postSpec 10.1.2: try to find way');
+                            debug(mob,'postSpec 10.1.2: try to find way');
                             mob.interpret('ponder');
                             mob.epidemy.plan_way = find_way(mob,mob.epidemy.plan_room);
                             if(mob.epidemy.plan_way.size()>0){
+                                debug(mob,'postSpec 10.1.3: '+mob.epidemy.plan_way.size());
                                 mob.epidemy.plan_waypoint = mob.in_room;
                                 return;
                             } else {
+                                debug(mob,'postSpec 10.1.4: беда! пустой маршрут');
                                 // беда! пустой маршрут
                             }
                         }
                     } else if(mob.epidemy.plan_nextroom == null) {
-//                        debug(mob,'postSpec 10.2: plan_nextroom==null. try to make move');
+                        debug(mob,'postSpec 10.2: plan_nextroom==null. try to make move');
                         make_your_move(mob);
                     } else if (mob.epidemy.plan_waypoint!=mob.in_room) { //сбились с маршрута
-//                        debug(mob,'postSpec 10.3: plan_waypoint!=mob.in_room. сбились с маршрута');
+                        debug(mob,'postSpec 10.3: plan_waypoint!=mob.in_room. сбились с маршрута');
                         mob.epidemy.plan_waypoint = null;
                         mob.epidemy.plan_nextroom = null;
                         mob.epidemy.plan_way = null;
                     } else { //маршрут есть и мы с него не сбились
-//                        debug(mob,'postSpec 10.4: on my way');
+                        debug(mob,'postSpec 10.4: on my way');
                         if(.chance(20)) {
-//                            debug(mob,'postSpec 10.4.1: my chance');
+                            debug(mob,'postSpec 10.4.1: my chance');
                             var exitDoor;
                             exitDoor = mob.in_room.doorTo(mob.epidemy.plan_nextroom);
 
                             if(mob.in_room.getExitFlags(exitDoor) & .tables.exit_flags.closed) {
-//                                debug(mob,'postSpec 10.4.1.1: двери будь они неладны');
+                                debug(mob,'postSpec 10.4.1.1: двери будь они неладны');
 
                                 if(.chanceOneOf(4))
                                 {
@@ -675,7 +638,7 @@
 
 
                         } else {
-//                            debug(mob,'postSpec 10.4.2: not a chance');
+                            debug(mob,'postSpec 10.4.2: not a chance');
 
                         }
                     }
@@ -683,7 +646,7 @@
 
                 //собака-кривляка!
                 if(.chance(5)) {
-//                    debug(mob,'postSpec 12: собака-кривляка');
+                    debug(mob,'postSpec 12: собака-кривляка');
 
                     //спамим всякими социалами
                     if (mob.in_room.ppl.size()<2)
@@ -700,7 +663,7 @@
                         numba = numba - emotes;
 
                         if(emoteTargArray[numba]==null)
-                        throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
+                            throw 'epidemy: mob.onSpec: нет такой emoteTargArray';
 
                         for(target=mob.in_room.ppl.random();target==mob;target=mob.in_room.ppl.random()) {}
 
@@ -712,10 +675,18 @@
                     return;
                 }
             } catch(e){
-                var me;
-                me = .get_char_world('miyamoto');
-                if(me!=null)
-                    me.ptc('epidemy.sickPostSpec:'+e);
+                e= 'epidemy.sickPostSpec:'+e;
+                if(!mob.dead) {
+                    e = e + .fmt(' (%1$C1[%5$d] %2$s[%3$d](%4$s))',mob, mob.in_room.name,mob.in_room.vnum, mob.in_room.areaname, mob.pIndexData.vnum);
+                }
+
+                if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
+                .tmp.epidemy.Zaleshanin.ptc(e);
+                } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
+                .tmp.epidemy.Miyamoto.ptc(e);
+                } else {
+                    throw e;
+                }
             }
         };
 
@@ -733,7 +704,7 @@
                 }
             } else {
                 if(spell == 'dispel evil' || spell == 'heal' || spell == 'superior heal') {
-                    heal(mob);
+                    heal(mob,ch.name);
                     return true;
                 }
             }
@@ -752,7 +723,7 @@
             } else {
                 if(spell == 'dispel evil' || spell == 'ray of truth'
                     || spell == 'wrath' || spell == 'banishment') {
-                    heal(mob);
+                    heal(mob,ch.name);
                     return true;
                 }
             }
@@ -767,7 +738,7 @@
         };
         triggers.infectedOnExtract = function(mob,count) {
             //выпиливаемся из списка
-            .tmp.epidemy.infected.sub(mob);
+        .tmp.epidemy.infected.sub(mob);
         };
 
         //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
@@ -802,29 +773,13 @@
                 imp = imp_list.random().create();
                 initImp(imp);
                 imp.char_to_room(ch.in_room);
+                regStat(mob.epidemy.invader,'imp');
+                regStat(ch.name,'imp_create');
                 imp.epidemy.fearList.push_back(ch);
                 ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',mob,imp);
             }
         };
 
-    };
-    fillInfected = function() {
-        var i, result;
-
-        result = .List();
-
-        for (i = .char_list; i != null; i = i.next) {
-            if (i.is_npc() && i.epidemy != null && (i.epidemy.infected!=null && i.epidemy.infected==true) && !i.dead) {
-                result.push_back(i);
-            }
-        }
-        return result;
-    };
-    debug = function(mob,str) {
-        if(!.buildplot || mob.epidemy.debug==null || mob.epidemy.debug==false)
-            return;
-
-        .get_char_world('miyamoto').act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
     };
 
     setInfectedTriggers = function(mob) {
@@ -836,33 +791,20 @@
         return mob;
     };
     setSickTriggers = function(mob) {
-        mob.postSpec = function(){.tmp.epidemy.triggers.sickPostSpec(this);};
-        mob.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
-        mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.sickOnLeave(this,ch, from_room, movetype);};
-        mob.onEntry = function(){.tmp.epidemy.triggers.sickOnEntry(this);};
-        mob.onGreet = function(ch){.tmp.epidemy.triggers.sickOnGreet(this, ch);};
-        mob.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
+        try{
+            mob.postSpec = function(){.tmp.epidemy.triggers.sickPostSpec(this);};
+            mob.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
+            mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.sickOnLeave(this,ch, from_room, movetype);};
+            mob.onEntry = function(){.tmp.epidemy.triggers.sickOnEntry(this);};
+            mob.onGreet = function(ch){.tmp.epidemy.triggers.sickOnGreet(this, ch);};
+            mob.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
 
-        return mob;
+            return mob;
+        }catch(e){throw('setSickTriggers:'+e);}
     };
 
     fillTriggers();
     fillEmotes();
-    //список зараженных
-    infected = fillInfected();
-
-    //перепрошивка зараженных из списка свежими тригерами
-    infected.forEach(function () {
-        epidemy.plan_way = null;
-        epidemy.plan_waypoint = null;
-        epidemy.plan_nextroom = null;
-/*
-        this = .tmp.epidemy.setInfectedTriggers(this);
-        if(epidemy.name!=null)
-            this = .tmp.epidemy.setSickTriggers(this);
-*/
-
-    });
 })
 
 //Name: [fido dog зверюга] Vnum: [3062] Spec fun: [spec_fido] Size: [small]

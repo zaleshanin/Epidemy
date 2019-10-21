@@ -3,6 +3,9 @@
     if(.tmp.epidemy==null)
         .tmp.epidemy = .Map();
 
+    if(.tmp.epidemy.imps==null)
+        .tmp.epidemy.imps = .List();
+
     this=.tmp.epidemy;
 
     if(triggers == null)
@@ -19,7 +22,7 @@
             for(ch in .players) {
                 if(ch.in_room==in_room) {
                     ch.act('%1$^C1 корчится и кричит от боли.',this);
-                } else if (ch.in_room.areaname == demon.in_room.areaname){
+                } else if (ch.in_room.areaname == in_room.areaname){
                     ch.act('До тебя доносятся нечеловеческие крики боли %1$C2.',this);
                 }
             }
@@ -84,13 +87,14 @@
                 imp.epidemy.plan = plan_check(imp);
                 //и если план без изменений
                 if(imp.epidemy.plan == 3) {
-                    var demon_room;
+                    var demon_room, invader;
 
                     demon_room = imp.in_room;
+                    invader = imp.epidemy.invader;
                     //взорвать всех зверюг в комнате
                     explode_in_room(demon_room);
                     //вызывать демона
-                    get_one_demon(demon_room);
+                    get_one_demon(demon_room,invader);
                     return;
                 }
             }
@@ -109,7 +113,7 @@
                     imp.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
                     vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя!", imp);
                     imp.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4!", imp, vict);
-                    vict.postSpec = function(){if(.chance(10)) .tmp.epidemy.infect(this);};
+                    preInfect(vict,imp);//vict.postSpec = function(){if(.chance(10)) .tmp.epidemy.infect(this);};
                     /*----------------------------------------------*/
                     imp.epidemy.victims.sub(vict);
                 }
@@ -215,10 +219,13 @@
             }
 
         } catch(e){
-            var me;
-            me = .get_char_world('miyamoto');
-            if(me!=null)
-                me.ptc('epidemy.postSpec:'+e);
+            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
+            .tmp.epidemy.Zaleshanin.ptc(e);
+            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
+            .tmp.epidemy.Miyamoto.ptc(e);
+            } else {
+                throw e;
+            }
         }
     };
     triggers.impOnAttack = function(imp,ch,vict) {
@@ -240,6 +247,11 @@
     .tmp.epidemy.triggers.sickOnGreet(imp, ch);
         imp.epidemy.cowards=null;
     };
+    triggers.impOnDeath = function(imp, ch) {
+        this = .tmp.epidemy;
+        regStat(ch.name, 'imp_slay');
+        imps.sub(imp);
+    };
 
     initImp = function(mob) {
         this = .tmp.epidemy;
@@ -249,15 +261,16 @@
             mob.epidemy = .Map();
         mob.epidemy.infected = true;
         mob.epidemy.fearList = .List();
+        mob.epidemy.status = 'imp';
 
-        infected.push_back(mob);
+        imp.push_back(mob);
 
         //заполняем тригера
         mob.onHit = .tmp.epidemy.triggers.impOnHit;
         mob.onImmune = .tmp.epidemy.triggers.impOnImmune;
         mob.postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
         //подходят тригеры от фидошек:
-        mob.onDeath = function(ch){.tmp.epidemy.triggers.infectedOnDeath(this,ch);};
+        mob.onDeath = function(ch){.tmp.epidemy.triggers.impOnDeath(this,ch);};
         mob.onExtract = function(count){.tmp.epidemy.triggers.infectedOnExtract(this,count);};
         mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.impOnLeave(this,ch, from_room, movetype);};
         mob.onEntry = function(){.tmp.epidemy.triggers.impOnEntry(this);};

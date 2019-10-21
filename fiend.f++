@@ -31,7 +31,14 @@
         fiendSnd.epidemy.fst = false;
 
         fiendFst.char_to_room(demon.in_room);
+        regStat(demon.epidemy.invader,'fiend');
         fiendSnd.char_to_room(demon.in_room);
+        regStat(demon.epidemy.invader,'fiend');
+
+        if(demon.epidemy.fiend_count==null)
+            demon.epidemy.fiend_count=2;
+        else
+            demon.epidemy.fiend_count=demon.epidemy.fiend_count+2;
 
         demon.in_room.echo('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
         demon.in_room.echo('...из врат выходят исчадия %2$N1 и %3$N1, готовых исполнить волю %1$C2...',demon,fiendNames.fst,fiendNames.snd);
@@ -52,6 +59,8 @@
 
         fiend.epidemy = .Map();
         fiend.epidemy.demon = demon;
+        fiend.epidemy.invader = demon.epidemy.invader;
+        fiend.epidemy.status = 'fiend';
         fiend.epidemy.victim = victim;
         if(demon.epidemy.fiend_plan_way!=null) {
             fiend.epidemy.plan_room = victim.in_room;
@@ -941,6 +950,13 @@
                     }
                 }
             }catch(e) {
+                if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
+                .tmp.epidemy.Zaleshanin.ptc(e);
+                } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
+                .tmp.epidemy.Miyamoto.ptc(e);
+                } else {
+                    throw e;
+                }
             }
         };
 
@@ -957,6 +973,7 @@
             this = .tmp.epidemy;
             fiend.epidemy.last_room_looted=null;
             fiend.epidemy.plan=null;
+            regStat('fiend','kill');
 
             if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
                 && fiend.epidemy.snd.in_room == fiend.in_room)
@@ -989,6 +1006,10 @@
                     fiend.epidemy.has_weapon=false;
                 }
             }
+        };
+
+        onDeath = function(fiend,ch) {
+            .tmp.epidemy.regStat(ch.name,'fiend_slay');
         };
 
         onExtract = function(fiend, count) {
@@ -1288,6 +1309,9 @@
         fiends_names[34] = .List(); fiends_names[34].add('Alyonushka','Ivanushka');
         fiends_names_descr['Alyonushka'] = 'Алёнушк|а|и|е|у|ой|е';
         fiends_names_descr['Ivanushka'] = 'Иванушк|а|и|е|у|ой|е';
+        fiends_names[35] = .List(); fiends_names[34].add('Jekyll','Hyde');
+        fiends_names_descr['Jekyll'] = 'Джекил||а|у|а|ом|е';
+        fiends_names_descr['Hyde'] = 'Хайд||а|у|а|ом|е';
 /*
         1 Именительный: кто? что?                колдун
         2 Родительный: бред кого? чего?          колдуна
