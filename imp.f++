@@ -219,13 +219,7 @@
             }
 
         } catch(e){
-            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
-            .tmp.epidemy.Zaleshanin.ptc(e);
-            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
-            .tmp.epidemy.Miyamoto.ptc(e);
-            } else {
-                throw e;
-            }
+        .tmp.epidemy.catchMsg(e);
         }
     };
     triggers.impOnAttack = function(imp,ch,vict) {
@@ -249,7 +243,17 @@
     };
     triggers.impOnDeath = function(imp, ch) {
         this = .tmp.epidemy;
-        regStat(ch.name, 'imp_slay');
+        if(ch!=null) {
+            var realCh;
+            if(ch.is_npc()){
+                if(ch.leader!=null && ch.leader.pet==ch) {
+                    realCh = ch.leader;
+                }
+            } else {
+                realCh = ch;
+            }
+            regStat(realCh.name, 'imp_slay');
+        }
         imps.sub(imp);
     };
 
@@ -263,7 +267,10 @@
         mob.epidemy.fearList = .List();
         mob.epidemy.status = 'imp';
 
-        imp.push_back(mob);
+        if(imps==null)
+            imps=.List();
+
+        imps.push_back(mob);
 
         //заполняем тригера
         mob.onHit = .tmp.epidemy.triggers.impOnHit;

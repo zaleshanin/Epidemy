@@ -950,14 +950,8 @@
                     }
                 }
             }catch(e) {
-                if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
-                .tmp.epidemy.Zaleshanin.ptc(e);
-                } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
-                .tmp.epidemy.Miyamoto.ptc(e);
-                } else {
-                    throw e;
-                }
-            }
+            .tmp.epidemy.catchMsg(e);
+          }
         };
 
         onEntry = function(fiend) {
@@ -1009,7 +1003,17 @@
         };
 
         onDeath = function(fiend,ch) {
-            .tmp.epidemy.regStat(ch.name,'fiend_slay');
+            if(ch!=null) {
+                var realCh;
+                if(ch.is_npc()){
+                     if(ch.leader!=null && ch.leader.pet==ch) {
+                         realCh = ch.leader;
+                     }
+                } else {
+                    realCh = ch;
+                }
+                .tmp.epidemy.regStat(realCh.name, 'fiend_slay');
+            }
         };
 
         onExtract = function(fiend, count) {

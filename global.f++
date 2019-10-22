@@ -29,8 +29,10 @@ odif yltsaeb~
     darkTempleVnum = 3072;
     Demon = .get_mob_index(762);
     Fiend = .get_mob_index(763);
+/*
     Miyamoto = .get_char_world('miyamoto');
     Zaleshanin = .get_char_world('zaleshanin');
+*/
 
     heal = function(mob,chName) {
         this = .tmp.epidemy;
@@ -85,6 +87,7 @@ odif yltsaeb~
     regHistory = function(str) {
         this = .tmp.epidemy;
         var months,hours;
+        months=.Array();hours=.Array();
         var month, hour;
         if(history==null)
             history=.List();
@@ -113,8 +116,8 @@ odif yltsaeb~
         if(hour>12) hour = hour - 12;
         if(hour==0) hour = 12;
 
-        history.push_back(.fmt('%1$d %2$s, %3$dй день месяца %4$s, года %5$d, %6s$s.'
-            ,hour,hours[hour],.day,months[.month],.year,str));
+        history.push_back(.fmt('%1$d %2$s, %3$d'+'-й день месяца %4$s, года %5$d, %6$s.',
+            hour, hours[.sunlight], .day, months[.month], .year, str));
     };
     show = function(ch){
         this = .tmp.epidemy;
@@ -133,6 +136,17 @@ odif yltsaeb~
         return;
 
     .get_char_world('miyamoto').act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
+    };
+    catchMsg = function(e) {
+        var ch;
+        ch = .get_char_world('Zaleshanin');
+        if(ch==null)
+            ch = .get_char_world('Miyamoto');
+
+        if(ch!=null)
+            ch.ptc(e);
+        else
+            throw e;
     };
 
 

@@ -55,7 +55,7 @@ this = .tmp.epidemy;
 
         demon.char_to_room(room);
 		room.ppl.forEach(function(mob){act('...из дыма и гари появляется %1$C1.',mob);},demon);
-		regHistory(.fmt('в месте называемом %1$s, из зерна {DТьмы{x посеянного %2$N5, явился демон %3$C1',room.name.areaname,invader,demon));
+		regHistory(.fmt('в месте называемом %1$s, из зерна {DТьмы{x посеянного %2$N5, явился демон %3$C1',room.areaname,invader,demon));
 		regStat(invader,'demon');
     };
 
@@ -348,13 +348,7 @@ this = .tmp.epidemy;
         }
 
         } catch (e) {
-            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
-            .tmp.epidemy.Zaleshanin.ptc(e);
-            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
-            .tmp.epidemy.Miyamoto.ptc(e);
-            } else {
-                throw e;
-            }
+        .tmp.epidemy.catchMsg(e);
         }
     };
     Demon.onArea = function(demon){
@@ -371,8 +365,20 @@ this = .tmp.epidemy;
         this = .tmp.epidemy;
         //выпиливаемся из списка
         demons.sub(demon);
-        regHistory('демон %1$C1, призвавший %2$d исчад%2$Iие|ия|ий и обративший к {DЗлу{x %3$d существ%3$Iо|а|'+', повержен %4$^C5',demon,demon.epidemy.fiend_count,demon.epidemy.invert_count);
-        regStat(ch.name,'demon_slay');
+        if(ch!=null) {
+
+                var realCh;
+                if(ch.is_npc()){
+                    if(ch.leader!=null && ch.leader.pet==ch) {
+                        realCh = ch.leader;
+                    }
+                } else {
+                    realCh = ch;
+                }
+            regHistory('в месте называемом %5$s, демон %1$C1, призвавший %2$d исчад%2$Iие|ия|ий и обративший к {DЗлу{x %3$d существ%3$Iо|а|'+', повержен %4$^C5',
+                demon, demon.epidemy.fiend_count, demon.epidemy.invert_count, realCh, realCh.in_room.areaname);
+            regStat(realCh.name, 'demon_slay');
+        }
     };
     Demon.onExtract = function(demon, count) {
         this = .tmp.epidemy;

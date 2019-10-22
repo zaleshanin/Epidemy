@@ -44,13 +44,7 @@
             }
 
         } catch (e) {
-            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
-                .tmp.epidemy.Zaleshanin.ptc(e);
-            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
-                .tmp.epidemy.Miyamoto.ptc(e);
-            } else {
-                throw e;
-            }
+            .tmp.epidemy.catchMsg(e);
 
         }
     };

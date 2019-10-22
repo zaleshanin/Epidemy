@@ -15,18 +15,17 @@
 
         if(ch.is_npc()) {
             if(ch.epidemy!=null) {
-                invaderName=ch.epidemy.invider;
+                invaderName=ch.epidemy.invader;
             } else {
                 invaderName='unknown';
             }
         } else {
-            invaderName = ch.russianName;
-            if(invaderName=='') invaderName = ch.name;
+            invaderName = ch.name;
         }
         vict.epidemy.invader = invaderName;
         vict.epidemy.status = 'inited';
         vict.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);}};
-        regStat(ch.name,'infect');
+        regStat(invaderName,'infect');
     };
     infect = function(mob) {
         this = .tmp.epidemy;
@@ -231,10 +230,8 @@
 
             if(mob.epidemy.plan_room==null) {
                 plan_room = mob.in_room;
-                result=2;
             } else {
                 plan_room = mob.epidemy.plan_room;
-                result=1;
             }
             debug(mob,'pl_chk 0.1: plan_room:'+plan_room.vnum);
 
@@ -265,7 +262,7 @@
                 }
             }
 
-            debug(mob,'pl_chk 1: infected:'+actualCityInfectedList.size()+' result:'+result);
+            debug(mob,'pl_chk 1: infected:'+actualCityInfectedList.size());
 
             if(actualCityInfectedList.size()<13) {
                 planG = false; planD = false; result = 0;
@@ -286,24 +283,33 @@
                     }
                 }
             }
-            debug(mob,'pl_chk 3:  result:'+result);
 
             if(!planD) {
+                if(planG){
+                    if(mob.in_room!=plan_room)
+                        result=1;
+                    else
+                        result=2;
+                } else {
+                    result=0;
+                }
                 debug(mob,'pl_chk 4: no PlanD; result:'+result);
 
-                for (m in actualCityInfectedList) {
-                    clearGPS(m);
-                    if(planG) {
-                        //если планГ утвержден, прописываем всем в городе
-                        if(m.in_room==plan_room) {
-                            m.epidemy.plan = 2;
+                if(mob.epidemy.plan==null && mob.epidemy.plan_room==null) {
+                    for (m in actualCityInfectedList) {
+                        clearGPS(m);
+                        if(planG) {
+                            //если планГ утвержден, прописываем всем в городе
+                            if(m.in_room==plan_room) {
+                                m.epidemy.plan = 2;
+                            } else {
+                                m.epidemy.plan = 1;
+                            }
+                            m.epidemy.plan_room = plan_room;
                         } else {
-                            m.epidemy.plan = 1;
+                            //ни у кого нет плана
+                            m.epidemy.plan = 0;
                         }
-                        m.epidemy.plan_room = plan_room;
-                    } else {
-                        //ни у кого нет плана
-                        m.epidemy.plan = 0;
                     }
                 }
             } else {
@@ -318,7 +324,9 @@
                 debug(mob,'pl_chk 11.2: end. mob.plan_room:null');
             }
             return result;
-        }catch(e){}
+        }catch(e){
+            .tmp.epidemy.catchMsg(e);
+        }
     };
     explode_in_room = function(room) {
         var l,i,c,m;
@@ -449,13 +457,7 @@
                 e = e + .fmt(' (%1$C1[%5$d] %2$s[%3$d](%4$s))',mob, mob.in_room.name,mob.in_room.vnum, mob.in_room.areaname, mob.pIndexData.vnum);
             }
 
-            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
-            .tmp.epidemy.Zaleshanin.ptc(e);
-            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
-            .tmp.epidemy.Miyamoto.ptc(e);
-            } else {
-                throw e;
-            }
+        .tmp.epidemy.catchMsg(e);
         }
     };
     triggers.sickPostSpec = function (mob) {
@@ -573,7 +575,7 @@
                         mob.interpret('ponder');
                         mob.epidemy.plan_way = find_way(mob,mob.epidemy.plan_room);
                         if(mob.epidemy.plan_way.size()>0){
-                            debug(mob,'postSpec 10.1.3: '+mob.epidemy.plan_way.size());
+                            debug(mob,'postSpec 10.1.3: way size:'+mob.epidemy.plan_way.size());
                             mob.epidemy.plan_waypoint = mob.in_room;
                             return;
                         } else {
@@ -688,13 +690,7 @@
                 e = e + .fmt(' (%1$C1[%5$d] %2$s[%3$d](%4$s))',mob, mob.in_room.name,mob.in_room.vnum, mob.in_room.areaname, mob.pIndexData.vnum);
             }
 
-            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
-            .tmp.epidemy.Zaleshanin.ptc(e);
-            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
-            .tmp.epidemy.Miyamoto.ptc(e);
-            } else {
-                throw e;
-            }
+        .tmp.epidemy.catchMsg(e);
         }
     };
     triggers.infectedOnSpell = function(mob, ch,spell,before) {
@@ -776,7 +772,17 @@
             initImp(imp);
             imp.char_to_room(ch.in_room);
             regStat(mob.epidemy.invader,'imp');
-            regStat(ch.name,'imp_create');
+            if(ch!=null) {
+                var realCh;
+                if(ch.is_npc()){
+                    if(ch.leader!=null && ch.leader.pet==ch) {
+                        realCh = ch.leader;
+                    }
+                } else {
+                    realCh = ch;
+                }
+                regStat(realCh.name, 'imp_create');
+            }
             imp.epidemy.fearList.push_back(ch);
             ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',mob,imp);
         }

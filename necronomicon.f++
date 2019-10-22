@@ -297,13 +297,7 @@
 
             }
         }catch(e) {
-            if(.tmp.epidemy.Zaleshanin!= null && .tmp.epidemy.Zaleshanin.online) {
-            .tmp.epidemy.Zaleshanin.ptc(e);
-            } else if(.tmp.epidemy.Miyamoto= null && .tmp.epidemy.Miyamoto.online) {
-            .tmp.epidemy.Miyamoto.ptc(e);
-            } else {
-                throw e;
-            }
+        .tmp.epidemy.catchMsg(e);
         }
     };
     //бывает и такая фигня, надо удалить из списка
@@ -401,6 +395,8 @@
     };
 
     triggers.roseOnUse = function(rose, ch, str) {
+        try{
+        this = .tmp.epidemy;
         var target;
 
         target = ch.get_char_room(str);
@@ -410,12 +406,12 @@
 
         if(!target.is_npc()) {
             if(ch==target) {
-                ch.act("Ты размахиваешь %1$O5 у себя над головой, но ничего не происходит!", this);
-                ch.recho("%1$^C1 с непонятной целью машет %2$O5 у себя над головой!", ch, this);
+                ch.act("Ты размахиваешь %1$O5 у себя над головой, но ничего не происходит!", rose);
+                ch.recho("%1$^C1 с непонятной целью машет %2$O5 у себя над головой!", ch, rose);
             } else {
-                ch.act("Ты взмахиваешь %2$O5 в сторону %1$C4, но ничего не происходит!", target, this);
-                target.act("%1$^C1 с непонятной целью машет в твою сторону %2$O5!", ch, this);
-                ch.rvecho(target, "%1$^C1 с непонятной целью машет %3$O5 в сторону %2$C4!", ch, target, this);
+                ch.act("Ты взмахиваешь %2$O5 в сторону %1$C4, но ничего не происходит!", target, rose);
+                target.act("%1$^C1 с непонятной целью машет в твою сторону %2$O5!", ch, rose);
+                ch.rvecho(target, "%1$^C1 с непонятной целью машет %3$O5 в сторону %2$C4!", ch, target, rose);
             }
         } else if(target.size > 1) {
             ch.act("Призываемые тобой {Dтёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо поменьше!", target);
@@ -424,15 +420,19 @@
             ch.act("{DТёмные силы{x не могут проникнуть в %1$C4. Попробуй найти существо покровожаднее!", target);
             ch.recho("%1$^C1 с непонятной целью машет чёрной розой в сторону %2$C4!", ch, target);
         } else {
-            ch.act("Ты взмахиваешь %2$O5, и она, преврашившись в {Dоблако чёрного дыма{x, пронимает внутрь %1$C2!", target, this);
-            ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, this);
+            ch.act("Ты взмахиваешь %2$O5, и она, преврашившись в {Dоблако чёрного дыма{x, пронимает внутрь %1$C2!", target, rose);
+            ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, rose);
             rose.extract(true);
             //а вот тут заражаем!
-        .tmp.epidemy.preInfect(vict,ch);//target.postSpec = function(){.tmp.epidemy.infect(this);};
-        .tmp.epidemy.regStat(ch.name,'epidemy start');
-        .tmp.epidemy.regHistory(.fmt('%1$^C1 посеял%1$Gо||а зерно {DТьмы{x в %2$C4',ch,vict));
+            preInfect(target,ch);//target.postSpec = function(){.tmp.epidemy.infect(rose);};
+            regStat(ch.name,'epidemy start');
+            regHistory(.fmt('в месте называемом %3$s, %1$^C1 посеял%1$Gо||а зерно {DТьмы{x в %2$C4',ch,target,ch.in_room.areaname));
         }
         return true;
+        }catch(e){
+        .tmp.epidemy.catchMsg(e);
+
+        }
     };
 
     Rose = function(rose) {
@@ -442,7 +442,7 @@
         rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.dark);
         rose.extra_flags = .set_bit(rose.extra_flags, .tables.extra_flags.evil);
 
-        rose.onUse = function(ch, str) {return .tmp.epidemy.triggers.roseOnUse(this,ch,str);};
+        rose.onUse = function(ch, str) {.tmp.epidemy.triggers.roseOnUse(this,ch,str);return true;};
     };
 
 })
