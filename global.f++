@@ -11,14 +11,13 @@ odif yltsaeb~
 
     this = .tmp.epidemy;
 
-    if(infected==null) infected = .List();
+    if(infectedList==null) infectedList = .List();
     if(warlocks==null) warlocks = .List();
     if(books==null) books=.Array();
     if(demons==null) demons=.List();
     if(statistic==null) statistic = .Array();
     if(imps==null) imps = .List();
     if(triggers==null) triggers = .Map();
-
 
     bookkeeper = .get_mob_index(761);
     necronomicon = .get_obj_index(732);
@@ -57,7 +56,7 @@ odif yltsaeb~
         mob.epidemy = null;
 
         //выпиливаем из списка зараженных
-        infected.sub(mob);
+        infectedList.sub(mob);
 
         mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
         if(chName!=null) regStat(chName,'heal');
@@ -66,7 +65,7 @@ odif yltsaeb~
         this = .tmp.epidemy;
 
         var infectedListClon;
-        infectedListClon = infected.clone();
+        infectedListClon = infectedList.clone();
 
         for(sick in infectedListClon) {
             heal(sick,null);
@@ -119,7 +118,7 @@ odif yltsaeb~
     };
     show = function(ch){
         this = .tmp.epidemy;
-        infected.forEach(function(char){
+        infectedList.forEach(function(char){
             var plan;
             plan = '';
             if(leader!=null && leader.pet==this)

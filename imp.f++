@@ -259,7 +259,7 @@
         //заносим в список как зараженного
         if(mob.epidemy==null)
             mob.epidemy = .Map();
-        mob.epidemy.infected = true;
+        //mob.epidemy.infected = true;
         mob.epidemy.fearList = .List();
         mob.epidemy.status = 'imp';
 
