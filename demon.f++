@@ -5,10 +5,9 @@ this = .tmp.epidemy;
 
     var add_demon_triggers, make_demon_list;/*, fillDemonTriggers;*/
 
-    if(demons==null)
-        demons = .List();
-    if(triggers==null)
-        triggers=.Map();
+    if(demons==null) demons = .List();
+    if(triggers==null) triggers = .Map();
+    if(invertedList==null) ivertedList = .List();
 
     get_demon_name = function() {
         this = .tmp.epidemy;
@@ -315,6 +314,9 @@ this = .tmp.epidemy;
                     //вешаем тригера на лечение и на вылупление импа в случае убийства (имп заразный)
                     demon.epidemy.victim.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
                     demon.epidemy.victim.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
+                    demon.epidemy.victim.epidemy.invader = demon.epidemy.invader;
+                    demon.epidemy.victim.epidemy.status = 'inverted';
+                    invertedList.push_back(demon.epidemy.victim);
                     regStat(demon.epidemy.invader,'demon_invert');
                     if(demon.epidemy.invert_count==null) demon.epidemy.invert_count=1;
                     else demon.epidemy.invert_count=demon.epidemy.invert_count+1;

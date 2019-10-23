@@ -12,6 +12,7 @@ odif yltsaeb~
     this = .tmp.epidemy;
 
     if(infectedList==null) infectedList = .List();
+    if(invertedList==null) ivertedList = .List();
     if(warlocks==null) warlocks = .List();
     if(books==null) books=.Array();
     if(demons==null) demons=.List();
@@ -57,8 +58,8 @@ odif yltsaeb~
         mob.onExtract = null;
         mob.epidemy = null;
 
-        //выпиливаем из списка зараженных
-        infectedList.sub(mob);
+        infectedList.sub(mob); //выпиливаем из списка зараженных
+        invertedList.sub(mob); // ... из списка вывернутых
 
         mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
         if(ch!=null) {
