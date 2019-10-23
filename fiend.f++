@@ -971,7 +971,7 @@
             if(!fiend.epidemy.demon.dead) {
                 if(fiend.epidemy.demon.epidemy.fiend_kill_count==null)
                     fiend.epidemy.demon.epidemy.fiend_kill_count=0;
-                demon.epidemy.fiend_kill_count=demon.epidemy.fiend_kill_count+1;
+                fiend.epidemy.demon.epidemy.fiend_kill_count = fiend.epidemy.demon.epidemy.fiend_kill_count + 1;
             }
             if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
                 && fiend.epidemy.snd.in_room == fiend.in_room)
