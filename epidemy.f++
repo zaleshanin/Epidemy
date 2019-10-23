@@ -259,6 +259,14 @@
                     }
                 }
             }
+            for(imp in imps) {
+                if (imp.in_room.areaname == city){
+                    actualCityInfectedList.push_back(imp);
+                    if(imp.in_room != mob.in_room) {
+                        planD = false;
+                    }
+                }
+            }
 
             debug(mob,'pl_chk 1: infected:'+actualCityInfectedList.size());
 
@@ -272,7 +280,7 @@
                     debug(mob,'pl_chk 2.2: fidovnum:'+fidovnum);
                     for( m in .get_mob_index(fidovnum).instances) {
                         //тварь в нашем городе, но не инфицирована
-                        if(m.in_room.areaname==city && m.epidemy==null){
+                        if(m.in_room.areaname==city && (m.epidemy==null || m.epidemy.status==null || m.epidemy.status!='sick')){
                             allFidoInfected = false;
                             planG = false; planD = false; result = 0;
                             debug(mob,'pl_chk 2.3: planD=false; planG=false; result='+result);
