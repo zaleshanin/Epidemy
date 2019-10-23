@@ -34,7 +34,7 @@ odif yltsaeb~
     Zaleshanin = .get_char_world('zaleshanin');
 */
 
-    heal = function(mob,chName) {
+    heal = function(mob, ch) {
         this = .tmp.epidemy;
 
         plan_cancel(mob);
@@ -61,7 +61,10 @@ odif yltsaeb~
         infectedList.sub(mob);
 
         mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
-        if(chName!=null) regStat(chName,'heal');
+        if(ch!=null) {
+            regStat(getPCname(ch),'heal');
+        }
+
     };
     healall = function() {
         this = .tmp.epidemy;
@@ -75,6 +78,9 @@ odif yltsaeb~
     };
 
     regStat = function(chName,str) {
+        if(chName==null || chName=='') {
+            return;
+        }
         this = .tmp.epidemy;
         if(statistic[chName]==null)
             statistic[chName]=.Array();
@@ -148,6 +154,18 @@ odif yltsaeb~
         else
             throw e;
     };
+    getPCname = function(ch) {
+        var name;
+        name = '';
+        if(ch.is_npc()) {
+            if(ch.leader!=null && !ch.leader.is_npc()) {
+                name = ch.leader.name;
+            }
+        } else {
+            name = ch.name;
+        }
+        return name;
+    }
 
 
 

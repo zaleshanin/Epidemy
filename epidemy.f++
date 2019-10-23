@@ -176,10 +176,8 @@
     plan_cancel = function(mob) {
         this = .tmp.epidemy;
 
-        var total, city;
+        var total;
         var i, l, m;
-
-        city = mob.in_room.areaname;
 
         l = infectedList.clone();
         total = l.size();
@@ -189,7 +187,7 @@
             if(m.dead) {
                 infectedList.sub(m);
                 continue;
-            } else if(m.in_room.areaname==city) {
+            } else if(m.in_room.areaname==mob.in_room.areaname) {
                 clearPlan(m);
             }
             l.pop_back();
@@ -440,10 +438,6 @@
     triggers.infectedPostSpec = function(mob){
         try{
             this = .tmp.epidemy;
-            if(mob.epidemy.status==null) {
-                heal(mob, null); //лечим зараженных прежней версией
-                return;
-            }
 
             if(.chance(1)) {
                 transform(mob);
@@ -466,11 +460,6 @@
         this = .tmp.epidemy;
 
         try {
-            if(mob.epidemy.status==null) {
-                heal(mob,null); //лечим зараженных прежней версией
-                return;
-            }
-
             if(mob.epidemy.plan!=null)
                 debug(mob,'postSpec 0: start. plan:'+mob.epidemy.plan);
             else
@@ -707,7 +696,7 @@
             }
         } else {
             if(spell == 'dispel evil' || spell == 'heal' || spell == 'superior heal') {
-                heal(mob,ch.name);
+                heal(mob, ch);
                 return true;
             }
         }
@@ -726,7 +715,7 @@
         } else {
             if(spell == 'dispel evil' || spell == 'ray of truth'
                 || spell == 'wrath' || spell == 'banishment') {
-                heal(mob,ch.name);
+                heal(mob,ch);
                 return true;
             }
         }
@@ -773,15 +762,7 @@
             imp.char_to_room(ch.in_room);
             regStat(mob.epidemy.invader,'imp');
             if(ch!=null) {
-                var realCh;
-                if(ch.is_npc()){
-                    if(ch.leader!=null && ch.leader.pet==ch) {
-                        realCh = ch.leader;
-                    }
-                } else {
-                    realCh = ch;
-                }
-                regStat(realCh.name, 'imp_create');
+                regStat(getPCname(ch), 'imp_create');
             }
             imp.epidemy.fearList.push_back(ch);
             ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',mob,imp);
