@@ -123,7 +123,7 @@ odif yltsaeb~
         if(hour==0) hour = 12;
 
         history.push_back(.fmt('%1$d %2$s, %3$d'+'-й день месяца %4$s, года %5$d, %6$s.',
-            hour, hours[.sunlight], .day, months[.month], .year, str));
+            hour, hours[.sunlight], (.day+1), months[.month], .year, str));
     };
     show = function(ch){
         this = .tmp.epidemy;
@@ -165,7 +165,7 @@ odif yltsaeb~
             name = ch.name;
         }
         return name;
-    }
+    };
 
 
 
