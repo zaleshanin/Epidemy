@@ -12,7 +12,7 @@ odif yltsaeb~
     this = .tmp.epidemy;
 
     if(infectedList==null) infectedList = .List();
-    if(invertedList==null) ivertedList = .List();
+    if(invertedList==null) invertedList = .List();
     if(warlocks==null) warlocks = .List();
     if(books==null) books=.Array();
     if(demons==null) demons=.List();
@@ -74,6 +74,11 @@ odif yltsaeb~
         infectedListClon = infectedList.clone();
 
         for(sick in infectedListClon) {
+            heal(sick,null);
+        }
+        infectedListClon = invertedList.clone();
+
+        for(inverted in infectedListClon) {
             heal(sick,null);
         }
     };
