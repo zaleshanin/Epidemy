@@ -82,13 +82,13 @@ odif yltsaeb~
             return;
         }
         this = .tmp.epidemy;
-        if(statistic[chName]==null)
-            statistic[chName]=.Array();
+        if(statistic[str]==null)
+            statistic[str]=.Array();
 
-        if(statistic[chName][str]==null)
-            statistic[chName][str]=1;
+        if(statistic[str][chName]==null)
+            statistic[str][chName]=1;
         else
-            statistic[chName][str]=statistic[chName][str]+1;
+            statistic[str][chName]=statistic[str][chName]+1;
     };
     regHistory = function(str) {
         this = .tmp.epidemy;
@@ -166,7 +166,4 @@ odif yltsaeb~
         }
         return name;
     };
-
-
-
 })
