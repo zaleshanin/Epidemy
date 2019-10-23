@@ -249,8 +249,13 @@
                 //тварь в нашем городе
                 if (m.in_room.areaname == city){
                     actualCityInfectedList.push_back(m);
+                    if(m.epidemy.status!='sick') {
+                        planG = false;
+                        debug(mob,'pl_chk 0.2: '+m.name+'('+m.in_room.vnum+')'+' status:'+m.epidemy.status+'->planG=null');
+                    }
                     if(m.in_room != mob.in_room) {
                         planD = false;
+                        debug(mob,'pl_chk 0.3: '+m.name+'('+m.in_room.vnum+')'+' not in '+plan_room.vnum+'->planD=null');
                     }
 
                     //фидо-лайк-тварь (их и будем проверять)
@@ -268,7 +273,7 @@
                 }
             }
 
-            debug(mob,'pl_chk 1: infected:'+actualCityInfectedList.size());
+            debug(mob,'pl_chk 1: infected:'+actualCityInfectedList.size()+' planG:'+planG+' planD:'+planD);
 
             if(actualCityInfectedList.size()<13) {
                 planG = false; planD = false; result = 0;
