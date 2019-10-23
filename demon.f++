@@ -373,7 +373,7 @@ this = .tmp.epidemy;
             var realChName;
             realChName=getPCname(ch);
             if(realChName!='') {
-                regHistory(.fmt('в месте называемом %5$s, демон %1$C1, обративший к {DЗлу{x %3$d существ%3$Iо|а|'+', призвавший %2$d исчад%2$Iие|ия|ий, которые совершили %6$d убийств%3$Iо|а|'+', повержен %4$^s',
+                regHistory(.fmt('в месте называемом %5$s, демон %1$C1, обративший к {DЗлу{x %3$d существ%3$Iо|а|'+', призвавший %2$d исчад%2$Iие|ия|ий, которые совершили %6$d убийств%6$Iо|а|'+', повержен %4$^s',
                 demon, demon.epidemy.fiend_count, demon.epidemy.invert_count, realChName, demon.in_room.areaname, demon.epidemy.fiend_kill_count));
                 regStat(realChName, 'demon_slay');
             }
