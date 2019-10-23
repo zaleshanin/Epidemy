@@ -243,17 +243,8 @@
     };
     triggers.impOnDeath = function(imp, ch) {
         this = .tmp.epidemy;
-        if(ch!=null) {
-            var realCh;
-            if(ch.is_npc()){
-                if(ch.leader!=null && ch.leader.pet==ch) {
-                    realCh = ch.leader;
-                }
-            } else {
-                realCh = ch;
-            }
-            regStat(realCh.name, 'imp_slay');
-        }
+        regStat(getPCname(ch), 'imp_slay');
+
         imps.sub(imp);
     };
 

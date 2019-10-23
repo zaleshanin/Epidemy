@@ -967,8 +967,12 @@
             this = .tmp.epidemy;
             fiend.epidemy.last_room_looted=null;
             fiend.epidemy.plan=null;
-            regStat('fiend','kill');
-
+            regStat(fiend.epidemy.invader,'fiend_kill');
+            if(!fiend.epidemy.demon.dead) {
+                if(fiend.epidemy.demon.epidemy.fiend_kill_count==null)
+                    fiend.epidemy.demon.epidemy.fiend_kill_count=0;
+                demon.epidemy.fiend_kill_count=demon.epidemy.fiend_kill_count+1;
+            }
             if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
                 && fiend.epidemy.snd.in_room == fiend.in_room)
                 fiend.epidemy.snd.epidemy.last_room_looted=null;
@@ -1003,17 +1007,8 @@
         };
 
         onDeath = function(fiend,ch) {
-            if(ch!=null) {
-                var realCh;
-                if(ch.is_npc()){
-                     if(ch.leader!=null && ch.leader.pet==ch) {
-                         realCh = ch.leader;
-                     }
-                } else {
-                    realCh = ch;
-                }
-                .tmp.epidemy.regStat(realCh.name, 'fiend_slay');
-            }
+            this=.tmp.epidemy;
+            regStat(getPCname(ch), 'fiend_slay');
         };
 
         onExtract = function(fiend, count) {
