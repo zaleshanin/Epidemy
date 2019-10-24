@@ -163,6 +163,9 @@ odif yltsaeb~
     getPCname = function(ch) {
         var name;
         name = '';
+        if(ch==null)
+            return name;
+
         if(ch.is_npc()) {
             if(ch.leader!=null && !ch.leader.is_npc()) {
                 name = ch.leader.name;
@@ -170,6 +173,7 @@ odif yltsaeb~
         } else {
             name = ch.name;
         }
+
         return name;
     };
 })
