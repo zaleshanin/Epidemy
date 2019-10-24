@@ -136,8 +136,9 @@ this = .tmp.epidemy;
         return result;
     };
     get_mobs_vnums = function(demon) {
+        .tmp.epidemy.debug(demon,'demon->get_mobs_vnums(): 1 start');
         var resultList, city, i;
-        resultList = .List();
+        resultList = demon.epidemy.victimsVnums.clone();//.List();
         city = demon.in_room.areaname;
 
         for (i = .room_list; i != null; i = i.rnext) {
@@ -148,16 +149,15 @@ this = .tmp.epidemy;
             }
             var mob;
             for(vnum in i.resetMobiles) {
+                if(resultList.has(vnum)) continue;
                 if(demon.epidemy.unreachable.has(vnum)) continue;
 
-                mob = .get_mob_index(vnum).instances.front();
-
-                if(mob==null
-                    /*|| mob.imm_flags & .tables.imm_flags.weapon*/
-                    || mob.alignment<350
-                    || resultList.has(vnum)) {continue;}
-
-                resultList.push_back(vnum);
+                for(mob in .get_mob_index(vnum).instances) {
+                    if(mob.alignment>=350) {
+                        resultList.push_back(vnum);
+                        break;
+                    }
+                }
             }
         }
 
@@ -366,6 +366,22 @@ this = .tmp.epidemy;
 
         if(demon.epidemy.plan==0) {
             demon.epidemy.plan = null;
+        }
+
+        var inst_count, mob_inst;
+        inst_count=0;
+        for(mob_vnum in demon.epidemy.victimsVnums) {
+            for(mob in .get_mob_index(mob_vnum).instances) {
+                if(mob.alignment>=350) {
+                    inst_count=inst_count+1;
+                    debug(demon,.fmt('demon->onArea()->instances chk: instance exists: %1$C1(%2$s[%3$d])',mob,mob.in_room.name,mob.in_room.vnum));
+                    break;
+                }
+            }
+            if(inst_count>0) break;
+        }
+        if(inst_count==0) {
+            demon.epidemy.victimsVnums=get_mobs_vnums(demon);
         }
     };
     Demon.onDeath = function(demon, ch) {
