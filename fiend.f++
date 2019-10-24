@@ -161,7 +161,7 @@
             for(i=0;i<s;i=i+1) {
                 m = inst_list.back();
                 inst_list.pop_back();
-                if(m.in_room.isCommon()) {
+                if(m.in_room.isCommon() && m.alignment>=350) {
                     tmp_list.push_back(m);
                 }
             }
@@ -800,7 +800,7 @@
                 continue;
 
             if(ch.alignment < 350 || ch.level > fiend.level+3) {
-                //он или злой, или крутой - пусть живёт
+                //он или не добрый, или крутой - пусть живёт
                 continue;
             }
             if(!ch.is_npc() && ch.level < fiend.level-3){
@@ -923,7 +923,7 @@
                                 victim = fiend.epidemy.victim;
                             }
 
-                            if(victim==null || victim.dead || victim.in_room!=fiend.in_room) {
+                            if(victim==null || victim.dead || victim.in_room!=fiend.in_room || victim.alignment<350) {
                                 clearPlan(fiend);
                             } else {
                                 //2do не ввязываемся если у нас меньше 50% жизни
