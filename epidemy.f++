@@ -772,6 +772,7 @@
             var imp;
             imp = imp_list.random().create();
             initImp(imp);
+            imp.epidemy.invader=mob.epidemy.invader;
             imp.char_to_room(ch.in_room);
             regStat(mob.epidemy.invader,'imp');
             if(ch!=null) {
