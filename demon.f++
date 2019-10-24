@@ -273,7 +273,7 @@ this = .tmp.epidemy;
             demon.epidemy.plan = demon_plan_check(demon);
         }
 
-        //демон обращает добрых в выернутых злых
+        //демон обращает добрых/нейтральных в выернутых злых
         if(demon.epidemy.plan==0 && .chance(10)) {
 //            debug(demon,'ищем жертву для обращения');
             if(demon.epidemy.victim==null || demon.epidemy.victim.dead
@@ -283,9 +283,36 @@ this = .tmp.epidemy;
                 clearGPS(demon);
             }
 
+            if((demon.epidemy.victim==null || demon.epidemy.victim.dead)
+                && demon.in_room.ppl.size()>1) {
+                for(ppl in demon.in_room.ppl) {
+                    if(ppl.alignment>-350 && ppl.fighting==null) {
+                        demon.epidemy.victim=ppl;
+                        break;
+                    }
+                }
+            }
+
             if(demon.epidemy.victim==null || demon.epidemy.victim.dead
                 || demon.epidemy.victim.fighting!=null) {
-//                debug(demon,'жертвы нет, дерётся или умерла');
+                debug(demon,'жертвы нет, дерётся или умерла');
+                demon.epidemy.victim = null;
+                var exits;
+                exits = .List();
+                for(direction in demon.in_room.exits(demon)) {
+                    for(ppl in demon.in_room.getRoom(direction).ppl) {
+                        if(ppl.alignment>-350){
+                            exits.push_back(direction);
+                            break;
+                        }
+                    }
+                }
+                if(exits.size()>0) {
+                    debug(demon,'жертвы в '+exits.size()+' направлениях');
+                    demon.move_char(exits.random());
+                } else {
+                    debug(demon,'жертвы в соведних комнатах не найдены');
+                }
                 return;
             } else {
                 if(demon.epidemy.plan_way==null) {

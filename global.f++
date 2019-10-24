@@ -174,16 +174,6 @@ odif yltsaeb~
                 }
             }
         }
-
-        /*infectedList.forEach(function(char){
-            var plan;
-            plan = '';
-            if(leader!=null && leader.pet==this)
-                plan = '(pet)';
-            else if(epidemy.plan!=null && epidemy.plan>=1)
-                plan = '->'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+')';
-            char.ptc(.fmt('%1C1',this)+'->'+in_room.areaname+':'+in_room.name+'('+in_room.vnum+')'+plan+'\n');
-        },ch);*/
     };
     showDemons=function(){
         var result;
