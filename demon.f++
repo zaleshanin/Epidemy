@@ -163,7 +163,7 @@ this = .tmp.epidemy;
 
         return resultList;
     };
-    get_one_good = function(demon,min_level,max_level,weapon_immune_check) {
+    get_one_good = function(demon,min_level,max_level,weapon_immune_check,ignor_targets) {
         this = .tmp.epidemy;
         var city;
 
@@ -173,7 +173,9 @@ this = .tmp.epidemy;
             demon.epidemy.victimsVnums = get_mobs_vnums(demon);
 
         var victimsList;
-        victimsList = get_victims_vnums_array(demon); //жертвы за которыми высланы исчадия
+        victimsList=.Array();
+        if(!ignor_targets)
+            victimsList = get_victims_vnums_array(demon); //жертвы за которыми высланы исчадия
 
         var mobList;
         mobList = .List();
@@ -227,7 +229,7 @@ this = .tmp.epidemy;
                 demon.epidemy.plan=null;
                 plan = 0;
             } else {
-                victim = get_one_good(demon,12,null,true);
+                victim = get_one_good(demon,12,null,true,false);
 
                 if(victim == null) {
                     plan = 0;
@@ -277,7 +279,7 @@ this = .tmp.epidemy;
             if(demon.epidemy.victim==null || demon.epidemy.victim.dead
                 || demon.epidemy.victim.fighting!=null) {
 //                debug(demon,'выбираем из списка');
-                demon.epidemy.victim = get_one_good(demon,0,120,false);
+                demon.epidemy.victim = get_one_good(demon,0,120,false,true);
                 clearGPS(demon);
             }
 

@@ -226,7 +226,7 @@
                     } else if(fiend.epidemy.demon!=null && !fiend.epidemy.demon.dead) {
                         var minlvl;
                         for(minlvl=fiend.level-10;minlvl>=0;minlvl=minlvl-10){
-                            fiend.epidemy.victim = get_one_good(fiend.epidemy.demon,minlvl,fiend.level+3,true);
+                            fiend.epidemy.victim = get_one_good(fiend.epidemy.demon,minlvl,fiend.level+3,true,true);
                             if(fiend.epidemy.victim!=null) break;
                         }
                     }
