@@ -133,7 +133,49 @@ odif yltsaeb~
     };
     show = function(ch){
         this = .tmp.epidemy;
-        infectedList.forEach(function(char){
+        var res,res_str;
+        res = .Array();
+        for(mobList in .List().add(infectedList,imps,invertedList)) {
+            for(mob in mobList){
+                res_str = '';
+                if(mob.dead || !mob.online || mob.epidemy==null)
+                    continue;
+                if(mob.epidemy.status==null/* || mob.epidemy.invader==null*/)
+                    throw('epidemy->show() 1: '+mob.name+'['+mob.in_room.vnum+'] incorrect epidemy structure');
+
+                if(res[mob.in_room.areaname]==null)
+                    res[mob.in_room.areaname]=.Array();
+                if(res[mob.in_room.areaname][mob.epidemy.status]==null)
+                    res[mob.in_room.areaname][mob.epidemy.status]=.List();
+
+                res_str = .fmt('%1$C1[%2$d] %3$s[%4$d]',mob,mob.pIndexData.vnum,mob.in_room.name,mob.in_room.vnum);
+                if(leader!=null && leader.pet==this)
+                    plan = '(pet)';
+                else if(mob.epidemy.plan!=null){
+                    res_str=res_str+' plan:'+mob.epidemy.plan;
+                    if(mob.epidemy.plan>0) {
+                        res_str=res_str+' -> '+mob.epidemy.plan_room.name+'['+mob.epidemy.plan_room.vnum+']';
+                    }
+                }
+                if(mob.epidemy.invader!=null)
+                    res_str=res_str+' ('+mob.epidemy.invader+')';
+                else
+                    res_str=res_str+' (causer unknown)';
+                    res[mob.in_room.areaname][mob.epidemy.status].push_back(res_str);
+            }
+        }
+
+        for(area in res.keys) {
+            ch.ptc(area+':\n');
+            for(status in res[area].keys) {
+                ch.ptc('   - '+status+':\n');
+                for(str in res[area][status]){
+                    ch.ptc('      '+str+'\n');
+                }
+            }
+        }
+
+        /*infectedList.forEach(function(char){
             var plan;
             plan = '';
             if(leader!=null && leader.pet==this)
@@ -141,7 +183,53 @@ odif yltsaeb~
             else if(epidemy.plan!=null && epidemy.plan>=1)
                 plan = '->'+epidemy.plan_room.name+'('+epidemy.plan_room.vnum+')';
             char.ptc(.fmt('%1C1',this)+'->'+in_room.areaname+':'+in_room.name+'('+in_room.vnum+')'+plan+'\n');
-        },ch);
+        },ch);*/
+    };
+    showDemons=function(){
+        var result;
+        result = .Array();
+        var iid, iif;
+        //iid=0;
+        for(demon in .tmp.epidemy.demons) {
+            //iid=iid+1;
+            if(result[demon.in_room.areaname]==null)
+                result[demon.in_room.areaname]=.List();
+
+            result[demon.in_room.areaname].push_back(.fmt('%1$C1',demon)+' vv:'+demon.epidemy.victimsVnums.size()+' '+demon.in_room.name+'('+demon.in_room.vnum+')');
+                iif=0;
+                for(fiend in demon.epidemy.fiends) {
+                    iif=iif+1;
+                    var str;
+                    str='';
+                    str=str+'\t'+iif+'. '+.fmt('%1$C1',fiend)+'(lvl:'+fiend.level+') '+fiend.in_room.name+'('+fiend.in_room.vnum+')';
+                    if(fiend.dead){
+                        str=str+' DEAD';
+                    } else {
+                        if(fiend.epidemy.plan!=null)
+                            str=str+' plan:'+fiend.epidemy.plan;
+                        else
+                            str=str+' plan:nope';
+                        if(fiend.epidemy.victim!=null) {
+                            if(fiend.epidemy.victim.dead) {
+                                str=str+' victim DEAD';
+                            } else {
+                                str=str+' victim:'+.fmt('%1$C1',fiend.epidemy.victim)+'('+fiend.epidemy.victim.pIndexData.vnum+'<-['+fiend.epidemy.primary_target+']) ';
+                                if(fiend.epidemy.plan_room!=null)
+                                    str=str+fiend.epidemy.plan_room.name+'['+fiend.epidemy.plan_room.vnum+']';
+                            }
+                        }
+
+                        else
+                            str=str+' no victim';
+
+                    }
+
+
+                    result[demon.in_room.areaname].push_back(str);
+                }
+            }
+
+        return result;
     };
     debug = function(mob,str) {
         if(!.buildplot || mob.epidemy.debug==null || mob.epidemy.debug==false)
