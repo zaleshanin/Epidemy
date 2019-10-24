@@ -135,6 +135,55 @@ odif yltsaeb~
         this = .tmp.epidemy;
         var res,res_str;
         res = .Array();
+
+        for(demon in .tmp.epidemy.demons){
+            res_str='';
+            if(res[demon.in_room.areaname]==null)
+                res[demon.in_room.areaname]=.Array();
+            if(res[demon.in_room.areaname][demon.epidemy.status]==null)
+                res[demon.in_room.areaname][demon.epidemy.status]=.List();
+
+            res_str = res_str + .fmt('%1$C1',demon)+' VictVnums:'+demon.epidemy.victimsVnums.size()+' '+demon.in_room.name+'['+demon.in_room.vnum+']';
+            if(demon.epidemy.invader!=null)
+                res_str=res_str+' ('+demon.epidemy.invader+')';
+            else
+                res_str=res_str+' (causer unknown)';
+            res[demon.in_room.areaname][demon.epidemy.status].push_back(res_str);
+            var iif;
+            iif=0;
+            for(fiend in demon.epidemy.fiends) {
+                iif=iif+1;
+                res_str='';
+                res_str=res_str+'\t'+iif+'. '+.fmt('%1$C1',fiend)+'(lvl:'+fiend.level+') '+fiend.in_room.name+'('+fiend.in_room.vnum+')';
+                if(fiend.dead){
+                    res_str=res_str+' DEAD';
+                } else {
+                    if(fiend.epidemy.plan!=null)
+                        res_str=res_str+' plan:'+fiend.epidemy.plan;
+                    else
+                        res_str=res_str+' plan:nope';
+                    if(fiend.epidemy.victim!=null) {
+                        if(fiend.epidemy.victim.dead) {
+                            res_str=res_str+' victim DEAD';
+                        } else {
+                            res_str=res_str+' victim:'+.fmt('%1$C1',fiend.epidemy.victim)+'('+fiend.epidemy.victim.pIndexData.vnum+'<-['+fiend.epidemy.primary_target+']) ';
+                            if(fiend.epidemy.plan_room!=null)
+                                res_str=res_str+fiend.epidemy.plan_room.name+'['+fiend.epidemy.plan_room.vnum+']';
+                        }
+                    }
+
+                    else
+                        res_str=res_str+' no victim';
+
+                    if(fiend.epidemy.invader!=null)
+                        res_str=res_str+' ('+fiend.epidemy.invader+')';
+                    else
+                        res_str=res_str+' (causer unknown)';
+                }
+
+                res[demon.in_room.areaname][demon.epidemy.status].push_back('   '+res_str);
+            }
+        }
         for(mobList in .List().add(infectedList,imps,invertedList)) {
             for(mob in mobList){
                 res_str = '';
@@ -161,7 +210,7 @@ odif yltsaeb~
                     res_str=res_str+' ('+mob.epidemy.invader+')';
                 else
                     res_str=res_str+' (causer unknown)';
-                    res[mob.in_room.areaname][mob.epidemy.status].push_back(res_str);
+                res[mob.in_room.areaname][mob.epidemy.status].push_back(res_str);
             }
         }
 
