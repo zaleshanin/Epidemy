@@ -109,13 +109,28 @@
                     //изчез куда-то гад!!!
                     imp.epidemy.victims = null;
                 } else {
-                    /*---некотролируемая эпидемия начинается здесь---*/
-                    imp.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
-                    vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя!", imp);
-                    imp.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4!", imp, vict);
-                    preInfect(vict,imp);//vict.postSpec = function(){if(.chance(10)) .tmp.epidemy.infect(this);};
-                    /*----------------------------------------------*/
-                    imp.epidemy.victims.sub(vict);
+                    if(vict.isAffected('protection evil') && .chance(90)) {
+                        imp.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
+                        vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Защита светлых сил не даёт {Dтемным силам{x проникнуть в тебя!", imp);
+                        imp.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Защита светлых сил не даёт {Dтёмным силам{x проникнуть в %2$C4!", imp, vict);
+                        imp.recho('Из пасти %1$^C2 валит дым. Существо корчится от боли и скулит.');
+                        imp.hit = imp.hit - (imp.max_hit/20 + 1);
+                        if(imp.hit<0) {
+                            imp.raw_kill(-1,vict);
+                        }
+                    } else {
+                        var protect_str;
+                        protect_str='';
+                        if(vict.isAffected('protection evil'))
+                            protect_str = ' даже несмотря на защиту светлых сил';
+                        /*---некотролируемая эпидемия начинается здесь---*/
+                        imp.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
+                        vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя"+protect_str+"!", imp);
+                        imp.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4"+protect_str+"!", imp, vict);
+                        preInfect(vict,imp);//.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);}};
+                        /*----------------------------------------------*/
+                        imp.epidemy.victims.sub(vict);
+                    }
                 }
                 return;
             }
