@@ -8,6 +8,10 @@
 
     if(infectedList==null) infectedList = .List();
 
+    epidemy_affect = .Affect();
+    epidemy_affect.type = "evil spirit";
+    epidemy_affect.duration = -1;
+
     bite = function(mob) {
         debug(mob,'epidemy->bite: start');
         //кусаем если есть кого
@@ -79,6 +83,7 @@
         infectedList.push_back(mob);
 
         mob = setInfectedTriggers(mob);
+        mob.affectAdd(epidemy_affect);
         mob.act('{DТьма{x разливается по твоим венам.',mob);
         mob.recho('{DТьма{x разливается по венам %1$C2.',mob);
     };

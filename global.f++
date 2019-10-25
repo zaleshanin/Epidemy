@@ -44,6 +44,8 @@ odif yltsaeb~
             return;
         }
 
+        mob.affectStrip(epidemy_affect.type);
+
         if(mob.epidemy.status!=null && mob.epidemy.status=='sick')
             plan_cancel(mob);
 
