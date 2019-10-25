@@ -37,13 +37,15 @@ odif yltsaeb~
 
     heal = function(mob, ch) {
         this = .tmp.epidemy;
+        try{
         if(mob.dead || mob.epidemy==null) {
             infectedList.sub(mob);
             invertedList.sub(mob);
             return;
         }
 
-        plan_cancel(mob);
+        if(mob.epidemy.status!=null && mob.epidemy.status=='sick')
+            plan_cancel(mob);
 
         //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
         if(mob.epidemy.name!=null) {
@@ -70,7 +72,7 @@ odif yltsaeb~
         if(ch!=null) {
             regStat(getPCname(ch),'heal');
         }
-
+        }catch(e){catchMsg('epidemy->heal():'+e);}
     };
     healall = function() {
         this = .tmp.epidemy;
@@ -229,52 +231,6 @@ odif yltsaeb~
             }
         }
     };
-    showDemons=function(){
-        var result;
-        result = .Array();
-        var iid, iif;
-        //iid=0;
-        for(demon in .tmp.epidemy.demons) {
-            //iid=iid+1;
-            if(result[demon.in_room.areaname]==null)
-                result[demon.in_room.areaname]=.List();
-
-            result[demon.in_room.areaname].push_back(.fmt('%1$C1',demon)+' vv:'+demon.epidemy.victimsVnums.size()+' '+demon.in_room.name+'('+demon.in_room.vnum+')');
-                iif=0;
-                for(fiend in demon.epidemy.fiends) {
-                    iif=iif+1;
-                    var str;
-                    str='';
-                    str=str+'\t'+iif+'. '+.fmt('%1$C1',fiend)+'(lvl:'+fiend.level+') '+fiend.in_room.name+'('+fiend.in_room.vnum+')';
-                    if(fiend.dead){
-                        str=str+' DEAD';
-                    } else {
-                        if(fiend.epidemy.plan!=null)
-                            str=str+' plan:'+fiend.epidemy.plan;
-                        else
-                            str=str+' plan:nope';
-                        if(fiend.epidemy.victim!=null) {
-                            if(fiend.epidemy.victim.dead) {
-                                str=str+' victim DEAD';
-                            } else {
-                                str=str+' victim:'+.fmt('%1$C1',fiend.epidemy.victim)+'('+fiend.epidemy.victim.pIndexData.vnum+'<-['+fiend.epidemy.primary_target+']) ';
-                                if(fiend.epidemy.plan_room!=null)
-                                    str=str+fiend.epidemy.plan_room.name+'['+fiend.epidemy.plan_room.vnum+']';
-                            }
-                        }
-
-                        else
-                            str=str+' no victim';
-
-                    }
-
-
-                    result[demon.in_room.areaname].push_back(str);
-                }
-            }
-
-        return result;
-    };
     debug = function(mob,str) {
         if(!.buildplot || mob.epidemy.debug==null || mob.epidemy.debug==false)
         return;
@@ -295,7 +251,7 @@ odif yltsaeb~
     getPCname = function(ch) {
         var name;
         name = '';
-        if(ch==null || ch=='')
+        if(ch==null)
             return name;
 
         if(ch.is_npc()) {
