@@ -17,7 +17,12 @@
             //изчез куда-то гад!!!
             mob.epidemy.victims = null;
         } else {
-            if(vict.isAffected('protection evil') && .chance(90)) {
+            if(vict.in_room.room_flags&.tables.room_flags.safe){
+                //в safe не кусаемся
+                mob.act('Ты плотоядно поглядываешь на %1$C4.', vict);
+                mob.recho('%1$^C1 плотоядно поглядывает на %2$C4.', mob, vict);
+            } else if(vict.isAffected('protection evil') && .chance(95)) {
+                //защита от зла
                 mob.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
                 vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Защита светлых сил не даёт {Dтемным силам{x проникнуть в тебя!", mob);
                 mob.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Защита светлых сил не даёт {Dтёмным силам{x проникнуть в %2$C4!", mob, vict);
@@ -74,6 +79,8 @@
         infectedList.push_back(mob);
 
         mob = setInfectedTriggers(mob);
+        mob.act('{DТьма{x разливается по твоим венам.',mob);
+        mob.recho('{DТьма{x разливается по венам %1$C2.',mob);
     };
     transform = function(mob) {
         this = .tmp.epidemy;
