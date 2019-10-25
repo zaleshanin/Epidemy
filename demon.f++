@@ -3,7 +3,7 @@
 if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 this = .tmp.epidemy;
 
-    var add_demon_triggers, make_demon_list;/*, fillDemonTriggers;*/
+    var make_demon_list;
 
     if(demons==null) demons = .List();
     if(triggers==null) triggers = .Map();
@@ -23,8 +23,16 @@ this = .tmp.epidemy;
     get_one_demon = function(room,invader) {
         this = .tmp.epidemy;
 
-        if(demons.size()>=demon_list.size())
-            throw('epidemy: demon amount owerflow!');
+        if(demons.size()>=demon_list.size()) {
+            room.echo('...и ничего не произошло!');
+            throw('epidemy: demon amount owerflow! '+room.name+'['+room.vnum+']');
+        }
+        for(demon in demons) {
+            if(demon.in_room.areaname==room.areaname) {
+                room.echo('...и ничего не произошло!');
+                throw('epidemy: only one demon for '+room.areaname+'! '+room.name+'['+room.vnum+']');
+            }
+        }
 
         var demon;
         var demon_name;
