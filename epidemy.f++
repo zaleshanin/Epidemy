@@ -8,6 +8,40 @@
 
     if(infectedList==null) infectedList = .List();
 
+    bite = function(mob) {
+        debug(mob,'epidemy->bite: start');
+        //кусаем если есть кого
+        var vict;
+        vict = mob.epidemy.victims.random();
+        if(vict.dead || !vict.online || vict.in_room!=mob.in_room || vict.epidemy!=null){
+            //изчез куда-то гад!!!
+            mob.epidemy.victims = null;
+        } else {
+            if(vict.isAffected('protection evil') && .chance(90)) {
+                mob.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
+                vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Защита светлых сил не даёт {Dтемным силам{x проникнуть в тебя!", mob);
+                mob.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Защита светлых сил не даёт {Dтёмным силам{x проникнуть в %2$C4!", mob, vict);
+                mob.recho('Из пасти %1$^C2 валит дым. Существо корчится от боли и скулит.', mob);
+                mob.hit = mob.hit - (mob.max_hit/20 + 1);
+                if(mob.hit<0) {
+                    mob.raw_kill(-1,vict);
+                }
+            } else {
+                var protect_str;
+                protect_str='';
+                if(vict.isAffected('protection evil'))
+                    protect_str = ' даже несмотря на защиту светлых сил';
+                /*---некотролируемая эпидемия начинается здесь---*/
+                mob.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
+                vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя"+protect_str+"!", mob);
+                mob.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4"+protect_str+"!", mob, vict);
+                preInfect(vict,mob);//.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);}};
+                /*----------------------------------------------*/
+                mob.epidemy.victims.sub(vict);
+            }
+        }
+        return;
+    };
     preInfect = function(vict, ch) {
         var invaderName;
         if(vict.epidemy==null)
@@ -380,61 +414,6 @@
         }
     };
 
-    str_utterance = function(str) {
-        var new_str, tmp_str;
-
-        var syl_table;
-        syl_table = .Array();
-        syl_table[' '] = ' ';
-        syl_table['ar'] = 'abra';
-        syl_table['au'] = 'kada';
-        syl_table['bless'] = 'fido';
-        syl_table['blind'] = 'nose';
-        syl_table['bur'] = 'mosa';
-        syl_table['cu'] = 'judi';
-        syl_table['de'] = 'oculo';
-        syl_table['en'] = 'unso';
-        syl_table['light'] = 'dies';
-        syl_table['lo'] = 'hi';
-        syl_table['mor'] = 'zak';
-        syl_table['move'] = 'sido';
-        syl_table['ness'] = 'lacri';
-        syl_table['ning'] = 'illa';
-        syl_table['per'] = 'duda';
-        syl_table['ra'] = 'gru';
-        syl_table['fresh'] = 'ima';
-        syl_table['re'] = 'candus';
-        syl_table['son'] = 'sabru';
-        syl_table['tect'] = 'infra';
-        syl_table['tri'] = 'cula';
-        syl_table['ven'] = 'nofo';
-        syl_table['ust'] = 'lon';
-        syl_table['a'] = 'a'; syl_table['b'] = 'b'; syl_table['c'] = 'q'; syl_table['d'] = 'e';
-        syl_table['e'] = 'z'; syl_table['f'] = 'y'; syl_table['g'] = 'o'; syl_table['h'] = 'p';
-        syl_table['i'] = 'u'; syl_table['j'] = 'y'; syl_table['k'] = 't'; syl_table['l'] = 'r';
-        syl_table['m'] = 'w'; syl_table['n'] = 'i'; syl_table['o'] = 'a'; syl_table['p'] = 's';
-        syl_table['q'] = 'd'; syl_table['r'] = 'f'; syl_table['s'] = 'g'; syl_table['t'] = 'h';
-        syl_table['u'] = 'j'; syl_table['v'] = 'z'; syl_table['w'] = 'x'; syl_table['x'] = 'n';
-        syl_table['y'] = 'l'; syl_table['z'] = 'k';
-        syl_table[''] = ''; syl_table['-'] = '-';
-
-        tmp_str = str; new_str = '';
-        var len,i; i = 100;
-        for(len=tmp_str.size();len>0;len=tmp_str.size()) {
-            for(old in syl_table.keys){
-                if(old.strPrefix(tmp_str)) {
-                    new_str=new_str+syl_table[old];
-                    tmp_str=tmp_str.substr(old.size());
-                }
-            }
-            i=i-1;
-            if(i<=0)
-                return str;
-        }
-
-        return new_str;
-
-    };
 
     fillEmotes = function(){
         this = .tmp.epidemy;
@@ -543,36 +522,7 @@
             //собака-кусака!
             if(mob.epidemy.victims.size() && .chance(10)) {
                 debug(mob,'postSpec 9: собака-кусака');
-                //кусаем если есть кого
-                var vict;
-                vict = mob.epidemy.victims.random();
-                if(vict.dead || !vict.online || vict.in_room!=mob.in_room || vict.epidemy!=null){
-                    //изчез куда-то гад!!!
-                    mob.epidemy.victims = null;
-                } else {
-                    if(vict.isAffected('protection evil') && .chance(90)) {
-                        mob.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
-                        vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Защита светлых сил не даёт {Dтемным силам{x проникнуть в тебя!", mob);
-                        mob.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Защита светлых сил не даёт {Dтёмным силам{x проникнуть в %2$C4!", mob, vict);
-                        mob.recho('Из пасти %1$^C2 валит дым. Существо корчится от боли и скулит.');
-                        mob.hit = mob.hit - (mob.max_hit/20 + 1);
-                        if(mob.hit<0) {
-                            mob.raw_kill(-1,vict);
-                        }
-                    } else {
-                        var protect_str;
-                        protect_str='';
-                        if(vict.isAffected('protection evil'))
-                            protect_str = ' даже несмотря на защиту светлых сил';
-                        /*---некотролируемая эпидемия начинается здесь---*/
-                        mob.act("Повинуясь {Dтёмным силам{x внутри себя, ты кусаешь %1$C2!", vict);
-                        vict.act("Повинуясь {Dтёмным силам{x внутри себя, %1$C1 кусает тебя.{/Частичка {Dтемных сил{x проникает в тебя"+protect_str+"!", mob);
-                        mob.rvecho(vict,"%1$^C1, повинуясь {Dтёмным силам{x внутри себя, кусает %2$C4.{/Частичка {Dтёмных сил{x проникает в %2$C4"+protect_str+"!", mob, vict);
-                        preInfect(vict,mob);//.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);}};
-                        /*----------------------------------------------*/
-                        mob.epidemy.victims.sub(vict);
-                    }
-                }
+                bite(mob);
                 return;
             }
 
