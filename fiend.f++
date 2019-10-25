@@ -923,7 +923,7 @@
                                 victim = fiend.epidemy.victim;
                             }
 
-                            if(victim==null || victim.dead || victim.in_room!=fiend.in_room || victim.alignment<350) {
+                            if(victim==null || victim.dead || victim.in_room!=fiend.in_room || victim.alignment<350 || victim.epidemy!=null) {
                                 clearPlan(fiend);
                             } else {
                                 //2do не ввязываемся если у нас меньше 50% жизни
