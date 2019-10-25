@@ -184,7 +184,8 @@
 
         for( i=1 ; i<=total ; i=i+1 ) {
             m = l.back();
-            if(m.dead) {
+            if(m==null) continue;
+            if(m.dead || m.epidemy==null) {
                 infectedList.sub(m);
                 continue;
             } else if(m.in_room.areaname==mob.in_room.areaname) {
@@ -340,30 +341,43 @@
         }
     };
     explode_in_room = function(room) {
-        var l,i,c,m;
+        this = .tmp.epidemy;
         var ash;
-        //try {
-        room.ppl.forEach( function(){ act('Отвратительные существа вспыхивают темно-фиолетовым пламенем...');} );
+        try {
+        room.echo('Отвратительные существа вспыхивают темно-фиолетовым пламенем...');
+        for(mob in room.ppl) {
+            if(mob.dead) {
+                infectedList.sub(mob);
+                imps.sub(mob);
+            } else {
+                if(!mob.is_npc()
+                    || mob.epidemy==null) continue;
+                if(mob.epidemy.status==null) throw(.fmt('epidemy->explode_in_room(): %1$C1 %2$s[%3$d]',mob,room.name, room.vnum)+' incorrect epidemy structure (status==null)');
+                if(mob.epidemy.status!='imp' && mob.epidemy.status!='sick') continue;
+                if(mob.leader!=null && mob.leader.pet==mob) {
+                    //петов, так и быть, появление демона лечит (если они в этой комнате)
+                    room.echo('Частица {DТьмы{x вырывается из %1C1 наружу.',mob);
+                    heal(mob,null);
+                } else {
+                    if(mob.epidemy.status=='imp') {
+                        imps.sub(mob);
+                    } else {
+                        infectedList.sub(mob);
+                    }
+                    ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
+                    ash.obj_to_room(room);
+                    ash.timer = 5;
+                    ash.description = .fmt('Горсть пепла (ash) останков %1C2 лежит у твоих ног.', mob);
 
-        l = .tmp.epidemy.infectedList.clone();
-        c = l.size();
-        for(i=0;i<c;i=i+1){
-            m = l.back();
-            if(m.dead) {
-            .tmp.epidemy.infectedList.sub(m);
-            } else if(m.in_room==room && m.is_npc()){
-                ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
-                ash.obj_to_room(room);
-                ash.timer = 5;
-                ash.description = .fmt('Горсть пепла (ash) останков %1C2 лежит у твоих ног.', m);
+                    mob.extract(true);
+                }
 
-                m.extract(true);
             }
-            l.pop_back();
         }
-        /*} catch(e) {
-            .get_char_world('miyamoto').ptc("epidemy.explode_in_room: " + e);
-        }*/
+
+        } catch(e) {
+            catchMsg("epidemy.explode_in_room: " + e);
+        }
     };
 
     str_utterance = function(str) {
@@ -760,11 +774,14 @@
         //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         this=.tmp.epidemy;
         //выпиливаемся из списка
-        infectedList.sub(mob);
-
-        //отменяем план
-        if(mob.epidemy.plan!=null)
-            plan_cancel(mob);
+        if(mob.epidemy.status=='inverted')
+            invertedList.sub(mob);
+        else {
+            infectedList.sub(mob);
+            //отменяем план
+            if(mob.epidemy.plan!=null)
+                plan_cancel(mob);
+        }
 
         //вылупляем импа
         if(ch!=null && imp_list!=null && imp_list.size()>0
