@@ -37,6 +37,11 @@ odif yltsaeb~
 
     heal = function(mob, ch) {
         this = .tmp.epidemy;
+        if(mob.dead || mob.epidemy==null) {
+            infectedList.sub(mob);
+            invertedList.sub(mob);
+            return;
+        }
 
         plan_cancel(mob);
 
@@ -290,7 +295,7 @@ odif yltsaeb~
     getPCname = function(ch) {
         var name;
         name = '';
-        if(ch==null)
+        if(ch==null || ch=='')
             return name;
 
         if(ch.is_npc()) {
