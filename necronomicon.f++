@@ -20,7 +20,7 @@
         if(!(book.value1&.tables.container_flags.closed)) {
             //смотрим в открытую книгу.
             //Инвайдеры должны видеть ритуал.
-            if('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str)) {
+            if(('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && (!book.epidemy.isLorem  || ch.clan.name!='invader')) || ('ritual demon summon ритуал призыва демона Lorem lorem ipsum dolor sit amet лорем'.match('(^| )'+str) && book.epidemy.isLorem && ch.clan.name=='invader')) {
                 //смотрит инвайдер
                 if(ch.clan.name=='invader') {
                     ritual = 'На одной из страниц с изображением Демона в верхнем углу, ты можешь прочесть\n' +
@@ -102,45 +102,59 @@
                     result = 'Вся книга написана на странном, незнакомом тебе языке.\nЕдинственное, что ты можешь разобрать -  рисунки.  На  рисунках  преобладают\nизображения всевозможной нечисти. Однако встречаются и изображения  каких-то\nорганов, частей тела, растений, котлов. Возможно это просто поваренная книга\nдля желающих отведать экзотической кухни.';
 
                 }
-            } else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
-                aWk = .tmp.epidemy.get_wk_array(ch.name); //получаем список магов с нашими бумажками
-                if(aWk.size()==0 || book.epidemy.isLorem) {
-                    result  = 'Ты тщательно вглядываешся в рисунки на странице:\nИзображения темных магов выглядят потухшами и безжизненными.';
-                } else {
-                    //test
-                    /*if(aWk.size()==0) {
-                        throw('empty aWk\n');
-                    }*/
-
-                    result = 'Ты тщательно вглядываешь в изображение';
-                    //бумажка на руках
-                    if(aWk['found']=='carrier') {
-                        //наш маг из списка
-                        if(.tmp.epidemy.warlocks.has(aWk['link'])) {
-                            if(aWk['link'].act&.tables.act_flags.mage)
-                                result = result + ' {Dчернокнижника{x.\n';
-                            else if(aWk['link'].act&.tables.act_flags.necromancer)
-                                result = result + ' {Dнекроманта{x.\n';
-
-                            result = result + aWk['link'].description;
-
-                            result = result + '{DТемный маг{x';
-                        } else {
-                            result = result + ', но это не темный маг, а '
-                                + .fmt('%1$C1',aWk['link']) + '\n';
-
-                            result = result + .fmt('%1$C1',aWk['link']);
-                        }
-                        result = result + ' находится в месте под названием'
-                            +' "{W'+aWk['link'].in_room.name+'{x".';
+            }
+            else if(('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && book.epidemy.isLorem && ch.clan.name=='invader')){
+                result ='   Теперь, когда целостность книги востановлена, ты обращаешь внимание, что на\n' +
+                        '   заглавной странице имеется содержание.  Среди  пунктов  написаных  древними\n' +
+                        '   символами, ты можешь разобрать всего несколько пунктов:\n' +
+                        '       - Ритуал вызова Демонов "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x"\n' +
+                        '       - История Захвата Мира Захватчиками\n' +
+                        '       - Занимательная статистика Захвата Мира Захватчиками\n' +
+                        '\n' +
+                        '   На странице еще множество пунктов, но ты пока можешь прочесть только эти.\n' +
+                        '   Возможно когда-нибудь...';
+            }
+            else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
+                if(ch.clan.name=='invader') {
+                    aWk = .tmp.epidemy.get_wk_array(ch.name); //получаем список магов с нашими бумажками
+                    if(aWk.size()==0 || book.epidemy.isLorem) {
+                        result  = 'Ты тщательно вглядываешся в рисунки на странице:\nИзображения темных магов выглядят потухшами и безжизненными.';
+                    } else {
                         //test
-                        //+' ('+aWk['link'].in_room.vnum+')\n';
-                    }
-                    if(aWk['found']=='room') {
-                        result = result + ', но ты не видишь {Dтёмного мага{x.\n'
-                            + ' '+aWk['link'].description + '\n'
-                            + '{G     Клочок бумаги с магическими символами лежит здесь.{x';
+                        /*if(aWk.size()==0) {
+                            throw('empty aWk\n');
+                        }*/
 
+                        result = 'Ты тщательно вглядываешь в изображение';
+                        //бумажка на руках
+                        if(aWk['found']=='carrier') {
+                            //наш маг из списка
+                            if(.tmp.epidemy.warlocks.has(aWk['link'])) {
+                                if(aWk['link'].act&.tables.act_flags.mage)
+                                    result = result + ' {Dчернокнижника{x.\n';
+                                else if(aWk['link'].act&.tables.act_flags.necromancer)
+                                    result = result + ' {Dнекроманта{x.\n';
+
+                                result = result + aWk['link'].description;
+
+                                result = result + '{DТемный маг{x';
+                            } else {
+                                result = result + ', но это не темный маг, а '
+                                    + .fmt('%1$C1',aWk['link']) + '\n';
+
+                                result = result + .fmt('%1$C1',aWk['link']);
+                            }
+                            result = result + ' находится в месте под названием'
+                                +' "{W'+aWk['link'].in_room.name+'{x".';
+                            //test
+                            //+' ('+aWk['link'].in_room.vnum+')\n';
+                        }
+                        if(aWk['found']=='room') {
+                            result = result + ', но ты не видишь {Dтёмного мага{x.\n'
+                                + ' '+aWk['link'].description + '\n'
+                                + '{G     Клочок бумаги с магическими символами лежит здесь.{x';
+
+                        }
                     }
                 }
             }
