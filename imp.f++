@@ -230,8 +230,11 @@
     };
     triggers.impOnDeath = function(imp, ch) {
         this = .tmp.epidemy;
-        regStat(getPCname(ch), 'imp_slay');
-
+        ch = getChMaster(ch);
+        if(ch!=null){
+            regChar(ch);
+            regStat(ch.name, 'imp_slay');
+        }
         imps.sub(imp);
     };
 

@@ -19,6 +19,7 @@ odif yltsaeb~
     if(statistic==null) statistic = .Array();
     if(imps==null) imps = .List();
     if(triggers==null) triggers = .Map();
+    if(charNames==null) charNames = .Array();
 
     bookkeeper = .get_mob_index(761);
     necronomicon = .get_obj_index(732);
@@ -71,8 +72,10 @@ odif yltsaeb~
         invertedList.sub(mob); // ... из списка вывернутых
 
         mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
+        ch = getChMaster(ch);
         if(ch!=null) {
-            regStat(getPCname(ch),'heal');
+            regChar(ch);
+            regStat(ch.name,'heal');
         }
         }catch(e){catchMsg('epidemy->heal():'+e);}
     };
@@ -305,20 +308,42 @@ odif yltsaeb~
         else
             throw e;
     };
-    getPCname = function(ch) {
-        var name;
-        name = '';
-        if(ch==null)
-            return name;
+    getChMaster = function(ch) {
+        if(ch==null) return null;
 
         if(ch.is_npc()) {
             if(ch.leader!=null && !ch.leader.is_npc()) {
-                name = ch.leader.name;
+                return ch.leader;
             }
+            return null;
         } else {
-            name = ch.name;
+            return ch;
+        }
+    };
+    getPCname = function(name) {
+        this = .tmp.epidemy;
+
+
+        if(charNames[name]==null) {
+            var ch;
+            ch = .get_char_world(name);
+            if(ch==null) {
+                return name;
+            } else {
+                if(ch.russianName!='')
+                    charNames[name] = ch.russianName;
+                else
+                    charNames[name] = ch.name;
+            }
         }
 
-        return name;
+        return charNames[name];
+    };
+    regChar = function(ch) {
+        this = .tmp.epidemy;
+        if(charNames[ch.name]==null) {
+            if(ch.russianName=='') charNames[ch.name]=ch.name;
+            else charNames[ch.name] = ch.russianName;
+        }
     };
 })

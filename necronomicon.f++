@@ -14,15 +14,18 @@
         // поиск другого экстра-деска, иначе -- покажет то что мы вернули, и оборвет поиск.
         if(book.epidemy.isLorem==null)
             book.epidemy.isLorem=0;
+        this = .tmp.epidemy;
         var result, ritual, tstr;
         var cwk, aWk;
         result = '';
         if(!(book.value1&.tables.container_flags.closed)) {
             //смотрим в открытую книгу.
-            //Инвайдеры должны видеть ритуал.
-            if(('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && (!book.epidemy.isLorem  || ch.clan.name!='invader')) || ('ritual demon summon ритуал призыва демона Lorem lorem ipsum dolor sit amet лорем'.match('(^| )'+str) && book.epidemy.isLorem && ch.clan.name=='invader')) {
-                //смотрит инвайдер
-                if(ch.clan.name=='invader') {
+            if(ch.clan.name!='invader') {
+                if('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str)) {
+                    result = 'Вся книга написана на странном, незнакомом тебе языке.\nЕдинственное, что ты можешь разобрать -  рисунки.  На  рисунках  преобладают\nизображения всевозможной нечисти. Однако встречаются и изображения  каких-то\nорганов, частей тела, растений, котлов. Возможно это просто поваренная книга\nдля желающих отведать экзотической кухни.';
+                }
+            } else {
+                if(('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && !book.epidemy.isLorem) || ('ritual demon summon ритуал призыва демона Lorem lorem ipsum dolor sit amet лорем'.match('(^| )'+str) && book.epidemy.isLorem)) {
                     ritual = 'На одной из страниц с изображением Демона в верхнем углу, ты можешь прочесть\n' +
                         'описание ритуала написанного кровью (может и чернилами, но ты уверен что {rкровью{x): \n' +
                         '\n' +
@@ -98,25 +101,10 @@
                             }
                         }
                     }
-                } else {
-                    result = 'Вся книга написана на странном, незнакомом тебе языке.\nЕдинственное, что ты можешь разобрать -  рисунки.  На  рисунках  преобладают\nизображения всевозможной нечисти. Однако встречаются и изображения  каких-то\nорганов, частей тела, растений, котлов. Возможно это просто поваренная книга\nдля желающих отведать экзотической кухни.';
 
                 }
-            }
-            else if(('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && book.epidemy.isLorem && ch.clan.name=='invader')){
-                result ='   Теперь, когда целостность книги востановлена, ты обращаешь внимание, что на\n' +
-                        '   заглавной странице имеется содержание.  Среди  пунктов  написаных  древними\n' +
-                        '   символами, ты можешь разобрать всего несколько пунктов:\n' +
-                        '       - Ритуал вызова Демонов "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x"\n' +
-                        '       - История Захвата Мира Захватчиками\n' +
-                        '       - Занимательная статистика Захвата Мира Захватчиками\n' +
-                        '\n' +
-                        '   На странице еще множество пунктов, но ты пока можешь прочесть только эти.\n' +
-                        '   Возможно когда-нибудь...';
-            }
-            else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
-                if(ch.clan.name=='invader') {
-                    aWk = .tmp.epidemy.get_wk_array(ch.name); //получаем список магов с нашими бумажками
+                else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
+                    aWk = get_wk_array(ch.name); //получаем список магов с нашими бумажками
                     if(aWk.size()==0 || book.epidemy.isLorem) {
                         result  = 'Ты тщательно вглядываешся в рисунки на странице:\nИзображения темных магов выглядят потухшами и безжизненными.';
                     } else {
@@ -129,11 +117,11 @@
                         //бумажка на руках
                         if(aWk['found']=='carrier') {
                             //наш маг из списка
-                            if(.tmp.epidemy.warlocks.has(aWk['link'])) {
+                            if(warlocks.has(aWk['link'])) {
                                 if(aWk['link'].act&.tables.act_flags.mage)
-                                    result = result + ' {Dчернокнижника{x.\n';
-                                else if(aWk['link'].act&.tables.act_flags.necromancer)
-                                    result = result + ' {Dнекроманта{x.\n';
+                                result = result + ' {Dчернокнижника{x.\n';
+                            else if(aWk['link'].act&.tables.act_flags.necromancer)
+                                result = result + ' {Dнекроманта{x.\n';
 
                                 result = result + aWk['link'].description;
 
@@ -156,6 +144,37 @@
 
                         }
                     }
+                }
+                else if ('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && book.epidemy.isLorem) {
+                    result ='   Теперь, когда целостность книги востановлена, ты обращаешь внимание, что на\n' +
+                        '   заглавной странице имеется содержание.  Среди  пунктов  написаных  древними\n' +
+                        '   символами, ты можешь разобрать всего несколько пунктов:\n' +
+                        '       - Ритуал вызова Демонов "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x"\n' +
+                        '       - История Захвата Мира Захватчиками\n' +
+                        '       - Занимательная статистика Захвата Мира Захватчиками\n' +
+                        '\n' +
+                        '   На странице еще множество пунктов, но ты пока можешь прочесть только эти.\n' +
+                        '   Возможно когда-нибудь...';
+                }
+                else if('history история'.match('(^| )'+str) && book.epidemy.isLorem) {
+                    if(history.size()==0) {
+                        result = 'Страница пуста. ' +
+                            'Возможно, кто-то что-то должен сделать, чтоб вписать своё имя в Историю Захватчиков.\n' +
+                            'Может быть ты?\n';
+                    } else {
+                        result = 'Кажется, что записи на этой странице появляются сами собой.\n' +
+                            'Возможно и ты сможешь попасть в Историю.\n';
+                        for(h in history) {
+                            result = result + h.format(80) + '\n';
+                        }
+                        result = result + 'На этом записи обрываются. Возможно пришло время тебе дополнить Историю Захватчиков?';
+
+                    }
+                }
+                else if('statistic статистика'.match('(^| )'+str) && book.epidemy.isLorem) {
+                    result = showStat();
+                } else if ('epidemy эпидемия'.match('(^| )'+str) && book.epidemy.isLorem) {
+
                 }
             }
         }
@@ -407,6 +426,116 @@
 
         return result;
     };
+    showStat = function(){
+        this = .tmp.epidemy;
+        var result;
+        result = '';
+
+        if(statistic.size()==0) {
+            result = 'Страница пуста. ' +
+                'Возможно кто-то уже должен провести Ритуал.\n' +
+                'Может быть ты?';
+        } else {
+            var cc,header,ra;
+            var slen,i,s,maxlen;
+            ra = .Array();
+            cc = 0;
+            blank = '';
+            header = '            | эпидемий |  демонов |  исчадий |   чертят | одержимых|    убито | обращено |\n' +
+                '------------+----------+----------+----------+----------+----------+----------+----------|';
+            for(key in .List().add('epidemy start','demon','fiend','imp','infect','fiend_kill','demon_invert')) {
+                if(statistic[key]==null) continue;
+                for(name in statistic[key].keys) {
+                    if(ra[name]==null) {
+                        ra[name]=.fmt('%1$^N1',getPCname(name));
+                        slen = 11 - ra[name].size();
+
+                        for(i=0;i<slen;i=i+1) {
+
+                            ra[name] = ' ' + ra[name];
+                        }
+                        ra[name] = ra[name]+' |';
+                        for(i=0;i<cc;i=i+1) {
+                            ra[name] = ra[name]+'          |';
+                        }
+                    }
+                    s = ''+statistic[key][name];
+                    slen = 9 - s.size();
+                    for(i=0;i<slen;i=i+1) {
+                        ra[name] = ra[name] + ' ';
+                    }
+                    ra[name] = ra[name] + s + ' |';
+                    maxlen = ra[name].size();
+
+                }
+                cc = cc+1;
+                for(name in ra.keys) {
+                    slen = maxlen - ra[name].size();
+                    for(i=0;i<slen;i=i+1) {
+                        if(i==10) {
+                            ra[name]= ra[name]+'|';
+                        } else {
+                            ra[name]= ra[name]+' ';
+                        }
+                    }
+                }
+
+            }
+            result = result + header+'\n';
+            for(name in ra.keys) {
+                result = result + ra[name] + '\n';
+            }
+            result = result + '\n';
+
+            var keysArray,keysList;
+            keysList=.List().add('demon_slay','fiend_slay','imp_slay','heal','imp_create');
+            keysArray=.Array();
+            keysArray['demon_slay']='Убийцы демонов';
+            keysArray['fiend_slay']='Убицы исчадией';
+            keysArray['imp_slay']='Убийцы чертят';
+            keysArray['heal']='Экзорцисты';
+            keysArray['imp_create']='{DУбийцы одержимых - освободители бесят/чертят{x';
+            ra = .Array();
+            for(key in keysList){
+                if(statistic[key]==null) continue;
+                if(ra[key]==null) {
+                    ra[key]=.Array();
+                }
+                for(name in statistic[key].keys) {
+                    if(ra[key][statistic[key][name]]==null) {
+                        ra[key][statistic[key][name]] = .List();
+                    }
+                    ra[key][statistic[key][name]].push_back(getPCname(name));
+                }
+            }
+
+            var names;
+            for(key in keysList) {
+                if(ra[key]==null) continue;
+                result = result+keysArray[key]+':\n';
+                for(num in ra[key].keys){
+                    slen = 4 - (''+num).size();
+                    for(i=0;i<=slen;i=i+1) {
+                        result = result + ' ';
+                    }
+                    result = result+num+': ';
+                    names = '';
+                    for(name in ra[key][num]) {
+                        if(names.size()>0)
+                            names = names + ', ' + name;
+                        else
+                            names = name;
+                    }
+                    result = result+names+'\n';
+                }
+                result = result+'\n';
+            }
+
+        }
+
+
+        return result;
+    };
 
     triggers.roseOnUse = function(rose, ch, str) {
         try{
@@ -438,9 +567,14 @@
             ch.recho("%1$^C1 взмахивает %3$O5, и она, преврашившись в {Dчёрный дым{x, проникает внутрь %2$C2!", ch, target, rose);
             rose.extract(true);
             //а вот тут заражаем!
+
             preInfect(target,ch);//target.postSpec = function(){.tmp.epidemy.infect(rose);};
-            regStat(ch.name,'epidemy start');
-            regHistory(.fmt('в месте называемом %3$s, %1$^C1 посеял%1$Gо||а зерно {DТьмы{x в %2$C4',ch,target,ch.in_room.areaname));
+            ch = getChMaster(ch);
+            if(ch!=null){
+                regChar(ch);
+                regStat(ch.name,'epidemy start');
+                regHistory(.fmt('в месте называемом %3$s, %1$^C1 посеял%1$Gо||а зерно {DТьмы{x в %2$C4',ch,target,ch.in_room.areaname));
+            }
         }
         return true;
         }catch(e){

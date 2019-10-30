@@ -1008,8 +1008,12 @@
 
         onDeath = function(fiend,ch) {
             this=.tmp.epidemy;
-            regStat(getPCname(ch), 'fiend_slay');
-        };
+            ch = getChMaster(ch);
+            if(ch!=null)
+            regChar(ch);
+            regStat(ch.name, 'fiend_slay');
+
+                    };
 
         onExtract = function(fiend, count) {
 
