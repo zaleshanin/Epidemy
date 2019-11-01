@@ -61,7 +61,7 @@
             if(imp.epidemy==null) throw('imp:NO epidemy Map\n');
 
             if(imp.epidemy.victims==null) {
-                imp.epidemy.victims = getVictims(imp);
+                getVictims(imp);
             }
             if(imp.epidemy.cowards==null) {
                 imp.epidemy.cowards = getCowards(imp);
