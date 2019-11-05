@@ -339,10 +339,12 @@
             //оказалось, еще и клочки нужно уничтожить...
             var piecesList;
             piecesList = .List();
-            for(piece in .tmp.epidemy.piece.instances) {
-                if(piece.epidemy!=null && piece.epidemy.ownerName!=null
-                    && piece.epidemy.ownerName==book.epidemy.ownerName) {
-                    piecesList.push_back(piece);
+            if(book.epidemy.isLorem) {
+                for(piece in .tmp.epidemy.piece.instances) {
+                    if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+                        && piece.epidemy.ownerName==book.epidemy.ownerName) {
+                        piecesList.push_back(piece);
+                    }
                 }
             }
 

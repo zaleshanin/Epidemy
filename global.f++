@@ -36,49 +36,6 @@ odif yltsaeb~
     Zaleshanin = .get_char_world('zaleshanin');
 */
 
-    heal = function(mob, ch) {
-        this = .tmp.epidemy;
-        try{
-        if(mob.dead || mob.epidemy==null) {
-            infectedList.sub(mob);
-            invertedList.sub(mob);
-            return;
-        }
-
-        mob.affectStrip(epidemy_affect.type);
-
-        if(mob.epidemy.status!=null && mob.epidemy.status=='sick')
-            plan_cancel(mob);
-
-        //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
-        if(mob.epidemy.name!=null) {
-            mob.name = mob.epidemy.name;
-            mob.short_descr = mob.epidemy.short_descr;
-            mob.long_descr = mob.epidemy.long_descr;
-            mob.description = mob.epidemy.description;
-            mob.alignment = mob.epidemy.alignment;
-        }
-
-        mob.postSpec = null;
-        mob.onGreet = null;
-        mob.onEntry = null;
-        mob.onLeave = null;
-        mob.onSpell = null;
-        mob.onDeath = null;
-        mob.onExtract = null;
-        mob.epidemy = null;
-
-        infectedList.sub(mob); //выпиливаем из списка зараженных
-        invertedList.sub(mob); // ... из списка вывернутых
-
-        mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
-        ch = getChMaster(ch);
-        if(ch!=null) {
-            regChar(ch);
-            regStat(ch.name,'heal');
-        }
-        }catch(e){catchMsg('epidemy->heal():'+e);}
-    };
     healall = function() {
         this = .tmp.epidemy;
 

@@ -161,7 +161,7 @@
             for(i=0;i<s;i=i+1) {
                 m = inst_list.back();
                 inst_list.pop_back();
-                if(m.in_room.isCommon() && m.alignment>=350) {
+                if(!(m.in_room.room_flags&.tables.room_flags.safe) && m.in_room.isCommon() && m.alignment>=350) {
                     tmp_list.push_back(m);
                 }
             }
@@ -926,6 +926,10 @@
                             if(victim==null || victim.dead || victim.in_room!=fiend.in_room || victim.alignment<350 || victim.epidemy!=null) {
                                 clearPlan(fiend);
                             } else {
+                                if(victim.in_room.room_flags&.tables.room_flags.safe) {
+                                    clearPlan(fiend);
+                                    return;
+                                }
                                 //2do не ввязываемся если у нас меньше 50% жизни
                                 fiend.interpret('yell '+get_phrase(fiend,victim));
                                 fiend.multi_hit(victim);
@@ -1312,7 +1316,7 @@
         fiends_names[34] = .List(); fiends_names[34].add('Alyonushka','Ivanushka');
         fiends_names_descr['Alyonushka'] = 'Алёнушк|а|и|е|у|ой|е';
         fiends_names_descr['Ivanushka'] = 'Иванушк|а|и|е|у|ой|е';
-        fiends_names[35] = .List(); fiends_names[34].add('Jekyll','Hyde');
+        fiends_names[35] = .List(); fiends_names[35].add('Jekyll','Hyde');
         fiends_names_descr['Jekyll'] = 'Джекил||а|у|а|ом|е';
         fiends_names_descr['Hyde'] = 'Хайд||а|у|а|ом|е';
 /*

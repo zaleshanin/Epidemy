@@ -51,6 +51,77 @@
         }
         return;
     };
+    getVictims = function(mob) {
+        this = .tmp.epidemy;
+        debug(mob,'getVictims');
+        mob.epidemy.helpers = .List();
+        mob.epidemy.healers = .List();
+        mob.epidemy.victims = .List();
+
+        for(vict in mob.in_room.ppl) {
+            if(vict==mob) continue;
+            if(!vict.is_npc()) continue;
+            if(vict.epidemy!=null) continue;
+
+            if(vict.size <= mob.size //малышей кусь
+                || (vict.leader!=null && vict.leader.pet==vict)) { //петов кусь
+                mob.epidemy.victims.push_back(vict);
+            }
+            if(vict.alignment>=350) {
+                if(vict.hasOccupation('healer') || vict.pIndexData.vnum==8901) {
+                    mob.epidemy.healers.push_back(vict);
+                    break;
+                }
+                mob.epidemy.helpers.push_back(vict);
+            }
+        }
+        return true;
+    };
+    heal = function(mob, ch) {
+        this = .tmp.epidemy;
+        try{
+            if(mob.dead || mob.epidemy==null) {
+                infectedList.sub(mob);
+                invertedList.sub(mob);
+                return;
+            }
+
+            mob.affectStrip(epidemy_affect.type);
+
+            if(mob.epidemy.status!=null && mob.epidemy.status=='sick')
+                plan_cancel(mob);
+
+            //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
+            if(mob.epidemy.name!=null) {
+                mob.name = mob.epidemy.name;
+                mob.short_descr = mob.epidemy.short_descr;
+                mob.long_descr = mob.epidemy.long_descr;
+                mob.description = mob.epidemy.description;
+                mob.alignment = mob.epidemy.alignment;
+                mob.off_flags = .unset_bit(mob.off_flags,.tables.off_flags.assist_align);
+                mob.off_flags = .set_bit(mob.off_flags,mob.epidemy.off_flags);
+            }
+
+            mob.postSpec = null;
+            mob.onGreet = null;
+            mob.onEntry = null;
+            mob.onLeave = null;
+            mob.onSpell = null;
+            mob.onDeath = null;
+            mob.onExtract = null;
+            mob.epidemy = null;
+
+            infectedList.sub(mob); //выпиливаем из списка зараженных
+            invertedList.sub(mob); // ... из списка вывернутых
+
+            mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
+            ch = getChMaster(ch);
+            if(ch!=null) {
+                regChar(ch);
+                regStat(ch.name,'heal');
+            }
+        }catch(e){catchMsg('epidemy->heal():'+e);}
+    };
     preInfect = function(vict, ch) {
         var invaderName;
         if(vict.epidemy==null)
@@ -100,32 +171,6 @@
         }catch(e) {
             throw('->transform:'+e);
         }
-    };
-    getVictims = function(mob) {
-        this = .tmp.epidemy;
-        debug(mob,'getVictims');
-        mob.epidemy.helpers = .List();
-        mob.epidemy.healers = .List();
-        mob.epidemy.victims = .List();
-
-        for(vict in mob.in_room.ppl) {
-            if(vict==mob) continue;
-            if(!vict.is_npc()) continue;
-            if(vict.epidemy!=null) continue;
-
-            if(vict.size <= mob.size //малышей кусь
-                || (vict.leader!=null && vict.leader.pet==vict)) { //петов кусь
-                mob.epidemy.victims.push_back(vict);
-            }
-            if(vict.alignment>=350) {
-                if(vict.hasOccupation('healer') || vict.pIndexData.vnum==8901) {
-                    mob.epidemy.healers.push_back(vict);
-                    break;
-                }
-                mob.epidemy.helpers.push_back(vict);
-            }
-        }
-        return true;
     };
     evert = function(mob) {
         try{
@@ -203,15 +248,15 @@
             mob.epidemy.alignment = mob.alignment;
             mob.alignment = -1000;
 
+            mob.epidemy.off_flags = 0;
+            for(assist_flag in .List().add(.tables.off_flags.assist_all,.tables.off_flags.assist_align,.tables.off_flags.assist_race,.tables.off_flags.assist_players,.tables.off_flags.assist_guard,.tables.off_flags.assist_vnum)) {
+                if(mob.off_flags&assist_flag) {
+                    mob.off_flags = .unset_bit(mob.off_flags,assist_flag);
+                    mob.epidemy.off_flags = .set_bit(mob.epidemy.off_flags,assist_flag);
+                }
+            }
+            mob.off_flags = .set_bit(mob.off_flags,.tables.off_flags.assist_align);
 
-/*
-            assist_all: assist_all
-            assist_align: assist_align
-            assist_race: assist_race
-            assist_players: assist_players
-            assist_guard: assist_guard
-            assist_vnum: assist_vnum
-*/
             return mob;
         }catch(e){throw('->evert:'+e);}
     };
@@ -519,7 +564,7 @@
                     debug(mob,'infectedPostSpec: healer meet infected');
                     var healer;
                     healer = mob.epidemy.healers.random();
-                    healer.spell('heal',healer.level,mob);
+                    healer.spell('heal',healer.level,mob,true,true);
                     return;
                 }
             }
@@ -574,7 +619,7 @@
                         .tmp.quest.sleep(1, mob, healer);
                         healer.say('Что ж, похоже у нас еще од%1$Gно|ин|на одержим%1$Gое|ый|ая.',mob);
                         .tmp.quest.sleep(1, mob, healer);
-                        healer.spell('dispel evil',healer.level,mob);
+                        healer.spell('dispel evil',healer.level,mob,true,true);
                         healer.epidemy = null;
                         return;
                     } else if(mob.leader!=null && mob.leader.pet==mob && mob.leader.in_room==mob.in_room) {
