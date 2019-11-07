@@ -100,9 +100,11 @@ odif yltsaeb~
         history.push_back(.fmt('%1$d %2$s, %3$d'+'-й день месяца %4$s, года %5$d, %6$s.',
             hour, hours[.sunlight], (.day+1), months[.month], .year, str));
     };
-    show = function(ch){
+    show = function(){
         this = .tmp.epidemy;
         var res,res_str;
+        var result;
+        result = '';
         res = .Array();
 
         for(demon in .tmp.epidemy.demons){
@@ -184,14 +186,15 @@ odif yltsaeb~
         }
 
         for(area in res.keys) {
-            ch.ptc(area+':\n');
+            result = result + (area+':\n');
             for(status in res[area].keys) {
-                ch.ptc('   - '+status+':\n');
+                result = result + ('   - '+status+':\n');
                 for(str in res[area][status]){
-                    ch.ptc('      '+str+'\n');
+                    result = result + ('      '+str+'\n');
                 }
             }
         }
+        return result;
     };
     debug = function(mob,str) {
         if(!.buildplot || mob.epidemy.debug==null || mob.epidemy.debug==false)
