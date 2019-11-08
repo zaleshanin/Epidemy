@@ -52,6 +52,33 @@ odif yltsaeb~
         }
     };
 
+    colligendi = function(demon) {
+        var coligendi;
+        coligendi = demon.epidemy.fiends.clone();
+        coligendi.push_front(demon);
+        var door_opened;
+        for(mob in coligendi) {
+            door_opened = false;
+            if(mob.epidemy.coligendi==null) {
+                mob.in_room.echo('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
+                door_opened=true;
+            } else {continue;}
+            for(m in mob.in_room.ppl) {
+                if(!m.is_npc()) continue;
+                if(coligendi.has(m)) {
+                    m.act('Исполнив свой долг, ты шагаешь во врата преисподней.');
+                    m.recho('Исполнив свой долг, %1$C1 шагает во врата преисподней.',m);
+                    m.epidemy.coligendi = true;
+                }
+            }
+            if(door_opened)
+                mob.in_room.echo('...врата со скрипом и грохотом затворяются. Вопли истязаемых душ стихают.');
+        }
+        for(vict in coligendi) {
+            vict.extract(true);
+        }
+    };
+
     regStat = function(chName,str) {
         if(chName==null || chName=='') {
             return;
