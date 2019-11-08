@@ -9,14 +9,13 @@
 
     this = .tmp.epidemy;
 
-    triggers.wkOnDeath = function (ch) {
-        .tmp.epidemy.clearWarlock(this);
-        return false;
+    triggers.wkOnDeath = function (wrlk) {
+        .tmp.epidemy.clearWarlock(wrlk);
     };
-    triggers.wkOnExtract = function(count) {
-        .tmp.epidemy.clearWarlock(this);
+    triggers.wkOnExtract = function(wrlk) {
+        .tmp.epidemy.clearWarlock(wrlk);
     };
-    triggers.wkPostGreet = function(ch) {
+    triggers.wkPostGreet = function(wrlk, ch) {
             try {
                 var piece;
 
@@ -24,40 +23,44 @@
                 if(.tmp.epidemy.books[ch.name]==null) //|| ch.clan.name!='invader'
                 return;
 
-                piece = epidemy.pieces[ch.name];
+                if(wrlk.epidemy.pieces[ch.name]==null)
+                    return;
+
+                piece = wrlk.epidemy.pieces[ch.name];
+
                 //почему-то кусок не у меня
-                if(piece.carried_by!=this) {
+                if(piece.carried_by != wrlk) {
                     //можно спалить кусок и наказать вора
                     //можно сказать где кусок сейчас
                     //пока просто вернём кусок на место
                     piece.carried_by.act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', piece);
-                    piece.obj_to_char(this);
+                    piece.obj_to_char(wrlk);
                 }
 
                 //     .scheduler.sleep(2);
                 // if(ch.in_room==in_room)
 
-                .tmp.quest.sleep(1, this, ch);
+                .tmp.quest.sleep(1, wrlk, ch);
 
-                ch.act("%1$^C1 говорит тебе '{G%2$^C1, у меня для тебя кое что есть!{x'",this,ch);
+                ch.act("%1$^C1 говорит тебе '{G%2$^C1, у меня для тебя кое что есть!{x'",wrlk,ch);
 
                 // .scheduler.sleep(4);
                 //     if(ch.in_room==in_room) {
 
-                .tmp.quest.sleep(1, this, ch);
+                .tmp.quest.sleep(1, wrlk, ch);
 
                 piece.obj_to_char(ch);
-                ch.act("%1$^C1 с осторожностью передаёт тебе тебе %2$O4.", this, piece);
-                epidemy.pieces[ch.name]=null;
-                if(epidemy.pieces.keys.size()==0) {
-                    .tmp.epidemy.clearWarlock(this);
+                ch.act("%1$^C1 с осторожностью передаёт тебе тебе %2$O4.", wrlk, piece);
+                wrlk.epidemy.pieces[ch.name]=null;
+                if(wrlk.epidemy.pieces.keys.size()==0) {
+                    .tmp.epidemy.clearWarlock(wrlk);
                 }
 
                 // }
 
 
             } catch (e) {
-            .tmp.epidemy.catchMsg(e);
+                .tmp.epidemy.catchMsg(e);
             }
 
         };
@@ -68,12 +71,16 @@
             mage.epidemy.pieces = .Array(); //[char]=piece
         }
         //заносим в списочек
-        .tmp.epidemy.warlocks.push_back(mage);
+        if(!.tmp.epidemy.warlocks.has(mage))
+            .tmp.epidemy.warlocks.push_back(mage);
 
         //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
-        mage.onDeath = .tmp.epidemy.triggers.wkOnDeath;
-        mage.onExtract = .tmp.epidemy.triggers.wkOnExtract;
-        mage.postGreet = .tmp.epidemy.triggers.wkPostGreet;
+        mage.onDeath = function(ch) {
+            .tmp.epidemy.triggers.wkOnDeath(this);
+            return false;
+        };
+        mage.onExtract = function(count){.tmp.epidemy.triggers.wkOnExtract(this);};
+        mage.postGreet = function(ch){.tmp.epidemy.triggers.wkPostGreet(this,ch);};
 
 
         return mage;
@@ -83,6 +90,10 @@
         //выпиливаемся из списка
         .tmp.epidemy.warlocks.sub(mage);
     };
+
+    for(wk in .tmp.epidemy.warlocks) {
+        Warlock(wk);
+    }
 
 
 })
