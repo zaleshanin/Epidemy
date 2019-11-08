@@ -529,11 +529,9 @@
         return false;
     };
     wear_item = function(mob,t,item,replaced) {
-    .scheduler.sleep(1);
+    .scheduler.sleep(1); if(mob.dead) throw('wear_item(): mob is dead');
 
-        if(mob.dead
-            || (t.conteiner!=null && t.conteiner.dead)
-            || (item.dead)){
+        if((t.conteiner!=null && t.conteiner.dead) || (item.dead)){
             return false;
         }
         //подбираем или достаем из контейнера
@@ -542,9 +540,7 @@
 
         //снимаем и выбрасываем, если экипирован
         if(replaced!=null) {
-        .scheduler.sleep(1);
-            if(mob.dead) return false;
-
+        .scheduler.sleep(1); if(mob.dead) throw('wear_item(): mob is dead');
             //если уже не экипировано (н-р: разоружили) пропускаем
             if(mob.get_eq_char(t.wear_loc)!=null) {
                 mob.recho(t.remove_msg, mob, replaced);
@@ -554,8 +550,7 @@
                 }
             }
 
-        .scheduler.sleep(1);
-            if(mob.dead) return false;
+        .scheduler.sleep(1); if(mob.dead) throw('wear_item(): mob is dead');
             //выбрасываем если это еще у нас
             if(mob.inventory.has(replaced)) {
                 mob.recho(t.drop_msg, mob, replaced);
@@ -563,8 +558,7 @@
             }
         }
 
-    .scheduler.sleep(1);
-        if(mob.dead) return;
+    .scheduler.sleep(1); if(mob.dead) throw('wear_item(): mob is dead');
         //одеваем если у нас в инвентаре
         if(mob.inventory.has(item)) {
             if(mob.get_eq_char(t.wear_loc)==null) {
@@ -579,7 +573,7 @@
             return false;
         }
 
-    .scheduler.sleep(1);
+    .scheduler.sleep(1); if(mob.dead) throw('wear_item(): mob is dead');
         return true;
     };
     scavenge = function(mob,items,corpse) {
@@ -1336,3 +1330,16 @@
     fill_fiends_phrases();
     fill_fiend_triggers(Fiend);
 })
+
+/*
+0                       зомби (                     зомби)
+1                  меняющийся (                меняющаяся)
+2                        змей (                      змея)
+3                        черт (                      черт)
+4                       демон (                     демон)
+5                      смерть (                    смерть)
+6                черный ангел (              черный ангел)
+7                  князь тьмы (              княгиня тьмы)
+8                   властелин (            властительница)
+
+* */
