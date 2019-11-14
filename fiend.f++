@@ -277,7 +277,7 @@
                             //вычеркиваем из списка демона если демон еще жив
                             if(!fiend.epidemy.demon.dead)
                                 fiend.epidemy.demon.epidemy.victimsVnums.sub(fiend.epidemy.victim.pIndexData.vnum);
-                            if(fiend.epidemy.snd!=null
+                            if(fiend.epidemy.snd!=null && fiend.epidemy.snd.epidemy!=null && fiend.epidemy.snd.epidemy.victim!=null
                                 && fiend.epidemy.snd.epidemy.victim==fiend.epidemy.victim) {
                                 //вычеркиваем у напарника
                                 fiend.epidemy.snd = null;
@@ -966,6 +966,7 @@
             fiend.epidemy.last_room_looted=null;
             fiend.epidemy.plan=null;
             regStat(fiend.epidemy.invader,'fiend_kill');
+            check_reward(fiend.epidemy.invader,'fiend_kill');
             if(!fiend.epidemy.demon.dead) {
                 if(fiend.epidemy.demon.epidemy.fiend_kill_count==null)
                     fiend.epidemy.demon.epidemy.fiend_kill_count=0;
@@ -1007,11 +1008,12 @@
         onDeath = function(fiend,ch) {
             this=.tmp.epidemy;
             ch = getChMaster(ch);
-            if(ch!=null)
-            regChar(ch);
-            regStat(ch.name, 'fiend_slay');
-
-                    };
+            if(ch!=null) {
+                regChar(ch);
+                regStat(ch.name, 'fiend_slay');
+                check_reward(ch.name, 'fiend_slay');
+            }
+        };
 
         onExtract = function(fiend, count) {
 
@@ -1029,6 +1031,7 @@
                 fiend.epidemy.demon.epidemy.fiends.sub(fiend);
                 fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]=fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]-1;
             }
+            .tmp.epidemy.check_stop();
         };
 
         onArea = function(fiend) {

@@ -17,9 +17,12 @@ odif yltsaeb~
     if(books==null) books=.Array();
     if(demons==null) demons=.List();
     if(statistic==null) statistic = .Array();
+    if(statistic_total==null) statistic_total = .Array();
     if(imps==null) imps = .List();
     if(triggers==null) triggers = .Map();
     if(charNames==null) charNames = .Array();
+    if(reward==null) reward= .Array();
+    if(reward_final==null) reward_final = .Array();
 
     bookkeeper = .get_mob_index(761);
     necronomicon = .get_obj_index(732);
@@ -88,9 +91,9 @@ odif yltsaeb~
             statistic[str]=.Array();
 
         if(statistic[str][chName]==null)
-            statistic[str][chName]=1;
-        else
-            statistic[str][chName]=statistic[str][chName]+1;
+            statistic[str][chName]=0;
+
+        statistic[str][chName]=statistic[str][chName]+1;
     };
     regHistory = function(str) {
         this = .tmp.epidemy;
@@ -226,8 +229,12 @@ odif yltsaeb~
     debug = function(mob,str) {
         if(!.buildplot || mob.epidemy.debug==null || mob.epidemy.debug==false)
         return;
-
-    .get_char_world('miyamoto').act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
+        var ch;
+        ch = .get_char_world('miyamoto');
+        if(ch==null)
+            ch = .get_char_world('zaleshanin');
+        if(ch!=null)
+            ch.act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
     };
     str_utterance = function(str) {
         var new_str, tmp_str;
@@ -327,10 +334,461 @@ odif yltsaeb~
         return charNames[name];
     };
     regChar = function(ch) {
+        if(ch==null) return;
         this = .tmp.epidemy;
         if(charNames[ch.name]==null) {
             if(ch.russianName=='') charNames[ch.name]=ch.name;
             else charNames[ch.name] = ch.russianName;
         }
     };
+
+    start = function()    {
+        .tmp.epidemy.running=true;
+        .tmp.gquest.notifiers["epidemy"] = function() {
+            act("{yТы можешь принять участие в борьбе с распространением {Y\"Эпидемии {DЗахватчиков{Y\"{y. (подробности по команде {Y{hcgq info{x{y){x");
+            .tmp.epidemy.rewarding(this);
+            return true;
+        };
+
+        .tmp.gquest.progressers["epidemy"] = function() {
+            var keysArray;
+            act("{yБорьба с распространением {Y\"Эпидемии {DЗахватчиков{Y\"{x");
+
+            keysArray=.Array();
+            keysArray['demon_slay']='Убийцы демонов';
+            keysArray['fiend_slay']='Убицы исчадией';
+            keysArray['imp_slay']='Убийцы чертят';
+            keysArray['heal']='Экзорцисты';
+            for(key in keysArray.keys) {
+                if(.tmp.epidemy.statistic[key]==null) continue;
+
+                if(.tmp.epidemy.statistic[key].keys.size()>0)
+                    act("{Y%s:",keysArray[key]);
+                for(name in .tmp.epidemy.statistic[key].keys) {
+                    act("  {y%-15s{Y %-4d{x", name, .tmp.epidemy.statistic[key][name]);
+                }
+            }
+            return true;
+        };
+
+        .tmp.gquest.informers["epidemy"] = function() {
+        try {
+            var keysArray;
+            var str;
+            var areaList;
+
+            act("{Y\"Эпидемия {DЗахватчиков{Y\"{x");
+            if(clan.name=='invader') {
+                act("{yТвоим кланом {DЗахватчиков{y был проведен ритуал из гримуара \"{DНекрономикон{y\", и в\n" +
+                    "Мир проникло древнее {DЗло{y, уничтожающее всё доброе. Герои пытаются остановить\n" +
+                    "\"эпидемию\" и уничтожить прибаывающих Демонов и их  Легионы.  Сможешь  ли  ты\n" +
+                    "помочь Злу захватить этот Мир?");
+                if(.tmp.epidemy.Demon.instances.size()>0) {
+                    areaList=.List();
+                    str='';
+                    if(.tmp.epidemy.Demon.instances.size()==1)
+                        str='{yДемон уже появился в:';
+                    else
+                        str='{yДемоны уже появились в:';
+                    for(demon in .tmp.epidemy.Demon.instances) {
+                        if(areaList.has(demon.in_room.areaname)) continue;
+                        if(areaList.size()>0)
+                            str=str+'{y,';
+                        areaList.push_back(demon.in_room.areaname);
+                        str=str+' {Y'+demon.in_room.areaname;
+                    }
+                    act(str+'{y.{x');
+                }
+                if(.tmp.epidemy.infectedList.size()>0) {
+                    areaList=.Array();
+                    for(mob in .tmp.epidemy.infectedList){
+                        if(mob.dead || !mob.online) continue;
+                        if(areaList[mob.in_room.areaname]==null)
+                            areaList[mob.in_room.areaname]=0;
+                        areaList[mob.in_room.areaname]=areaList[mob.in_room.areaname]+1;
+                    }
+                    if(areaList.keys.size()==1) {
+                        act('{yВ месте под названием {Y%1$s{y уже {Y%2$d{y одержим%2$Iый|ых|ых.{x'
+                            ,areaList.keys.front()
+                            ,areaList[areaList.keys.front()]);
+                    } else if (areaList.keys.size()<=10) {
+                        act('{yОдержимые уже имеются в следующих местах:{x');
+                        for(area in areaList.keys) {
+                            act('{Y  %15s{y:   %3d{x',area,areaList[area]);
+                        }
+                    }
+                }
+            }
+            else{
+                act("{yКлан {DЗахватчиков{y провел древний ритуал из гримуара \"{DНекрономикон{y\", и  Мир\n" +
+                    "заполонила нечисть, пытающаяся обратить всё {Wдоброе{y в  {Dзлое{y.  Найдутся  ли\n" +
+                    "в мире Герои способные  остановить  \"эпидемию\"  и  уничтожить  призванное\n" +
+                    "{DЗахватчиками Зло{y? Покажи на сколько ты \"{Wбелый и пушистый{y\"! Помоги {WРыцарям{y\n" +
+                    "очистить землю от скверны!{x");
+                //где искать:
+                var res; res=.Array();
+                var lists; lists=.Array();
+                lists['demon']=.List().add(.tmp.epidemy.demons);
+                lists['fiend']=.List().add(.tmp.epidemy.Fiend.instances);
+                lists['imp']=.List().add(.tmp.epidemy.imps);
+                lists['obsessed']=.List().add(.tmp.epidemy.infectedList,.tmp.epidemy.invertedList);
+
+                for(key in lists.keys){
+                    for(list in lists[key]) {
+                        for(mob in list) {
+                            if(mob.dead || !mob.online) continue;
+                            if(res[mob.in_room.areaname]==null){
+                                res[mob.in_room.areaname]=.Array();
+                            }
+                            if(res[mob.in_room.areaname][key]==null)
+                                res[mob.in_room.areaname][key]=0;
+                            res[mob.in_room.areaname][key]=res[mob.in_room.areaname][key]+1;
+                            if(res[mob.in_room.areaname]['count']==null)
+                                res[mob.in_room.areaname]['count']=0;
+                            res[mob.in_room.areaname]['count']=res[mob.in_room.areaname]['count']+1;
+                        }
+                    }
+                }
+                var areasCounts; areasCounts=.Array();
+                for(area in res.keys) {
+                    if(areasCounts[res[area]['count']]==null)
+                        areasCounts[res[area]['count']]=.List().add(area);
+                else
+                    areasCounts[res[area]['count']].add(area);
+                }
+                keysArray=.Array();
+                keysArray['demon']='демон%1$I|а|ов';
+                keysArray['fiend']='исчади%1$Iе|я|ий';
+                keysArray['imp']='бес%1$Iёнок|ёнка|ят';
+                keysArray['obsessed'] = 'одержим%1$Iый|ых|ых';
+                if(res.keys.size()>0) {
+                    str='';
+                    if(res.keys.size()>10) {
+                        str='{yБольше всего проявлений {DЗла{y разведчики {WРыцарей{y обнаружили в следующих местах:{x';
+                    } else {
+                        str='{yРазведчики {WРыцарей{y обнаружили проявление {DЗла{y в следующих местах:{x';
+                    }
+                    if(res.keys.size()>1 || .tmp.epidemy.statistic['demon']!=null) {
+                        act(str);
+                        var actstr; actstr='';
+                        var i,count; count = res.keys.size()-10; i=0;
+                        for(numb in areasCounts.keys){
+                            for(area in areasCounts[numb]) {
+                                i=i+1;
+                                if(i<count) continue;
+                                str='';
+                                for(type in .List().add('demon','fiend','imp','obsessed')) {
+                                    if(res[area][type]!=null){
+                                        if(str!='') str = str + ', ';
+                                        if(res[area][type]==1) str = str + .fmt(keysArray[type],1);
+                                    else str = str +  res[area][type] + ' ' + .fmt(keysArray[type],res[area][type]);
+                                    }
+                                }
+                                actstr=.fmt('  {Y%1$^s{y: %2$s.{x\n', area, str)+actstr;
+
+                            }
+                        }
+                        act(actstr);
+                    }
+                }
+
+                //личный прогресс:
+                str='';
+                keysArray=.Array();
+                keysArray['demon_slay']='убил%1$Gо||а {Y%2$d{y демон%2$Iа|а|ов';
+                keysArray['fiend_slay']='убил%1$Gо||а {Y%2$d{y исчад%2$Iие|ия|ий';
+                keysArray['imp_slay']='убил%1$Gо||а {Y%2$d{y черт%2$Iёнка|ёнка|ят';
+                keysArray['heal']='изгнал%1$Gо||а Зло из {Y%2$d{y существ%2$Iа||';
+                for(key in .List().add('demon_slay','fiend_slay','imp_slay','heal')) {
+                    if(.tmp.epidemy.statistic[key]!=null && .tmp.epidemy.statistic[key][name]!=null) {
+                        if(str=='')
+                            str = '{yТы уже ';
+                        else
+                            str = str + ', ';
+                        str = str + .fmt(keysArray[key],this,.tmp.epidemy.statistic[key][name]);
+                    }
+                }
+                if(str!='')
+                    act(str+'.{x');
+            }
+
+
+            return true;
+        } catch (e) {
+        .tmp.epidemy.catchMsg(e);
+
+        }
+
+        };
+    };
+    stop = function()    {
+        this = .tmp.epidemy;
+
+        running = null;
+
+        .tmp.gquest.notifiers["epidemy"] = function(){
+            .tmp.epidemy.final_rewarding(this);
+            return true;
+        };
+        .tmp.gquest.informers["epidemy"] = null;
+        .tmp.gquest.progressers["epidemy"] = null;
+
+        .gecho('{Y"Эпидемия {DЗахватчиков{Y"{y была остановлена!');
+        count_final_reward();
+        clear_statistic();
+        for(ch in .players) {
+            final_rewarding(ch);
+        }
+    };
+    clear_statistic = function() {
+        this = .tmp.epidemy;
+        //очищаем статистику
+        for(type in statistic.keys) {
+            if(statistic_total[type]==null)
+                statistic_total[type]=.Array();
+            for(name in statistic[type].keys){
+                if(statistic_total[type][name]==null)
+                    statistic_total[type][name]=0;
+                statistic_total[type][name]=statistic_total[type][name]+statistic[type][name];
+            }
+        }
+        statistic=.Array();
+    };
+
+    check_stop = function() {
+        this = .tmp.epidemy;
+
+        if(running==null) return;
+
+        for(list in .List().add(Demon.instances,Fiend.instances,infectedList,invertedList,imps)){
+            for(mob in list) {
+                if(mob.dead || !mob.online) continue;
+                else return;
+            }
+        }
+
+        stop();
+    };
+
+    check_reward = function(chname,type) {
+        this = .tmp.epidemy;
+        if(qp_rewards[type]==null) return;
+
+        if(statistic[type][chname]!=null) {
+            var count;
+            //проверка по противоположным заслугам "создание импа"<->"убийство импа"
+            if(qp_rewards[type]['foul']!=null
+                && statistic[qp_rewards[type]['foul']]!=null
+                && statistic[qp_rewards[type]['foul']][chname]!=null) {
+                if(statistic[type][chname] - statistic[qp_rewards[type]['foul']][chname] >= 0){
+                    //н-р: наплодил 10 импов, убил 10 импов - награза за 10 импов
+                    count = statistic[type][chname];
+                    //если уже награждали за противоположный - отнимаем
+                    if(reward[chname]!=null && reward[chname][qp_rewards[type]['foul']]!=null && reward[chname][qp_rewards[type]['foul']]['received']!=null) {
+                        count = count - reward[chname][qp_rewards[type]['foul']]['received'];
+                    }
+                }else{
+                    count = 0;
+                }
+            } else if(qp_rewards[type]['minus']!=null
+                && statistic[qp_rewards[type]['minus']]!=null
+                && statistic[qp_rewards[type]['minus']][chname]!=null) {
+                if(statistic[type][chname] - statistic[qp_rewards[type]['minus']][chname] > 0){
+                    //н-р: наплодил 5 импов, убил 10 импов - награза от инвайдеров за 5 импов
+                    count = statistic[type][chname] - statistic[qp_rewards[type]['minus']][chname];
+                }else{
+                    count = 0;
+                }
+            } else {
+                count = statistic[type][chname];
+            }
+
+            count = (count / qp_rewards[type]['count']) * qp_rewards[type]['count'];
+            if(count >= qp_rewards[type]['count']) {
+                if(reward[chname]==null) reward[chname]=.Array();
+                if(reward[chname][type]==null) {
+                    reward[chname][type] = .Array();
+                    reward[chname][type]['count'] = 0;
+                    reward[chname][type]['received'] = 0;
+                }
+                reward[chname][type]['count']=count;
+            }
+
+        }
+
+        ch = .get_char_world(chname);
+        if(ch!=null && ch.online) {
+            rewarding(ch);
+        }
+    };
+    rewarding = function(ch) {
+        this = .tmp.epidemy;
+        if(reward[ch.name]==null) return;
+
+        var prize;
+        for(type in reward[ch.name].keys) {
+            if(qp_rewards[type]['evil']!=true && ch.clan.name=='invader') {
+                reward[ch.name][type]=null;
+                continue;
+            }
+
+            prize = ((reward[ch.name][type]['count'] - reward[ch.name][type]['received'])/qp_rewards[type]['count'])*qp_rewards[type]['qp'];
+            if(prize > 0) {
+                ch.questpoints = ch.questpoints + prize;
+                reward[ch.name][type]['received'] = reward[ch.name][type]['count'];
+                ch.act('{yЗа %1$s ты получаешь {Y%2$d{y квестов%2$Iую|ые|ых единиц%2$Iу|ы|'+'.{x',qp_rewards[type]['message'], prize);
+            }
+        }
+    };
+    final_rewarding = function(ch) {
+        this = .tmp.epidemy;
+
+        if(reward_final[ch.name]==null) return;
+
+        if(ch.clan.name!='invader') {
+            ch.questpoints = ch.questpoints + reward_final[ch.name]['qp'];
+            ch.gold = ch.gold + reward_final[ch.name]['gold'];
+            if(ch.clan.name=='knight')
+                ch.act('{yЗа участие в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
+            else
+                ch.act('{yЗа помощь {WРыцарям{y в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
+        }
+        reward_final[ch.name]=null;
+        if(reward_final.keys.size()==0) {
+            reward_final = .Array();
+            .tmp.gquest.notifiers["epidemy"] = null;
+        }
+    };
+    count_final_reward = function() {
+
+        this = .tmp.epidemy;
+
+        var jackpot; jackpot = 325;
+        var reward_points; reward_points=.Array();
+        var reward_count; reward_count = .Array();
+        var total, count; total=0;
+        reward_points['demon_slay'] = 10;
+        reward_points['fiend_slay'] = 5;
+        reward_points['imp_slay'] = 2;
+        reward_points['heal'] = 4;
+        for(type in statistic.keys){
+            if(reward_points[type]==null) {
+                continue;}
+
+            count = 0;
+            for(name in statistic[type].keys) {
+                if(qp_rewards[type]['foul']!=null
+                    && statistic[qp_rewards[type]['foul']]!=null
+                    && statistic[qp_rewards[type]['foul']][name]!=null) {
+                    if(statistic[type][name] - statistic[qp_rewards[type]['foul']][name] >= 0){
+                        count=statistic[type][name];
+                    }
+                } else {
+                    count=statistic[type][name];
+                }
+                if(count>0) {
+                    if(reward_count[name]==null){
+                        jackpot = jackpot + 25;
+                        reward_count[name]=0;
+                    }
+                    count = (count*reward_points[type]);
+                    reward_count[name]=reward_count[name] + count;
+                    total = total + count;
+
+                }
+            }
+        }
+        for(name in reward_count.keys) {
+            if(reward_final[name]==null){
+                reward_final[name]=.Array();
+                reward_final[name]['qp']=0;
+                reward_final[name]['gold']=0;
+            }
+            reward_final[name]['qp'] = reward_final[name]['qp'] + get_rest_reward(name);
+            reward_final[name]['qp'] = reward_final[name]['qp'] + (jackpot * ((reward_count[name]*100)/total)) / 100;
+            reward_final[name]['gold'] = reward_final[name]['gold'] + number_range(reward_count[name]/2,reward_count[name]);
+        }
+
+    };
+    get_rest_reward = function(name) {
+        this = .tmp.epidemy;
+        var result; result = 0;
+        if(reward[name]!=null) {
+            for(type in reward[name].keys) {
+                result = result + (
+                    (
+                        (reward[name][type]['count'] - reward[name][type]['received'])
+                        / qp_rewards[type]['count']
+                    ) * qp_rewards[type]['qp']
+                );
+            }
+            reward[name]=null;
+        }
+        return result;
+    };
+
+    qp_rewards=.Array();
+    qp_rewards['epidemy start']=.Array();
+    qp_rewards['epidemy start']['message']='завершенный ритуал';
+    qp_rewards['epidemy start']['count']=1;
+    qp_rewards['epidemy start']['qp']=5;
+    qp_rewards['epidemy start']['evil']=true;
+
+    qp_rewards['demon']=.Array();
+    qp_rewards['demon']['message']='появление Демона';
+    qp_rewards['demon']['count']=1;
+    qp_rewards['demon']['qp']=10;
+    qp_rewards['demon']['evil']=true;
+
+    qp_rewards['fiend_kill']=.Array();
+    qp_rewards['fiend_kill']['message']='террор соворённый исчадиями';
+    qp_rewards['fiend_kill']['count']=10;
+    qp_rewards['fiend_kill']['qp']=1;
+    qp_rewards['fiend_kill']['evil']=true;
+
+    qp_rewards['demon_invert']=.Array();
+    qp_rewards['demon_invert']['message']='обращённых к Злу Демоном';
+    qp_rewards['demon_invert']['count']=10;
+    qp_rewards['demon_invert']['qp']=2;
+    qp_rewards['demon_invert']['evil']=true;
+
+    qp_rewards['imp_create']=.Array();
+    qp_rewards['imp_create']['message']='помощь Захватчикам в захвате Мира';
+    qp_rewards['imp_create']['count']=10;
+    qp_rewards['imp_create']['qp']=5;
+    qp_rewards['imp_create']['evil']=true;
+    qp_rewards['imp_create']['minus']='imp_slay';
+
+    qp_rewards['imp_slay']=.Array();
+    qp_rewards['imp_slay']['message']='убийство бесят, чертят, импов и квазитов';
+    qp_rewards['imp_slay']['count']=5;
+    qp_rewards['imp_slay']['qp']=1;
+    qp_rewards['imp_slay']['evil']=false;
+    qp_rewards['imp_slay']['foul']='imp_create';
+
+    qp_rewards['demon_slay']=.Array();
+    qp_rewards['demon_slay']['message']='убийство Демона';
+    qp_rewards['demon_slay']['count']=1;
+    qp_rewards['demon_slay']['qp']=10;
+    qp_rewards['demon_slay']['evil']=false;
+
+    qp_rewards['fiend_slay']=.Array();
+    qp_rewards['fiend_slay']['message']='убийство исчадий';
+    qp_rewards['fiend_slay']['count']=2;
+    qp_rewards['fiend_slay']['qp']=1;
+    qp_rewards['fiend_slay']['evil']=false;
+
+    qp_rewards['heal']=.Array();
+    qp_rewards['heal']['message']='изгнание Зла';
+    qp_rewards['heal']['count']=5;
+    qp_rewards['heal']['qp']=2;
+    qp_rewards['heal']['evil']=false;
+
+    for(type in statistic.keys) {
+        for(name in statistic[type].keys) {
+            check_reward(name,type);
+        }
+    }
+
+
 })

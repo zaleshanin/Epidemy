@@ -69,6 +69,7 @@ this = .tmp.epidemy;
 
 		regHistory(.fmt('в месте называемом %1$s, из зерна {DТьмы{x посеянного %2$N5, явился демон %3$C1',room.areaname,getPCname(invader),demon));
 		regStat(invader,'demon');
+        check_reward(invader,'demon');
     };
 
     make_demon_list = function(){
@@ -76,35 +77,35 @@ this = .tmp.epidemy;
         demon_list = .Array();
 
         demon_list['furfur'] = .Map(); //вызывать молнии и громы, порывы ветра и сильнейшие бурные штормы.
-        demon_list['furfur'].description = 'Обычный Граф приисподней. Демон материализовался в образе человека с крыльями,\n' +
+        demon_list['furfur'].description = 'Обычный Граф преисподней. Демон материализовался в образе человека с крыльями,\n' +
             'рогами и копытами оленя, и пылающим хвостом змеи.\n';
         demon_list['furfur'].long_descr = 'Демон Фурфур (Furfur) выискивает жертв для своих легионов.\n';
         demon_list['furfur'].short_descr = 'Фурфур||а|у|а|ом|е';
         demon_list['furfur'].name = 'furfur фурфур demon демон';
 
         demon_list['marchosias'] = .Map(); //изрыгая из пасти огонь.
-        demon_list['marchosias'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе волка с крыльями\n' +
+        demon_list['marchosias'].description = 'Обычный Маркиз преисподней. Демон материализовался в образе волка с крыльями\n' +
             'грифона и хвостом змеи.\n';
         demon_list['marchosias'].long_descr = 'Демон Мархосиас (Marchosias) выискивает жертв для своих легионов.\n';
         demon_list['marchosias'].short_descr = 'Мархосиас||а|у|а|ом|е';
         demon_list['marchosias'].name = 'marchosias мархосиас demon демон';
 
         demon_list['aamon'] = .Map();
-        demon_list['aamon'].description = 'Обычный Маркиз приисподней. Демон материализовался в образе человека с головой\n' +
+        demon_list['aamon'].description = 'Обычный Маркиз преисподней. Демон материализовался в образе человека с головой\n' +
             'ворона и волчьими зубами.\n';
         demon_list['aamon'].long_descr = 'Демон Аамон (Aamon) выискивает жертв для своих легионов.\n';
         demon_list['aamon'].short_descr = 'Аамон||а|у|а|ом|е';
         demon_list['aamon'].name = 'aamon аамон demon демон';
 
         demon_list['sitri'] = .Map();
-        demon_list['sitri'].description = 'Обычный Принц приисподней. Демон материализовался в образе человека с крыльями\n' +
+        demon_list['sitri'].description = 'Обычный Принц преисподней. Демон материализовался в образе человека с крыльями\n' +
             'грифона, головой и хвостом леопарда.\n';
         demon_list['sitri'].long_descr = 'Демон Ситри (Sitri) выискивает жертв для своих легионов.\n';
         demon_list['sitri'].short_descr = 'Ситри';
         demon_list['sitri'].name = 'sitri ситри demon демон';
 
         demon_list['ipos'] = .Map();
-        demon_list['ipos'].description = 'Обычный Принц приисподней. Демон материализовался в образе ангела с белыми\n' +
+        demon_list['ipos'].description = 'Обычный Принц преисподней. Демон материализовался в образе ангела с белыми\n' +
             'крыльями, но с головой льфа, ногами гуся, хвостом зайца.\n';
         demon_list['ipos'].long_descr = 'Демон Ипос (Ipos) выискивает жертв для своих легионов.\n';
         demon_list['ipos'].short_descr = 'Ипос||а|у|а|ом|е';
@@ -351,12 +352,15 @@ this = .tmp.epidemy;
                     //вешаем тригера на лечение и на вылупление импа в случае убийства (имп заразный)
                     demon.epidemy.victim.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
                     demon.epidemy.victim.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
+                    demon.epidemy.victim.onExtract = function(count) {.tmp.epidemy.triggers.infectedOnExtract(this,count);};
                     demon.epidemy.victim.epidemy.invader = demon.epidemy.invader;
                     demon.epidemy.victim.epidemy.status = 'inverted';
                     invertedList.push_back(demon.epidemy.victim);
                     regStat(demon.epidemy.invader,'demon_invert');
-                    if(demon.epidemy.invert_count==null) demon.epidemy.invert_count=1;
-                    else demon.epidemy.invert_count=demon.epidemy.invert_count+1;
+                    check_reward(demon.epidemy.invader,'demon_invert');
+                    if(demon.epidemy.invert_count==null)
+                        demon.epidemy.invert_count=0;
+                    demon.epidemy.invert_count=demon.epidemy.invert_count+1;
                 }
                 demon.epidemy.victim = null;
                 clearGPS(demon);
@@ -428,14 +432,21 @@ this = .tmp.epidemy;
         if(ch!=null) {
             regChar(ch);
             regHistory(.fmt('в месте называемом %5$s, демон %1$C1, обративший к {DЗлу{x %3$d существ%3$Iо|а|'+', призвавший %2$d исчад%2$Iие|ия|ий, которые совершили %6$d убийств%6$Iо|а|'+', повержен %4$^N5',
-            demon, demon.epidemy.fiend_count, demon.epidemy.invert_count, getPCname(ch.name), demon.in_room.areaname, demon.epidemy.fiend_kill_count));
+                demon,
+                demon.epidemy.fiend_count,
+                demon.epidemy.invert_count,
+                getPCname(ch.name),
+                demon.in_room.areaname,
+                demon.epidemy.fiend_kill_count));
             regStat(ch.name, 'demon_slay');
+            check_reward(ch.name, 'demon_slay');
         }
     };
     Demon.onExtract = function(demon, count) {
         this = .tmp.epidemy;
         //выпиливаемся из списка
         demons.sub(demon);
+        check_stop();
     };
     Demon.onHit = function(demon, demon_slayer, dam, damType, wield) {
         if(wield==null){
@@ -472,6 +483,12 @@ this = .tmp.epidemy;
             return 0;
         };
 
+    //fix
+    for(mob in invertedList) {
+        if(mob.dead || !mob.online) {
+            mob.onExtract = function(count) {.tmp.epidemy.triggers.infectedOnExtract(this,count);};
+        }
+    }
 })
 
 /*       //demon.spec_fun = 'spec_breath_fire';

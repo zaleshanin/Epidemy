@@ -234,6 +234,7 @@
         if(ch!=null){
             regChar(ch);
             regStat(ch.name, 'imp_slay');
+            check_reward(ch.name, 'imp_slay');
         }
         imps.sub(imp);
     };
@@ -283,7 +284,7 @@
     };
     
     fearYou = function(imp, ch) {
-        if(ch.dead)
+        if(ch.dead || !ch.online)
             return;
 
         var fear;

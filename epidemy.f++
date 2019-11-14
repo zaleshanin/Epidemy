@@ -68,7 +68,8 @@
                 mob.epidemy.victims.push_back(vict);
             }
             if(vict.alignment>=350) {
-                if(vict.hasOccupation('healer') || vict.pIndexData.vnum==8901) {
+                if(vict.hasOccupation('healer')
+                    || vict.pIndexData.vnum==8901 || vict.pIndexData.vnum==542) {
                     mob.epidemy.healers.push_back(vict);
                     break;
                 }
@@ -119,6 +120,8 @@
             if(ch!=null) {
                 regChar(ch);
                 regStat(ch.name,'heal');
+                check_reward(ch.name,'heal');
+                check_stop();
             }
         }catch(e){catchMsg('epidemy->heal():'+e);}
     };
@@ -564,7 +567,19 @@
                     debug(mob,'infectedPostSpec: healer meet infected');
                     var healer;
                     healer = mob.epidemy.healers.random();
-                    healer.spell('heal',healer.level,mob,true,true);
+                    if(healer.pIndexData.vnum==542){ //wiseman
+                        healer.act('Ты тыкаешь пучком травы в сторону %1$C2 и он%1$Gо||а поглащает его, чуть не отхватив тебе руку.',mob);
+                        healer.recho('%1$^C1 тыкает пучком травы в сторону %2$C2 и он%2$Gо||а поглащает его, чуть не отхватив %1$C3 руку.',healer,mob); //%1$Gему|ему|ей
+                        mob.recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", mob);
+                        heal(mob,null);
+                    } else if(mob.leader!=null && mob.leader.pet==mob && mob.leader.isAffected('spellbane') && mob.leader.in_room==healer.in_room) {
+                        healer.say('%1$^C1, частица {1{DТьмы{2 проникла в тво%2$Gего|его|ю {1%2$C4{2, но лечить я что-то опасаюсь, веди-ка ты е%2$Gго|го|ё к вашему Лекарю.',mob.leader,mob);
+                        mob.epidemy.healers.sub(healer);
+                    } else {
+                        healer.spell('heal',healer.level,mob,true,true);
+
+                    }
+
                     return;
                 }
             }
@@ -586,7 +601,7 @@
         }
     };
     triggers.sickPostSpec = function (mob) {
-        if(mob.dead) return;
+        if(mob.dead || mob.epidemy==null) return;
 
         this = .tmp.epidemy;
 
@@ -619,7 +634,23 @@
                         .tmp.quest.sleep(1, mob, healer);
                         healer.say('Что ж, похоже у нас еще од%1$Gно|ин|на одержим%1$Gое|ый|ая.',mob);
                         .tmp.quest.sleep(1, mob, healer);
-                        healer.spell('dispel evil',healer.level,mob,true,true);
+                        if(mob.leader!=null && mob.leader.pet==mob && mob.leader.isAffected('spellbane')) {
+                            if(mob.leader.in_room==healer.in_room) {
+                                mob.leader.act('%1$^C1 срывает пучок травы, поворачивается к тебе спиной, и что-то бормочет.', healer);
+                                mob.leader.rvecho(healer,'%1$^C1 срывает из-под ног траву и, повернувшись спиной к %2$С3, бормочет над пучком \'dispel evil\'.',healer, mob.leader);
+                                healer.act('Ты срываешь из-под ног траву и, повернувшись к %1$С3 спиной, бормочешь над пучком \'dispel evil\'.', mob.leader);
+                            } else {
+                                mob.leader.rvecho(healer,'%1$^C1 срывает траву под ногами и бормочет над пучком \'dispel evil\'.',healer, mob.leader);
+                                healer.act('Ты срываешь под ногами траву и бормочешь над пучком \'dispel evil\'.');
+                            }
+                            .tmp.quest.sleep(1, mob, healer);
+                            healer.act('Ты тыкаешь пучком травы в сторону %1$C2 и он%1$Gо||а поглащает его, чуть не отхватив тебе руку.',mob);
+                            healer.recho('%1$^C1 тыкает пучком травы в сторону %2$C2 и он%2$Gо||а поглащает его, чуть не отхватив %1$Gему|ему|ей руку.',healer,mob);
+                            mob.recho("%1$^C1 выпускает {Dтёмное облочко{x с такой силой, что %1$Gего|его|её выворачивает на изнанку...", mob);
+                            heal(mob,null);
+                        }else {
+                            healer.spell('dispel evil',healer.level,mob,true,true);
+                        }
                         healer.epidemy = null;
                         return;
                     } else if(mob.leader!=null && mob.leader.pet==mob && mob.leader.in_room==mob.in_room) {
@@ -878,6 +909,7 @@
     triggers.infectedOnExtract = function(mob,count) {
         //выпиливаемся из списка
     .tmp.epidemy.infectedList.sub(mob);
+    .tmp.epidemy.check_stop();
     };
     triggers.sickOnLeave = function(mob, ch, from_room, movetype) {
         //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
@@ -923,6 +955,7 @@
                 ch = getChMaster(ch);
                 regChar(ch);
                 regStat(ch.name, 'imp_create');
+                check_reward(ch.name, 'imp_create');
             }
             imp.epidemy.fearList.push_back(ch);
             ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',mob,imp);
