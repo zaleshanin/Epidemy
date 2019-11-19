@@ -1,7 +1,7 @@
 .apply(function() {
 //demonInit = function() {
-if(.tmp.epidemy==null) .tmp.epidemy = .Map();
-this = .tmp.epidemy;
+    if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+    this = .tmp.epidemy;
 
     var make_demon_list;
 
@@ -39,7 +39,7 @@ this = .tmp.epidemy;
 
         demon = Demon.create();
         //пишем призванного демона в список
-        .tmp.epidemy.demons.push_back(demon);
+    .tmp.epidemy.demons.push_back(demon);
 
         demon.epidemy = .Map();
         demon.epidemy.fiends = .List();
@@ -63,12 +63,14 @@ this = .tmp.epidemy;
         demon.addDarkShroud();
 
         //demon = add_demon_triggers(demon);
+        if(getRandomHelpPiece!=null)
+            getRandomHelpPiece().obj_to_char(demon);
 
         demon.char_to_room(room);
-		room.ppl.forEach(function(mob){act('...из дыма и гари появляется %1$C1.',mob);},demon);
+        room.ppl.forEach(function(mob){act('...из дыма и гари появляется %1$C1.',mob);},demon);
 
-		regHistory(.fmt('в месте называемом %1$s, из зерна {DТьмы{x посеянного %2$N5, явился демон %3$C1',room.areaname,getPCname(invader),demon));
-		regStat(invader,'demon');
+        regHistory(.fmt('в месте называемом %1$s, из зерна {DТьмы{x посеянного %2$N5, явился демон %3$C1',room.areaname,getPCname(invader),demon));
+        regStat(invader,'demon');
         check_reward(invader,'demon');
     };
 
@@ -146,7 +148,7 @@ this = .tmp.epidemy;
         return result;
     };
     get_mobs_vnums = function(demon) {
-        .tmp.epidemy.debug(demon,'demon->get_mobs_vnums(): 1 start');
+    .tmp.epidemy.debug(demon,'demon->get_mobs_vnums(): 1 start');
         var resultList, city, i;
         resultList = demon.epidemy.victimsVnums.clone();//.List();
         city = demon.in_room.areaname;
@@ -210,7 +212,7 @@ this = .tmp.epidemy;
         var room;
         room = ch.in_room;
 
-        .scheduler.sleep(pulse);
+    .scheduler.sleep(pulse);
         if (ch.dead)
             throw "DemonSleep: demon/fiend is dead";
         if (room != ch.in_room) {
@@ -258,141 +260,141 @@ this = .tmp.epidemy;
     if(Demon==null)  Demon = .get_mob_index(762);
     Demon.postSpec = function(demon){
         try {
-        //2do социалов добавить бы
-        //2do похоже не работает assist_align
-        this = .tmp.epidemy;
+            //2do социалов добавить бы
+            //2do похоже не работает assist_align
+            this = .tmp.epidemy;
 
-        if(demon.dead)
-            return;
+            if(demon.dead)
+                return;
 
-        if(demon.fighting != null)
-            return;
+            if(demon.fighting != null)
+                return;
 
-        if(!(demon.position&.tables.position_table.stand)){
-            demon.interpret('stand');
-            return;
-        }
+            if(!(demon.position&.tables.position_table.stand)){
+                demon.interpret('stand');
+                return;
+            }
 
-        if(.chance(5)) {
-            //кривляка
-            demon.interpret(.List().add('aargh', 'amake', 'fume', 'glare', 'grin', 'growl', 'muhaha', 'scream', 'sexplode').random());
-            return;
-        }
+            if(.chance(5)) {
+                //кривляка
+                demon.interpret(.List().add('aargh', 'amake', 'fume', 'glare', 'grin', 'growl', 'muhaha', 'scream', 'sexplode').random());
+                return;
+            }
 
-        if(demon.epidemy.plan==null){
-            demon.epidemy.plan = demon_plan_check(demon);
-        }
+            if(demon.epidemy.plan==null){
+                demon.epidemy.plan = demon_plan_check(demon);
+            }
 
-        //демон обращает добрых/нейтральных в выернутых злых
-        if(demon.epidemy.plan==0 && .chance(10)) {
+            //демон обращает добрых/нейтральных в выернутых злых
+            if(demon.epidemy.plan==0 && .chance(10)) {
 //            debug(demon,'ищем жертву для обращения');
-            if(demon.epidemy.victim==null || demon.epidemy.victim.dead
-                || demon.epidemy.victim.fighting!=null) {
+                if(demon.epidemy.victim==null || demon.epidemy.victim.dead
+                    || demon.epidemy.victim.fighting!=null) {
 //                debug(demon,'выбираем из списка');
-                demon.epidemy.victim = get_one_good(demon,0,120,false,true);
-                clearGPS(demon);
-            }
-
-            if((demon.epidemy.victim==null || demon.epidemy.victim.dead)
-                && demon.in_room.ppl.size()>1) {
-                for(ppl in demon.in_room.ppl) {
-                    if(ppl.alignment>=350 && ppl.fighting==null) {
-                        demon.epidemy.victim=ppl;
-                        break;
-                    }
+                    demon.epidemy.victim = get_one_good(demon,0,120,false,true);
+                    clearGPS(demon);
                 }
-            }
 
-            if(demon.epidemy.victim==null || demon.epidemy.victim.dead
-                || demon.epidemy.victim.fighting!=null) {
-                debug(demon,'жертвы нет, дерётся или умерла');
-                demon.epidemy.victim = null;
-                var exits;
-                exits = .List();
-                for(direction in demon.in_room.exits(demon)) {
-                    for(ppl in demon.in_room.getRoom(direction).ppl) {
-                        if(ppl.alignment>-350){
-                            exits.push_back(direction);
+                if((demon.epidemy.victim==null || demon.epidemy.victim.dead)
+                    && demon.in_room.ppl.size()>1) {
+                    for(ppl in demon.in_room.ppl) {
+                        if(ppl.alignment>=350 && ppl.fighting==null) {
+                            demon.epidemy.victim=ppl;
                             break;
                         }
                     }
                 }
-                if(exits.size()>0) {
-                    debug(demon,'жертвы в '+exits.size()+' направлениях');
-                    demon.move_char(exits.random());
-                } else {
-                    debug(demon,'жертвы в соведних комнатах не найдены');
-                }
-                return;
-            } else {
-                if(demon.epidemy.plan_way==null) {
-//                    debug(demon,'нет пути к жертве');
-                    demon.epidemy.plan_way = find_way(demon,demon.epidemy.victim.in_room);
-                }
-                if(demon.epidemy.plan_way.size()==0 && demon.in_room != demon.epidemy.victim.in_room) {
-//                    debug(demon,'путь закончен, к жертве не пришли');
+
+                if(demon.epidemy.victim==null || demon.epidemy.victim.dead
+                    || demon.epidemy.victim.fighting!=null) {
+                    debug(demon,'жертвы нет, дерётся или умерла');
                     demon.epidemy.victim = null;
-                    clearGPS(demon);
+                    var exits;
+                    exits = .List();
+                    for(direction in demon.in_room.exits(demon)) {
+                        for(ppl in demon.in_room.getRoom(direction).ppl) {
+                            if(ppl.alignment>-350){
+                                exits.push_back(direction);
+                                break;
+                            }
+                        }
+                    }
+                    if(exits.size()>0) {
+                        debug(demon,'жертвы в '+exits.size()+' направлениях');
+                        demon.move_char(exits.random());
+                    } else {
+                        debug(demon,'жертвы в соведних комнатах не найдены');
+                    }
                     return;
                 } else {
-                    if(demon.epidemy.plan_room==null) {
-                        demon.epidemy.plan_room = demon.epidemy.victim.in_room;
-                        demon.epidemy.plan_waypoint = demon.in_room;
+                    if(demon.epidemy.plan_way==null) {
+//                    debug(demon,'нет пути к жертве');
+                        demon.epidemy.plan_way = find_way(demon,demon.epidemy.victim.in_room);
+                    }
+                    if(demon.epidemy.plan_way.size()==0 && demon.in_room != demon.epidemy.victim.in_room) {
+//                    debug(demon,'путь закончен, к жертве не пришли');
+                        demon.epidemy.victim = null;
+                        clearGPS(demon);
+                        return;
+                    } else {
+                        if(demon.epidemy.plan_room==null) {
+                            demon.epidemy.plan_room = demon.epidemy.victim.in_room;
+                            demon.epidemy.plan_waypoint = demon.in_room;
+                        }
                     }
                 }
-            }
 //            debug(demon,.fmt('%1$C1 -> %2$d (%3$d)',demon.epidemy.victim,demon.epidemy.victim.in_room.vnum,demon.epidemy.plan_way.size()));
 
-            if(demon.in_room == demon.epidemy.victim.in_room) {
-                if(demon.epidemy.victim.alignment!=-1000 && demon.epidemy.victim.epidemy==null) {
-                    demon.act('Ты бормочешь \'{DYou underestimate the power of the Dark Side{x\'');
-                    demon.recho('%1$^C1 бомочет адским голосом \'{D'+str_utterance('You underestimate the power of the Dark Side')+'{x\'',demon);
-                    //выворачиваем на изнанку
-                    evert(demon.epidemy.victim);
-                    //вешаем тригера на лечение и на вылупление импа в случае убийства (имп заразный)
-                    demon.epidemy.victim.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
-                    demon.epidemy.victim.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
-                    demon.epidemy.victim.onExtract = function(count) {.tmp.epidemy.triggers.infectedOnExtract(this,count);};
-                    demon.epidemy.victim.epidemy.invader = demon.epidemy.invader;
-                    demon.epidemy.victim.epidemy.status = 'inverted';
-                    invertedList.push_back(demon.epidemy.victim);
-                    regStat(demon.epidemy.invader,'demon_invert');
-                    check_reward(demon.epidemy.invader,'demon_invert');
-                    if(demon.epidemy.invert_count==null)
-                        demon.epidemy.invert_count=0;
-                    demon.epidemy.invert_count=demon.epidemy.invert_count+1;
+                if(demon.in_room == demon.epidemy.victim.in_room) {
+                    if(demon.epidemy.victim.alignment!=-1000 && demon.epidemy.victim.epidemy==null) {
+                        demon.act('Ты бормочешь \'{DYou underestimate the power of the Dark Side{x\'');
+                        demon.recho('%1$^C1 бомочет адским голосом \'{D'+str_utterance('You underestimate the power of the Dark Side')+'{x\'',demon);
+                        //выворачиваем на изнанку
+                        evert(demon.epidemy.victim);
+                        //вешаем тригера на лечение и на вылупление импа в случае убийства (имп заразный)
+                        demon.epidemy.victim.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
+                        demon.epidemy.victim.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
+                        demon.epidemy.victim.onExtract = function(count) {.tmp.epidemy.triggers.infectedOnExtract(this,count);};
+                        demon.epidemy.victim.epidemy.invader = demon.epidemy.invader;
+                        demon.epidemy.victim.epidemy.status = 'inverted';
+                        invertedList.push_back(demon.epidemy.victim);
+                        regStat(demon.epidemy.invader,'demon_invert');
+                        check_reward(demon.epidemy.invader,'demon_invert');
+                        if(demon.epidemy.invert_count==null)
+                            demon.epidemy.invert_count=0;
+                        demon.epidemy.invert_count=demon.epidemy.invert_count+1;
+                    }
+                    demon.epidemy.victim = null;
+                    clearGPS(demon);
+                } else {
+                    make_your_move(demon);
                 }
-                demon.epidemy.victim = null;
-                clearGPS(demon);
-            } else {
-                make_your_move(demon);
+
             }
 
-        }
+            if(demon.epidemy.plan==1) {
+                if(demon.epidemy.fiend_victim==null || demon.epidemy.fiend_victim.dead) {
+                    demon.epidemy.plan=null;
+                    throw('epidemy.demon: no victim for calling fiends');
+                }
 
-        if(demon.epidemy.plan==1) {
-            if(demon.epidemy.fiend_victim==null || demon.epidemy.fiend_victim.dead) {
-                demon.epidemy.plan=null;
-                throw('epidemy.demon: no victim for calling fiends');
+                demon.epidemy.fiend_plan_way = find_way(demon,demon.epidemy.fiend_victim.in_room);
+                if(demon.epidemy.fiend_plan_way.size()==0) {
+                    demon.epidemy.unreachable.push_back(demon.epidemy.fiend_victim.pIndexData.vnum);
+                    demon.epidemy.victimsVnums.sub(demon.epidemy.fiend_victim.pIndexData.vnum);
+                } else {
+                    demon.interpret('emote делает странные пассы руками... немного помогая себе хвостом и надбровными дугами.');
+                    demonSleepRoom(2,demon);
+                    demon.act('Ты бормочешь \'{DДвое из ларца одинаковых с лица{x\'');
+                    demon.recho('%1$^C1 бомочет адским голосом \'{D'+str_utterance('dvoe iz larca odinakovih s litca')+'{x\'',demon);
+                    get_fiends(demon,demon.epidemy.fiend_victim);
+                    demonSleepRoom(2,demon);
+                    demon.say('{gУбить %1$C4!{x', demon.epidemy.fiend_victim);
+                }
+                demon.epidemy.fiend_victim = null;
+                demon.epidemy.fiend_plan_way = null;
+                demon.epidemy.plan = 0;
             }
-
-            demon.epidemy.fiend_plan_way = find_way(demon,demon.epidemy.fiend_victim.in_room);
-            if(demon.epidemy.fiend_plan_way.size()==0) {
-                demon.epidemy.unreachable.push_back(demon.epidemy.fiend_victim.pIndexData.vnum);
-                demon.epidemy.victimsVnums.sub(demon.epidemy.fiend_victim.pIndexData.vnum);
-            } else {
-                demon.interpret('emote делает странные пассы руками... немного помогая себе хвостом и надбровными дугами.');
-                demonSleepRoom(2,demon);
-                demon.act('Ты бормочешь \'{DДвое из ларца одинаковых с лица{x\'');
-                demon.recho('%1$^C1 бомочет адским голосом \'{D'+str_utterance('dvoe iz larca odinakovih s litca')+'{x\'',demon);
-                get_fiends(demon,demon.epidemy.fiend_victim);
-                demonSleepRoom(2,demon);
-                demon.say('{gУбить %1$C4!{x', demon.epidemy.fiend_victim);
-            }
-            demon.epidemy.fiend_victim = null;
-            demon.epidemy.fiend_plan_way = null;
-            demon.epidemy.plan = 0;
-        }
 
         } catch (e) {
         .tmp.epidemy.catchMsg(e);
@@ -465,23 +467,23 @@ this = .tmp.epidemy;
 
     };
     Demon.onImmune = function(demon, attacker, dam, damType, wield, dam_flag, skillName) {
-            if (damType == 'holy') {
-                return dam * 30;
-            }
+        if (damType == 'holy') {
+            return dam * 30;
+        }
 
-            if(wield!=null) {
-                if(wield.extra_flags&.tables.extra_flags.bless) {
-                    if(!(wield.extra_flags&.tables.extra_flags.evil || wield.extra_flags&.tables.extra_flags.anti_good)) {
-                        return dam * 10;
-                    }
-                }
-                if(wield.value4&.tables.weapon_type2.holy) {
-                    return dam * 50;
+        if(wield!=null) {
+            if(wield.extra_flags&.tables.extra_flags.bless) {
+                if(!(wield.extra_flags&.tables.extra_flags.evil || wield.extra_flags&.tables.extra_flags.anti_good)) {
+                    return dam * 10;
                 }
             }
+            if(wield.value4&.tables.weapon_type2.holy) {
+                return dam * 50;
+            }
+        }
 
-            return 0;
-        };
+        return 0;
+    };
 
     //fix
     for(mob in invertedList) {
@@ -492,41 +494,41 @@ this = .tmp.epidemy;
 })
 
 /*       //demon.spec_fun = 'spec_breath_fire';
-        //demon.alignment = -1000;
-        // Act: [npc sentinel warrior nopurge notrack] -> [rw] act: .tables.act_flags
-        //demon.act = .unset_bit(demon.act, .tables.act_flags.sentinel);
-        //demon.act = .unset_bit(demon.act, .tables.act_flags.notrack);
-        //demon.act = .set_bit(demon.act, .tables.act_flags.necromancer);
-        //demon.act = .set_bit(demon.act, .tables.act_flags.nowhere);
+		//demon.alignment = -1000;
+		// Act: [npc sentinel warrior nopurge notrack] -> [rw] act: .tables.act_flags
+		//demon.act = .unset_bit(demon.act, .tables.act_flags.sentinel);
+		//demon.act = .unset_bit(demon.act, .tables.act_flags.notrack);
+		//demon.act = .set_bit(demon.act, .tables.act_flags.necromancer);
+		//demon.act = .set_bit(demon.act, .tables.act_flags.nowhere);
 
-        // Aff: [infrared haste berserk regeneration] -> [rw] affected_by: .tables.affect_flags
-        //demon.affected_by =  .set_bit(demon.affected_by, .tables.affect_flags.protect_good);
+		// Aff: [infrared haste berserk regeneration] -> [rw] affected_by: .tables.affect_flags
+		//demon.affected_by =  .set_bit(demon.affected_by, .tables.affect_flags.protect_good);
 
-        // Det: [evil invis hidden dark_vision] -> [rw] detection: .tables.detect_flags
+		// Det: [evil invis hidden dark_vision] -> [rw] detection: .tables.detect_flags
 
-        // Imm:  [summon charm disease] -> [rw] imm_flags: .tables.imm_flags
-        // demon.imm_flags = .set_bit(demon.imm_flags, .tables.imm_flags.fire);
-        // demon.imm_flags = .set_bit(demon.imm_flags, .tables.imm_flags.mental);
+		// Imm:  [summon charm disease] -> [rw] imm_flags: .tables.imm_flags
+		// demon.imm_flags = .set_bit(demon.imm_flags, .tables.imm_flags.fire);
+		// demon.imm_flags = .set_bit(demon.imm_flags, .tables.imm_flags.mental);
 
-        // Res:  [spell weapon fire cold] [rw] res_flags: .tables.res_flags
-        // demon.res_flags = .unset_bit(demon.res_flags, .tables.res_flags.weapon);
-        // demon.res_flags = .unset_bit(demon.res_flags, .tables.res_flags.spell);
+		// Res:  [spell weapon fire cold] [rw] res_flags: .tables.res_flags
+		// demon.res_flags = .unset_bit(demon.res_flags, .tables.res_flags.weapon);
+		// demon.res_flags = .unset_bit(demon.res_flags, .tables.res_flags.spell);
 
-        // Vuln: [lightning mental] [rw] vuln_flags: .tables.vuln_flags
-        // demon.vuln_flags = .unset_bit(demon.vuln_flags, .tables.vuln_flags.lightning);
-        // demon.vuln_flags = .unset_bit(demon.vuln_flags, .tables.vuln_flags.mental);
-        // demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags.holy);
-        // demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags.light);
-        // demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags. );
+		// Vuln: [lightning mental] [rw] vuln_flags: .tables.vuln_flags
+		// demon.vuln_flags = .unset_bit(demon.vuln_flags, .tables.vuln_flags.lightning);
+		// demon.vuln_flags = .unset_bit(demon.vuln_flags, .tables.vuln_flags.mental);
+		// demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags.holy);
+		// demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags.light);
+		// demon.vuln_flags = .set_bit(demon.vuln_flags, .tables.vuln_flags. );
 
-        // Off:  [area_attack bash berserk disarm dodge fade fast kick kick_dirt parry rescue trip crush assist_guard] -> [rw] off_flags: .tables.off_flags
-        // demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.bash);
-        // demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.rescue);
-        // demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.trip);
-        // demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.crush);
-        // demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.assist_guard);
-        // demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.assist_align);
-        // demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.tail);
+		// Off:  [area_attack bash berserk disarm dodge fade fast kick kick_dirt parry rescue trip crush assist_guard] -> [rw] off_flags: .tables.off_flags
+		// demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.bash);
+		// demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.rescue);
+		// demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.trip);
+		// demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.crush);
+		// demon.off_flags = .unset_bit(demon.off_flags, .tables.off_flags.assist_guard);
+		// demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.assist_align);
+		// demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.tail);
 
-        // Group:    [3000]
+		// Group:    [3000]
 */

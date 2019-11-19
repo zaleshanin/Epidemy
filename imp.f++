@@ -1,10 +1,10 @@
 .apply(function() {
 //impInit = function() {
     if(.tmp.epidemy==null)
-        .tmp.epidemy = .Map();
+.tmp.epidemy = .Map();
 
     if(.tmp.epidemy.imps==null)
-        .tmp.epidemy.imps = .List();
+.tmp.epidemy.imps = .List();
 
     this=.tmp.epidemy;
 
@@ -148,8 +148,8 @@
                             imp.epidemy.plan_waypoint = imp.in_room;
                             return;
                         } /*else {
-                                //беда! пустой маршрут!
-                            }*/
+								//беда! пустой маршрут!
+							}*/
                     }
                 } else if(imp.epidemy.plan_nextroom == null) {
                     make_your_move(imp);
@@ -215,16 +215,16 @@
     };
     triggers.impOnLeave = function(imp, ch, from_room, movetype){
     .tmp.epidemy.debug(imp,'onLeave '+ch.name);
-        .tmp.epidemy.triggers.sickOnLeave(imp, ch, from_room, movetype);
+    .tmp.epidemy.triggers.sickOnLeave(imp, ch, from_room, movetype);
         imp.epidemy.cowards=null;
     };
     triggers.impOnEntry = function(imp){
     .tmp.epidemy.debug(imp,'onEntry');
-        .tmp.epidemy.triggers.sickOnEntry(imp);
+    .tmp.epidemy.triggers.sickOnEntry(imp);
         imp.epidemy.cowards=null;
     };
     triggers.impOnGreet = function(imp, ch){
-        .tmp.epidemy.debug(imp,'onGreet '+ch.name);
+    .tmp.epidemy.debug(imp,'onGreet '+ch.name);
     .tmp.epidemy.triggers.sickOnGreet(imp, ch);
         imp.epidemy.cowards=null;
     };
@@ -281,8 +281,11 @@
         mob.alignment = -1000;
         //demon.off_flags = .set_bit(demon.off_flags, .tables.off_flags.tail);
 
+        if(getRandomHelpPiece!=null)
+            getRandomHelpPiece().obj_to_char(mob);
+
     };
-    
+
     fearYou = function(imp, ch) {
         if(ch.dead || !ch.online)
             return;
@@ -293,8 +296,8 @@
             ch.getModifyLevel(),            //level
             .number_range(0, 2),            //duration
             0, 0,                           //location,mod
-            .tables.affwhere_flags.detects, //where
-            .tables.detect_flags.fear);     //bits
+    .tables.affwhere_flags.detects, //where
+    .tables.detect_flags.fear);     //bits
 
         if (ch.isAffected(fear.type))
             return;
@@ -306,14 +309,18 @@
         ch.act("%1$^C1 страшным заклинанием '{g"+fearWord+"!{x' повергает тебя в ужас!", imp);
         imp.rvecho(ch, "%1$^C1 страшным заклинанием '{g"+fearWord+"!{x' повергает %2$C4 в ужас!", imp, ch);
 
-        var escape;
-        escape = ch.in_room.doorTo(getEscapeRooms(ch).random());
+        var escapeRooms, escape;
+        escapeRooms = getEscapeRooms(ch);
 
-        if(ch.in_room.getExitFlags(escape) & .tables.exit_flags.closed) {
-            ch.interpret('open '+ch.in_room.doorName(escape));
+        if(escapeRooms.size()>0) {
+            escape = ch.in_room.doorTo(escapeRooms.random());
+
+            if(ch.in_room.getExitFlags(escape) & .tables.exit_flags.closed) {
+                ch.interpret('open '+ch.in_room.doorName(escape));
+            }
         }
 
-        if(!ch.move_char(escape,'running')){
+        if(escape==null || !ch.move_char(escape,'running')){
             ch.act("Ты пытаешься убежать, но не находишь выхода!");
             ch.recho("%1$^C1 пытается убежать, но не находит выхода.", ch);
         } else {
@@ -334,7 +341,7 @@
             var door;
             door = ch.in_room.doorTo(exit);
             if(ch.in_room.getExitFlags(door) & .tables.exit_flags.locked)
-                continue;
+            continue;
 
             result.push_back(exit);
         }
@@ -343,7 +350,7 @@
     };
 
     getCowards = function(imp) {
-        .tmp.epidemy.debug(imp,'imp: getCovards()');
+    .tmp.epidemy.debug(imp,'imp: getCovards()');
         var result;
         result = .List();
         if(imp.epidemy.fearList.size()==0)
@@ -362,28 +369,28 @@
      dodge fade fast kick_dirt tail disarm trip
     */
 
-/*
-    var fillEmotes;
-    fillEmotes = function(){
-        this = .tmp.epidemy;
+    /*
+        var fillEmotes;
+        fillEmotes = function(){
+            this = .tmp.epidemy;
 
-        //массивы социалов для чертят/бесят
-        emoteArray = .Array();
-        emoteArray[0] = 'buff';  emoteArray[1] = 'cheer'; //??
-        emoteArray[2] = 'curse';  emoteArray[3] = 'flare';
-        emoteArray[4] = 'giggle';  emoteArray[5] = 'grin';
-        emoteArray[6] = 'glare';  emoteArray[7] = 'highfive';
-        emoteArray[8] = 'hop';  emoteArray[9] = 'innocent';
-        emoteArray[10] = 'lick';  emoteArray[11] = 'mischievous';
-        emoteArray[12] = 'smirk';  emoteArray[13] = 'snicker';
-        emoteArray[14] = 'snort';
+            //массивы социалов для чертят/бесят
+            emoteArray = .Array();
+            emoteArray[0] = 'buff';  emoteArray[1] = 'cheer'; //??
+            emoteArray[2] = 'curse';  emoteArray[3] = 'flare';
+            emoteArray[4] = 'giggle';  emoteArray[5] = 'grin';
+            emoteArray[6] = 'glare';  emoteArray[7] = 'highfive';
+            emoteArray[8] = 'hop';  emoteArray[9] = 'innocent';
+            emoteArray[10] = 'lick';  emoteArray[11] = 'mischievous';
+            emoteArray[12] = 'smirk';  emoteArray[13] = 'snicker';
+            emoteArray[14] = 'snort';
 
-        emoteTargArray = .Array();
-        /!*emoteTargArray[0] = "flare";
-        emoteTargArray[1] = "giggle";*!/
-    };
-    fillEmotes();
-*/
+            emoteTargArray = .Array();
+            /!*emoteTargArray[0] = "flare";
+            emoteTargArray[1] = "giggle";*!/
+        };
+        fillEmotes();
+    */
 
     imp_list = .List();
     imp_list.push_back(.get_mob_index(18608));

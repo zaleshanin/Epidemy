@@ -68,8 +68,7 @@
                 mob.epidemy.victims.push_back(vict);
             }
             if(vict.alignment>=350) {
-                if(vict.hasOccupation('healer')
-                    || vict.pIndexData.vnum==8901 || vict.pIndexData.vnum==542) {
+                if(vict.hasOccupation('healer') || vict.pIndexData.vnum==8901) {
                     mob.epidemy.healers.push_back(vict);
                     break;
                 }
@@ -120,8 +119,6 @@
             if(ch!=null) {
                 regChar(ch);
                 regStat(ch.name,'heal');
-                check_reward(ch.name,'heal');
-                check_stop();
             }
         }catch(e){catchMsg('epidemy->heal():'+e);}
     };
@@ -379,6 +376,7 @@
                 }
             }
             for(imp in imps) {
+                if(imp.dead) continue;
                 if (imp.in_room.areaname == city){
                     actualCityInfectedList.push_back(imp);
                     if(imp.in_room != mob.in_room) {
@@ -450,43 +448,43 @@
             }
             return result;
         }catch(e){
-            .tmp.epidemy.catchMsg(e);
+        .tmp.epidemy.catchMsg(e);
         }
     };
     explode_in_room = function(room) {
         this = .tmp.epidemy;
         var ash;
         try {
-        room.echo('Отвратительные существа вспыхивают темно-фиолетовым пламенем...');
-        for(mob in room.ppl) {
-            if(mob.dead) {
-                infectedList.sub(mob);
-                imps.sub(mob);
-            } else {
-                if(!mob.is_npc()
-                    || mob.epidemy==null) continue;
-                if(mob.epidemy.status==null) throw(.fmt('epidemy->explode_in_room(): %1$C1 %2$s[%3$d]',mob,room.name, room.vnum)+' incorrect epidemy structure (status==null)');
-                if(mob.epidemy.status!='imp' && mob.epidemy.status!='sick') continue;
-                if(mob.leader!=null && mob.leader.pet==mob) {
-                    //петов, так и быть, появление демона лечит (если они в этой комнате)
-                    room.echo('Частица {DТьмы{x вырывается из %1C1 наружу.',mob);
-                    heal(mob,null);
+            room.echo('Отвратительные существа вспыхивают темно-фиолетовым пламенем...');
+            for(mob in room.ppl) {
+                if(mob.dead) {
+                    infectedList.sub(mob);
+                    imps.sub(mob);
                 } else {
-                    if(mob.epidemy.status=='imp') {
-                        imps.sub(mob);
+                    if(!mob.is_npc()
+                        || mob.epidemy==null) continue;
+                    if(mob.epidemy.status==null) throw(.fmt('epidemy->explode_in_room(): %1$C1 %2$s[%3$d]',mob,room.name, room.vnum)+' incorrect epidemy structure (status==null)');
+                    if(mob.epidemy.status!='imp' && mob.epidemy.status!='sick') continue;
+                    if(mob.leader!=null && mob.leader.pet==mob) {
+                        //петов, так и быть, появление демона лечит (если они в этой комнате)
+                        room.echo('Частица {DТьмы{x вырывается из %1C1 наружу.',mob);
+                        heal(mob,null);
                     } else {
-                        infectedList.sub(mob);
+                        if(mob.epidemy.status=='imp') {
+                            imps.sub(mob);
+                        } else {
+                            infectedList.sub(mob);
+                        }
+                        ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
+                        ash.obj_to_room(room);
+                        ash.timer = 5;
+                        ash.description = .fmt('Горсть пепла (ash) останков %1C2 лежит у твоих ног.', mob);
+
+                        mob.extract(true);
                     }
-                    ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
-                    ash.obj_to_room(room);
-                    ash.timer = 5;
-                    ash.description = .fmt('Горсть пепла (ash) останков %1C2 лежит у твоих ног.', mob);
 
-                    mob.extract(true);
                 }
-
             }
-        }
 
         } catch(e) {
             catchMsg("epidemy.explode_in_room: " + e);
@@ -501,7 +499,7 @@
         helper = mob.epidemy.helpers.random();
         debug(mob,'helpMe: helper selected->'+helper.name+'['+helper.in_room.name+']');
 
-        .tmp.quest.sleep(1, mob, helper);
+    .tmp.quest.sleep(1, mob, helper);
 
         if(mob.epidemy.status=='infected' || mob.epidemy.status=='sick') {
             if(mob.leader!=null && mob.leader.pet==mob && mob.leader.in_room==helper.in_room) {
@@ -514,11 +512,11 @@
                 ).random(),mob.leader, mob);
             } else {
                 helper.say(.List().add(
-                'Лекаря!! %1$^C1{g чем-то бол%1$Gьно|ен|ьна!',
-                'Болеет же %1$C1{g, полечил бы кто!',
-                'Похоже %1$C1{g чем-то бол%1$Gьно|ен|ьна. Есть врачеватель или экзорцист?',
-                '%1$^C1{g, где ты подхватил%1$Gо||а эту заразу? Покажись Лекарю!',
-                'Страдает же %1$C1{g! Неужели никто не полечит?!'
+                    'Лекаря!! %1$^C1{g чем-то бол%1$Gьно|ен|ьна!',
+                    'Болеет же %1$C1{g, полечил бы кто!',
+                    'Похоже %1$C1{g чем-то бол%1$Gьно|ен|ьна. Есть врачеватель или экзорцист?',
+                    '%1$^C1{g, где ты подхватил%1$Gо||а эту заразу? Покажись Лекарю!',
+                    'Страдает же %1$C1{g! Неужели никто не полечит?!'
                 ).random(),mob);
             }
         }
@@ -567,19 +565,7 @@
                     debug(mob,'infectedPostSpec: healer meet infected');
                     var healer;
                     healer = mob.epidemy.healers.random();
-                    if(healer.pIndexData.vnum==542){ //wiseman
-                        healer.act('Ты тыкаешь пучком травы в сторону %1$C2 и он%1$Gо||а поглащает его, чуть не отхватив тебе руку.',mob);
-                        healer.recho('%1$^C1 тыкает пучком травы в сторону %2$C2 и он%2$Gо||а поглащает его, чуть не отхватив %1$C3 руку.',healer,mob); //%1$Gему|ему|ей
-                        mob.recho("%1$^C1 одной стороной чихает, другой выпускает {Dтёмное облочко{x...", mob);
-                        heal(mob,null);
-                    } else if(mob.leader!=null && mob.leader.pet==mob && mob.leader.isAffected('spellbane') && mob.leader.in_room==healer.in_room) {
-                        healer.say('%1$^C1, частица {1{DТьмы{2 проникла в тво%2$Gего|его|ю {1%2$C4{2, но лечить я что-то опасаюсь, веди-ка ты е%2$Gго|го|ё к вашему Лекарю.',mob.leader,mob);
-                        mob.epidemy.healers.sub(healer);
-                    } else {
-                        healer.spell('heal',healer.level,mob,true,true);
-
-                    }
-
+                    healer.spell('heal',healer.level,mob,true,true);
                     return;
                 }
             }
@@ -601,7 +587,7 @@
         }
     };
     triggers.sickPostSpec = function (mob) {
-        if(mob.dead || mob.epidemy==null) return;
+        if(mob.dead) return;
 
         this = .tmp.epidemy;
 
@@ -631,26 +617,10 @@
                         healer.rvecho(mob, '%1$^C1 внимательно осматривает %2$C4.',healer,mob);
                         mob.act('%1$^C1 внимательно тебя осматривает.', healer);
                         healer.act('Ты внимательно осматриваешь %1$C4.',mob);
-                        .tmp.quest.sleep(1, mob, healer);
+                    .tmp.quest.sleep(1, mob, healer);
                         healer.say('Что ж, похоже у нас еще од%1$Gно|ин|на одержим%1$Gое|ый|ая.',mob);
-                        .tmp.quest.sleep(1, mob, healer);
-                        if(mob.leader!=null && mob.leader.pet==mob && mob.leader.isAffected('spellbane')) {
-                            if(mob.leader.in_room==healer.in_room) {
-                                mob.leader.act('%1$^C1 срывает пучок травы, поворачивается к тебе спиной, и что-то бормочет.', healer);
-                                mob.leader.rvecho(healer,'%1$^C1 срывает из-под ног траву и, повернувшись спиной к %2$С3, бормочет над пучком \'dispel evil\'.',healer, mob.leader);
-                                healer.act('Ты срываешь из-под ног траву и, повернувшись к %1$С3 спиной, бормочешь над пучком \'dispel evil\'.', mob.leader);
-                            } else {
-                                mob.leader.rvecho(healer,'%1$^C1 срывает траву под ногами и бормочет над пучком \'dispel evil\'.',healer, mob.leader);
-                                healer.act('Ты срываешь под ногами траву и бормочешь над пучком \'dispel evil\'.');
-                            }
-                            .tmp.quest.sleep(1, mob, healer);
-                            healer.act('Ты тыкаешь пучком травы в сторону %1$C2 и он%1$Gо||а поглащает его, чуть не отхватив тебе руку.',mob);
-                            healer.recho('%1$^C1 тыкает пучком травы в сторону %2$C2 и он%2$Gо||а поглащает его, чуть не отхватив %1$Gему|ему|ей руку.',healer,mob);
-                            mob.recho("%1$^C1 выпускает {Dтёмное облочко{x с такой силой, что %1$Gего|его|её выворачивает на изнанку...", mob);
-                            heal(mob,null);
-                        }else {
-                            healer.spell('dispel evil',healer.level,mob,true,true);
-                        }
+                    .tmp.quest.sleep(1, mob, healer);
+                        healer.spell('dispel evil',healer.level,mob,true,true);
                         healer.epidemy = null;
                         return;
                     } else if(mob.leader!=null && mob.leader.pet==mob && mob.leader.in_room==mob.in_room) {
@@ -702,6 +672,7 @@
             }
 
             //собака-кусака!
+            if(mob.dead) return; if(mob.epidemy!=null && mob.epidemy.victim!=null && mob.epidemy.victim.dead) mob.epidemy.victim=null;
             if(mob.epidemy.victims!=null && mob.epidemy.victims.size() && .chance(10)) {
                 debug(mob,'postSpec 9: собака-кусака');
                 bite(mob);
@@ -904,12 +875,11 @@
     triggers.infectedOnDeath = function(mob,ch) {
         //onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
         //выпиливаемся из списка
-        .tmp.epidemy.infectedList.sub(mob);
+    .tmp.epidemy.infectedList.sub(mob);
     };
     triggers.infectedOnExtract = function(mob,count) {
         //выпиливаемся из списка
     .tmp.epidemy.infectedList.sub(mob);
-    .tmp.epidemy.check_stop();
     };
     triggers.sickOnLeave = function(mob, ch, from_room, movetype) {
         //onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты
@@ -955,7 +925,6 @@
                 ch = getChMaster(ch);
                 regChar(ch);
                 regStat(ch.name, 'imp_create');
-                check_reward(ch.name, 'imp_create');
             }
             imp.epidemy.fearList.push_back(ch);
             ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',mob,imp);

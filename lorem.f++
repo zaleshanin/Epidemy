@@ -145,9 +145,9 @@
 
         piece = setPieceNames(piece, spell);
 
-        piece.onUse = triggers.pieceOnUse;
-        piece.onExtract = triggers.pieceOnExtract;
-        piece.onQuit = triggers.pieceOnQuit;
+        piece.onUse = function(ch,str){return .tmp.epidemy.triggers.pieceOnUse(this,ch,str);};
+        piece.onExtract = function(count){.tmp.epidemy.triggers.pieceOnExtract(this,count);};
+        piece.onQuit = function(ch,count){.tmp.epidemy.triggers.pieceOnQuit(this,ch,count);};
 
         return piece;
     };
@@ -155,14 +155,15 @@
     fillPieceTriggers = function() {
         this = .tmp.epidemy.triggers;
 
-        pieceOnUse = function(ch,str){
+        pieceOnUse = function(piece, ch,str){
+            this = piece;
             if(ch.clan.name!='invader')
                 return false;
 
             var obj, newPiece;
 
             obj = ch.get_obj_carry(str);
-            if(obj==null || obj.epidemy.spellName==null)
+            if(obj==null || obj.epidemy==null || obj.epidemy.spellName==null)
                 return false;
 
             //переименовываем this(больший номер), уничтожаем obj (меньший)
@@ -170,7 +171,7 @@
 
 
                 ch.act('Ты прикладываешь один клочок бумаги к другому...\nПо разрыву пробегает фиолетовый огонь, и клочки соединяются.');
-                ch.recho('%1$^C1 соединить два клочка бумаги, между ними вспыхивает фиолетовое пламя и они соединяются.',ch);
+                ch.recho('%1$^C1 соединяет два клочка бумаги, между ними вспыхивает фиолетовое пламя и они соединяются.',ch);
 
                 //создаём новый кусок
             .tmp.epidemy.LoremPiece(obj.epidemy.spellIndexMin,epidemy.spellIndexMax,(obj.epidemy.spellName+' '+epidemy.spellName),epidemy.ownerName).obj_to_char(ch);
@@ -191,7 +192,8 @@
         /*onExtract(count) - предмет разрушается. count == false означает, что
         разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
         чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
-        pieceOnExtract = function (count) {
+        pieceOnExtract = function (piece, count) {
+            this = piece;
             if(epidemy!=null && .tmp.epidemy.books[epidemy.ownerName] != null && count) {
                 .tmp.epidemy.piece_to_warlock(
                     .tmp.epidemy.LoremPiece(epidemy.spellIndexMin,epidemy.spellIndexMax,epidemy.spellName, epidemy.ownerName),
@@ -211,7 +213,8 @@
 
         //onQuit(ch,count) - ch покидает мир. Если разрушаем предмет, надо вернуть true.
         // count == false при обычном quit, и true при делите.
-        pieceOnQuit = function (ch,count) {
+        pieceOnQuit = function (piece,ch,count) {
+            this = piece;
             if(epidemy.ownerName!=ch.name) {
                 this.carried_by.act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', this);
             .tmp.epidemy.piece_to_warlock(this,.tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back()));

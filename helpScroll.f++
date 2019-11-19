@@ -1,0 +1,179 @@
+.apply(function() {
+    if (.tmp.epidemy == null)
+.tmp.epidemy = .Map();
+    if (.tmp.epidemy.triggers == null)
+.tmp.epidemy.triggers = .Map();
+
+    this = .tmp.epidemy;
+    piece = .get_obj_index(9607);
+
+    healPiecesNames=.Array();
+    healPiecesNames[0] = 'requiem';
+    healPiecesNames[1] = 'aeternam';
+    healPiecesNames[2] = 'dona';
+    healPiecesNames[3] = 'eis';
+    healPiecesNames[4] = 'domine';
+
+    triggers.helpPieceOnUse = function(piece, ch, str) {
+        this = .tmp.epidemy;
+        if(ch.clan.name=='battlerager')
+            return false;
+
+        var obj;
+        obj = ch.get_obj_carry(str);
+        if(obj==null || obj.epidemy==null || obj.epidemy.wordName==null)
+            return false;
+        if(obj.epidemy.wordIndexMax+1 == piece.epidemy.wordIndexMin || piece.epidemy.wordIndexMax+1 == obj.epidemy.wordIndexMin) {
+            var wordIndexMax, wordIndexMin;
+            wordIndexMin = .min(piece.epidemy.wordIndexMin,obj.epidemy.wordIndexMin);
+            wordIndexMax = .max(piece.epidemy.wordIndexMax,obj.epidemy.wordIndexMax);
+            if(wordIndexMin==healPiecesNames.keys.front() && wordIndexMax==healPiecesNames.keys.back()) {
+                ch.act('Ты прикладываешь один фрагмент к другому...\nПо разрыву пробегает белый огонь, и клочки соединяются в {Dчерный свиток{x.');
+                ch.recho('%1$^C1 соединняет два клочка бумаги, между ними вспыхивает белое пламя и они соединяются в {Dчерный свиток{x.',ch);
+                helpScroll().obj_to_char(ch);
+            } else {
+                ch.act('Ты прикладываешь одину часть свитка к другой...\nПо разрыву пробегает белый огонь, и клочки соединяются.');
+                ch.recho('%1$^C1 соединяет две части свитка, между ними вспыхивает белое пламя и они соединяются.',ch);
+                //создаём новый кусок
+                helpPiece(wordIndexMin,wordIndexMax,(obj.epidemy.wordName+' '+piece.epidemy.wordName)).obj_to_char(ch);
+            }
+            //убираем старые клочки
+            obj.epidemy = null;
+            obj.extract(true);
+            piece.epidemy = null;
+            piece.extract(true);
+        } else {
+            ch.act('Похоже эти части не подходят друг другу.');
+            ch.recho('%1$^C1 безуспешно пытается соединить два обрывка свитка.',ch);
+        }
+        return true;
+
+    };
+
+    triggers.helpScrollPostSpeech = function(scroll,ch,str) {
+        this=.tmp.epidemy;
+        try {
+            if (str.toLower().match('requiem aeternam dona eis.* domine')) {
+                var sick;
+
+                if(scroll.wear_loc!='hold') {
+                .scheduler.sleep(2);
+                    ch.act('Ничего не происходит. Возможно свиток стоит взять в руки?');
+                    return;
+                }
+                if(ch.in_room.ppl.size()>1)
+                    .tmp.quest.sleepRoom(1, ch);
+
+                var succeed; succeed = false;
+                for(sick in ch.in_room.ppl) {
+                    if(sick.epidemy!=null && sick.epidemy.status!=null) {
+                        if(sick.epidemy.status=='sick' || sick.epidemy.status=='inverted') {
+
+                            sick.act("Частица {DТьмы{x покидает твоё тело в виде черного облачка и тут же растворяется в воздухе.");
+                            sick.recho("Частица {DТьмы{x покидает тело {1%1$^C2{2 в виде черного облачка и тут же растворяется в воздухе.", sick);
+                            heal(sick,ch);
+                            succeed = true;
+                        } else if(sick.in_room.room_flags & .tables.room_flags.safe) {
+
+                            var escapeRooms, escape;
+                            sick.interpret(.List().add('yawn','sneeze','sigh').random());
+                            escapeRooms = getEscapeRooms(sick);
+                            if(escapeRooms.size()>0) {
+                                escape = sick.in_room.doorTo(getEscapeRooms(sick).random());
+
+                                if(sick.in_room.getExitFlags(escape) & .tables.exit_flags.closed) {
+                                    sick.interpret('open '+sick.in_room.doorName(escape));
+                                }
+                            }
+                            if(escape==null || !sick.move_char(escape)){
+                                sick.act("Ты пытаешься уйти, но у тебя не выходит!");
+                                sick.recho("%1$^C1 пытается уйти, но не находит выхода.", sick);
+                            }
+                            succeed = true;
+
+                        }
+                    }
+                }
+                if(!succeed) {
+                    ch.act('Ничего не происходит. Возможно того самого Зла тут и нет?!');
+                }
+
+                postSpeachHelpScrollCheck(scroll,ch);
+            }
+        }catch(e) {
+        .tmp.epidemy.catchMsg(e);
+        }
+    };
+    postSpeachHelpScrollCheck = function(scroll, ch) {
+        //тут можно будет скрол уничтожить
+    };
+    helpScroll = function(){
+        //this = .tmp.epidemy;
+        var one_scroll;
+        var extradesc;
+
+        one_scroll = piece.create();
+        one_scroll.extra_flags = .set_bit(one_scroll.extra_flags, .tables.extra_flags.glow);
+        one_scroll.extra_flags = .set_bit(one_scroll.extra_flags, .tables.extra_flags.magic);
+
+        one_scroll.name = 'scroll black черный свиток quo altior gradus tanto profundior casus';
+        one_scroll.short_descr = "{Dчерн|ый|ого|ому|ый|ым|ом свит|ок|ка|ку|ок|ком|ке с надписью {x'{WRequiem aeternam dona eis, Domine{x'";
+        one_scroll.description = '{DЧерный свиток (scroll) с магическими символами лежит здесь.{x\n';
+
+        extradesc = " Похоже это свиток для борьбы с каким-то Злом.\n" +
+            "Белые по чёрному буквы гласят \"{WRequiem aeternam dona eis, Domine{x\".\n" +
+            "Ниже изображен человек, держащий свиток в руках, и стоящий напротив вывернутого наизнанку существа.\n" +
+            "Еще ниже, этот же человек, всё с тем же свитком, напротив отдыхающего посланника Тьмы.\n" +
+            "Что бы это всё значило?\n" +
+            "Может то, что нужно произнести указанное заклинание, держа свиток в руках, рядом с каким-то Злом?\n" +
+            "Да нет! Бред какой-то!!\n" +
+            "В нижней части свитка мелким готическим шрифтом подписано \"Только если нет другого способа!\"";
+
+        one_scroll.set_extra_descr(one_scroll.name, extradesc);
+
+        one_scroll.postSpeech = function(ch,str) {.tmp.epidemy.triggers.helpScrollPostSpeech(this,ch,str);};
+
+        return one_scroll;
+    };
+    helpPiece = function(min, max, spell) {
+        this = .tmp.epidemy;
+        var one_piece;
+        var extradesc;
+
+        one_piece = piece.create();
+
+        one_piece.epidemy = .Map();
+        one_piece.epidemy.wordIndexMin = min;
+        one_piece.epidemy.wordIndexMax = max;
+        one_piece.epidemy.wordName = spell;
+
+        one_piece.name = 'piece paper scroll клочок бумаги бумага свиток свитка '+spell;
+        one_piece.short_descr = "{Dобрывок||а|у||ом|е свитка с надписью {x'{W"+spell+"{x'";
+        one_piece.description = 'Обрывок (piece) черного свитка с магическими символами лежит здесь.\n';
+
+        extradesc = " Похоже этот кусочек черной бумаги, на котором белыми буквами написано:\n" +
+            "'{1{W"+spell+"{2', является частью какого-то свитка.\n"
+            +"Возможно, если найти другие части, их можно будет соединить.\n" +
+            "Твой внутренний голос подсказывает тебе, что свиток может быть использован\n" +
+            "для борьбы с каким-то {DЗлом{x.";
+
+        one_piece.set_extra_descr(one_piece.name, extradesc);
+
+        one_piece.onUse = function(ch,str){return .tmp.epidemy.triggers.helpPieceOnUse(this, ch, str);};
+
+        return one_piece;
+    };
+    getRandomHelpPiece = function() {
+        this = .tmp.epidemy;
+        if(healPiecesNamesRandomList==null || healPiecesNamesRandomList.size()==0)
+            healPiecesNamesRandomList = healPiecesNames.keys.clone();
+        var rnum;
+        rnum = healPiecesNamesRandomList.random();
+        healPiecesNamesRandomList.sub(rnum);
+        return helpPiece(rnum,rnum,healPiecesNames[rnum]);
+    };
+
+    healPiecesNamesRandomList==null;
+})
+/*
+Requiem aeternam dona eis, Domine
