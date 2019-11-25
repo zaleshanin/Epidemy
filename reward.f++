@@ -47,7 +47,7 @@
             + '   2. Отдать купон Высшему Воителю, Государю паладинов\n'
             + '   3. Следовать дальнейшим инструкциям\n'
             + '   P.S. при себе должна иметься вещь '
-            +.tmp.epidemy.getRewardWearLocName(coupon.epidemy.rank)+'.\n'
+            +.fmt('%N1',.tmp.epidemy.getRewardWearLocName(coupon.epidemy.rank))+'.\n'
             + '   P.P.S. не лимитная, не личная, не перекрашеная, не измененная.\n'
             + 'Эх. Похоже это очередное подобие рестринг купона. Но, возможно, стоит сходить...';
 
@@ -80,7 +80,7 @@
         this=.tmp.epidemy;
 
         if(isRewardCoupon(obj) && obj.owner==ch.name){
-            vict.say('Теперь, %1$C1, дай мне вещь %2$s.',ch,getRewardWearLocName(obj.epidemy.rank));
+            vict.say('Теперь, %1$C1, дай мне вещь %2$N4.',ch,getRewardWearLocName(obj.epidemy.rank));
         } else {
             var coupon;
             for(invobj in vict.inventory) {
@@ -92,7 +92,7 @@
                 return;
             }
             if(!(obj.wear_flags&getRewardWearLoc(coupon.epidemy.rank))){
-                returnObj(vict,ch,obj,.fmt('Нужна вещь %s.',getRewardWearLocName(coupon.epidemy.rank))); return;
+                returnObj(vict,ch,obj,.fmt('Нужна вещь %N1.',getRewardWearLocName(coupon.epidemy.rank))); return;
             }
             if(obj.pIndexData.limit>=0) {returnObj(vict,ch,obj,'Я не смогу изменить на столько редкую вещь. Другой не найдётся?');return;}
             if(obj.owner!='') {returnObj(vict,ch,obj,'Я не смогу изменить личную вещь. Другой не найдётся?');return;}
@@ -115,27 +115,30 @@
         measure = ch.getModifyLevel();
 
         obj.owner = ch.name;
+        obj.personal = ch.name;
+/*
         obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.nosac);
         obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.nopurge);
+*/
 
         var extradesc;
         if(obj.wear_flags&.tables.wear_flags.wear_about){
             obj.name = 'superpelliceum exorcist суперпеллицеум экзорциста';
             obj.short_descr = "{cсу{Cпер{Wпелл{Cице{cум||а|у||ом|е {cэ{Cкз{Wорци{Cст{cа{x";
             //obj.gender
-            measure = ((measure + (measure/2))/10) + 3;
+            measure = (measure/10) + 2;
         }
         else if(obj.wear_flags&.tables.wear_flags.wear_face){
             obj.name = 'mask plague doctor маска чумного доктора';
             obj.short_descr = "{Dм{wа{Wс{wк{D|а|и|е|у|ой|е {Dч{wу{Wм{Cн{Wо{wг{Dо {Dд{wо{Wк{Cт{Wо{wр{Dа{x";
             //obj.gender
-            measure = ((measure + (measure/3))/10) + 2;
+            measure = (measure/10) + 1;
         }
         else if(obj.wear_flags&.tables.wear_flags.wear_neck){
             obj.name = 'medal knights assistant орден помощника рыцарей';
             obj.short_descr = "{cо{Cр{Wде{Cн{c {cп{Cом{Wощн{Cик{cа {WРыцарей{x";
             //obj.gender
-            measure = ((measure + (measure/4))/10) + 1;
+            measure = measure/10;
         }
         obj.description = .fmt("Ч%1$Gьё|ей|ья-то персональн%1$Gое|ый|ая {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
         extradesc = .fmt("Персональн%1$Gое|ый|ая %1$O1, полученн%1$Gое|ый|ая в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
@@ -166,21 +169,17 @@
                 ch.recho("{1%^O1{2 перестаёт излучать свет.", this);
             }
         };
+/*
         obj.onGet = function(ch) {
             if(owner!=ch.name) {
                 obj_to_room(ch.in_room);
-                ch.act('Ты не можешь владеть {1%1$O5{2 бросаешь е%1$Gго|го|ё.', this);
-                ch.recho('%1$^C1 не можешь владеть {1%2$O5{2 бросает е%2$Gго|го|ё.',ch,this);
+                ch.act('Ты не можешь владеть {1%1$O5{2 и бросаешь е%1$Gго|го|ё.', this);
+                ch.recho('%1$^C1 не можешь владеть {1%2$O5{2 и бросает е%2$Gго|го|ё.',ch,this);
             }
         };
-
-/*
-        Ты берешь Ярость Воина.
-            Ты не можешь владеть Яростью Воина и бросаешь его.
 */
 
-
-            var objAffects; objAffects = .List();
+        var objAffects; objAffects = .List();
         var hr,dr,cha,bless;hr=0;dr=0;cha=0;bless=0;
         for(aff in obj.affected) {
             if(.tables.apply_flags.names(aff.location)=='hitroll') {
@@ -200,13 +199,14 @@
         for(aff in objAffects) {
             obj.affectAdd(aff);
         }
+        if(measure==0) measure=1;
         var new_hr,new_dr;new_hr=measure;new_dr=measure;
         if(ch.alignment>=350) {
-            new_hr = new_hr + (mewsure/3)+1;
-            new_dr = new_dr - (mewsure/3);
+            new_hr = new_hr + (mewsure*10/40);
+            new_dr = new_dr - (mewsure*10/40);
         } else if (ch.alignment<=-350) {
-            new_hr = new_hr - (mewsure/3);
-            new_dr = new_dr + (mewsure/3)+1;
+            new_hr = new_hr - (mewsure*10/40);
+            new_dr = new_dr + (mewsure*10/40);
         }
         var aff;
         aff=.Affect();
@@ -233,7 +233,7 @@
         aff.type = 'bless';
         aff.bitvector = .tables.extra_flags.bless;
         aff.location=.tables.apply_flags.saves;
-        aff.modifier = .min(bless,((ch.getModifyLevel()/10+1)*-1));
+        aff.modifier = .min(bless,((ch.getModifyLevel()/25+1)*-1));
         obj.affectAdd(aff);
 
         return obj;
@@ -254,9 +254,9 @@
         throw('getRewardWearLoc(): incorrect coupon rank');
     };
     getRewardWearLocName=function(num){
-        if(num==1) {return 'накидывающаяся вокруг тела';}
-        else if(num==2){return 'прикрывающая лицо';}
-        else if(num==3){return 'надевающаяся на шею';}
+        if(num==1) {return 'накидывающ|аяся|ейся|ейся|уюся|ейся|ейся вокруг тела';}
+        else if(num==2){return 'прикрывающ|ая|ей|ей|ую|ей|ей лицо';}
+        else if(num==3){return 'надевающ|аяся|ейся|ейся|уюся|ейся|ейся на шею';}
         throw('getRewardWearLocName(): incorrect coupon rank');
     };
     returnObj=function(vict,ch,obj,str){
