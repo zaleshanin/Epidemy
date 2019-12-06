@@ -1,18 +1,15 @@
 .apply(function() {
-//loremInit = function() {
     var fillPieceTriggers;
-    if (.tmp.epidemy == null)
-        .tmp.epidemy = .Map();
-
-    if (.tmp.epidemy.warlocks == null)
-        .tmp.epidemy.warlocks = .List();
-
-    if (.tmp.epidemy.triggers == null)
-        .tmp.epidemy.triggers = .Map();
+    if (.tmp.epidemy == null) .tmp.epidemy = .Map();
     this = .tmp.epidemy;
 
-    if(piece == null)
-        piece = .get_obj_index(9607);
+    lorem_version = '1';
+    if (warlocksList == null)
+        warlocksList = .List();
+
+
+    if(Piece == null)
+        Piece = .get_obj_index(9607);
 
     setPieceNames = function(piece, spell) {
         var extradesc;
@@ -46,8 +43,8 @@
         l = .List(); result = .List(); areas = .List();
 
         for (i = .char_list; i != null; i = i.next) {
-            if (i.pc != null)
-                continue;
+            if (!i.is_npc()) continue;
+            if(i.leader != null && i.leader.pet == i) continue;
             //если у моба уже есть бумажка
             if(i.epidemy!=null){
                 continue;
@@ -56,10 +53,8 @@
             if(areas.has(i.in_room.areaname))
                 continue;
             //проверяем на алигн, уровень, количество
-            if(i.alignment>-10 || i.level < 30
-                || i.pIndexData.instances.size() > 1
-                || !(i.act&.tables.act_flags.mage || i.act&.tables.act_flags.necromancer))
-            continue;
+            if(i.alignment>-350 || i.level < 30 || i.pIndexData.instances.size() > 1) continue;
+            if(!i.act&.tables.act_flags.mage && !i.act&.tables.act_flags.necromancer) continue;
             //проверяем зону на квестовость и моба на агрессивность
             if(i.in_room.area.area_flag&.tables.area_flags.noquest
             || i.in_room.area.area_flag&.tables.area_flags.hidden
@@ -114,7 +109,7 @@
                 onePiece = LoremPiece(c,c,loremArray[c], book.epidemy.ownerName);
 
                 //готовим из найденого мага выдавателя бумажки
-                wk = .tmp.epidemy.Warlock(wk);
+                wk = .tmp.epidemy.warlockInit(wk);
 
                 .tmp.epidemy.piece_to_warlock(onePiece, wk);
 
@@ -135,13 +130,15 @@
         this = .tmp.epidemy;
         var piece;
 
-        piece = .tmp.epidemy.piece.create();
+        piece = .tmp.epidemy.Piece.create();
 
         piece.epidemy = .Map();
         piece.epidemy.spellIndexMin = min;
         piece.epidemy.spellIndexMax = max;
         piece.epidemy.spellName = spell;
         piece.epidemy.ownerName = name;
+        piece.epidemy.status = 'lorem piece';
+        piece.epidemy.version = lorem_version;
 
         piece = setPieceNames(piece, spell);
 
@@ -149,85 +146,123 @@
         piece.onExtract = function(count){.tmp.epidemy.triggers.pieceOnExtract(this,count);};
         piece.onQuit = function(ch,count){.tmp.epidemy.triggers.pieceOnQuit(this,ch,count);};
 
+        piece.onDrop = function(ch){.tmp.epidemy.triggers.pieceOnDrop(this,ch);};
+        piece.onPut = function(ch){.tmp.epidemy.triggers.pieceOnPut(this,ch, obj, cont);};
+        piece.onGet = function(ch){.tmp.epidemy.triggers.pieceOnGet(this,ch);};
+
         return piece;
     };
 
-    fillPieceTriggers = function() {
-        this = .tmp.epidemy.triggers;
+    if (triggers == null) triggers = .Map();
 
-        pieceOnUse = function(piece, ch,str){
-            this = piece;
-            if(ch.clan.name!='invader')
-                return false;
+    triggers.pieceOnUse = function(piece, ch,str){
+        this = piece;
+        if(ch.clan.name!='invader')
+            return false;
 
-            var obj, newPiece;
+        var obj, newPiece;
 
-            obj = ch.get_obj_carry(str);
-            if(obj==null || obj.epidemy==null || obj.epidemy.spellName==null)
-                return false;
+        obj = ch.get_obj_carry(str);
+        if(obj==null || obj.epidemy==null || obj.epidemy.spellName==null)
+            return false;
 
-            //переименовываем this(больший номер), уничтожаем obj (меньший)
-            if(obj.epidemy.spellIndexMax+1 == epidemy.spellIndexMin) {
-
-
-                ch.act('Ты прикладываешь один клочок бумаги к другому...\nПо разрыву пробегает фиолетовый огонь, и клочки соединяются.');
-                ch.recho('%1$^C1 соединяет два клочка бумаги, между ними вспыхивает фиолетовое пламя и они соединяются.',ch);
-
-                //создаём новый кусок
-            .tmp.epidemy.LoremPiece(obj.epidemy.spellIndexMin,epidemy.spellIndexMax,(obj.epidemy.spellName+' '+epidemy.spellName),epidemy.ownerName).obj_to_char(ch);
-                //убираем старые
-                obj.epidemy = null;
-                obj.extract(true);
-                this.epidemy = null;
-                this.extract(true);
-
-            } else {
-                ch.act('Похоже этот клочок сюда не подходит, или может попробовать присоединить с другой стороны?.');
-                ch.recho('%1$^C1 безуспешно пытается соединить два клочка бумаги.',ch);
-            }
-            return true;
-
-        };
-
-        /*onExtract(count) - предмет разрушается. count == false означает, что
-        разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
-        чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
-        pieceOnExtract = function (piece, count) {
-            this = piece;
-            if(epidemy!=null && .tmp.epidemy.books[epidemy.ownerName] != null && count) {
-                .tmp.epidemy.piece_to_warlock(
-                    .tmp.epidemy.LoremPiece(epidemy.spellIndexMin,epidemy.spellIndexMax,epidemy.spellName, epidemy.ownerName),
-                    .tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back())
-                );
-            }
-            if(carried_by!=null) {
-                if(carried_by.epidemy!=null && carried_by.epidemy.pieces!=null) {
-                    carried_by.epidemy.pieces[epidemy.ownerName]=null;
-
-                    if(carried_by.epidemy.pieces.keys.size()==0) {
-                        carried_by.epidemy==null;
-                    }
-                }
-            }
-        };
-
-        //onQuit(ch,count) - ch покидает мир. Если разрушаем предмет, надо вернуть true.
-        // count == false при обычном quit, и true при делите.
-        pieceOnQuit = function (piece,ch,count) {
-            this = piece;
-            if(epidemy.ownerName!=ch.name) {
-                this.carried_by.act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', this);
-            .tmp.epidemy.piece_to_warlock(this,.tmp.epidemy.Warlock(.tmp.epidemy.get_evil_mage(1).back()));
-            }
-        };
+        //переименовываем this(больший номер), уничтожаем obj (меньший)
+        //obj.epidemy.wordIndexMax+1 == piece.epidemy.wordIndexMin || piece.epidemy.wordIndexMax+1 == obj.epidemy.wordIndexMin
+        if(obj.epidemy.spellIndexMax+1 == epidemy.spellIndexMin || epidemy.spellIndexMax+1 == obj.epidemy.spellIndexMin) {
 
 
-        /*onPut(ch,obj,cont) - ch кладет obj в контейнер cont.
-        Триггер вызывается для всех троих.*/
-        /*piece.onPut = function(book, ch, obj, cont) {
-        };*/
+            ch.act('Ты прикладываешь один клочок бумаги к другому...\nПо разрыву пробегает фиолетовый огонь, и клочки соединяются.');
+            ch.recho('%1$^C1 соединяет два клочка бумаги, между ними вспыхивает фиолетовое пламя и они соединяются.',ch);
+
+            //создаём новый кусок
+            var wordIndexMax, wordIndexMin;
+            wordIndexMin = .min(epidemy.spellIndexMin,obj.epidemy.spellIndexMin);
+            wordIndexMax = .max(epidemy.spellIndexMax,obj.epidemy.spellIndexMax);
+        .tmp.epidemy.LoremPiece(wordIndexMin,wordIndexMax,(obj.epidemy.spellName+' '+epidemy.spellName),epidemy.ownerName).obj_to_char(ch);
+            //убираем старые
+            obj.clear();
+            obj.extract(true);
+            this.clear();
+            this.extract(true);
+
+        } else {
+            ch.act('Похоже этот клочок сюда не подходит.');
+            ch.recho('%1$^C1 безуспешно пытается соединить два клочка бумаги.',ch);
+        }
+        return true;
 
     };
+    /*onExtract(count) - предмет разрушается. count == false означает, что
+    разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
+    чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
+    triggers.pieceOnExtract = function (piece, count) {
+        this = .tmp.epidemy;
+        if(piece.epidemy!=null && booksList[piece.epidemy.ownerName] != null && count) {
+            piece_to_warlock(
+                LoremPiece(piece.epidemy.spellIndexMin,
+                    piece.epidemy.spellIndexMax,
+                    piece.epidemy.spellName,
+                    piece.epidemy.ownerName),
+                warlockInit(get_evil_mage(1).back())
+            );
+        }
+        if(piece.getCarrier()!=null) {
+            if(piece.getCarrier().epidemy!=null && piece.getCarrier().epidemy.pieces!=null) {
+                piece.getCarrier().epidemy.pieces[piece.epidemy.ownerName]=null;
 
-    fillPieceTriggers();
+                if(piece.getCarrier().epidemy.pieces.keys.size()==0) {
+                    piece.getCarrier().clear();
+                }
+            }
+        }
+    };
+    //onQuit(ch,count) - ch покидает мир. Если разрушаем предмет, надо вернуть true.
+    // count == false при обычном quit, и true при делите.
+    triggers.pieceOnQuit = function (piece,ch,count) {
+        this = .tmp.epidemy;
+        if(piece.epidemy.ownerName!=ch.name) {
+            piece.getCarrier().act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', piece);
+            piece_to_warlock(piece,warlockInit(get_evil_mage(1).back()));
+        }
+    };
+    triggers.pieceOnDrop = function(piece,ch) {
+        if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+            && piece.epidemy.ownerName!=ch.name)
+            piece.timer=150;
+    };
+    triggers.pieceOnPut = function(piece, ch, obj, cont) {
+        if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+            && piece.epidemy.ownerName!=ch.name)
+            piece.timer=150;
+    };
+    triggers.pieceOnGet = function(piece,ch) {
+        if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+            && piece.epidemy.ownerName==ch.name)
+            piece.timer=-1;
+    };
+
+    chkLoremVersion = function(piece) {
+        if(piece.epidemy.status==null || piece.epidemy.version==null || piece.epidemy.version!=lorem_version) {
+            if(piece.epidemy.spellIndexMin!=null
+                && piece.epidemy.spellIndexMax!=null
+                && piece.epidemy.spellName!=null
+                && piece.epidemy.ownerName!=null)
+                piece = LoremPiece(piece.epidemy.spellIndexMin,piece.epidemy.spellIndexMax,piece.epidemy.spellName,piece.epidemy.ownerName);
+        }
+        return piece;
+    };
+
+    for(piece in Piece.instances) {
+        if(!piece.online) continue;
+        if(piece.epidemy==null) continue;
+        if(piece.epidemy.spellName==null) continue;
+        if(!.List().add('lorem','ipsum','dolor','sit','amet').has(piece.epidemy.spellName)) continue;
+        //перепрошиваем устаревшие кусочки
+        piece = chkLoremVersion(piece);
+
+        if(piece.getCarrier()==null) {
+            piece.timer = 150;
+        }
+    }
+
 })

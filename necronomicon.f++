@@ -6,9 +6,9 @@
     this = .tmp.epidemy;
 
     if(triggers==null) triggers = .Map();
-    if(necronomicon==null) necronomicon = .get_obj_index(732);
+    if(Necronomicon==null) Necronomicon = .get_obj_index(732);
 
-    necronomicon.onExtraDescr = function(book, ch, str) {
+    Necronomicon.onExtraDescr = function(book, ch, str) {
         //onExtraDescr(ch,str) - возвращает строку, которую надо показать чару ch,
         // при взгляде на экстра-дескр str. Если вернуть пустую строку, продолжится
         // поиск другого экстра-деска, иначе -- покажет то что мы вернули, и оборвет поиск.
@@ -117,7 +117,7 @@
                         //бумажка на руках
                         if(aWk['found']=='carrier') {
                             //наш маг из списка
-                            if(warlocks.has(aWk['link'])) {
+                            if(warlocksList.has(aWk['link'])) {
                                 if(aWk['link'].act&.tables.act_flags.mage)
                                 result = result + ' {Dчернокнижника{x.\n';
                             else if(aWk['link'].act&.tables.act_flags.necromancer)
@@ -200,7 +200,7 @@
         }
         return result;
     };
-    necronomicon.onCantFetch = function(book, ch, unknownobj, unknownstr) {
+    Necronomicon.onCantFetch = function(book, ch, unknownobj, unknownstr) {
         //onCantFetch(ch) - чар ch пытается что-то вытащить из этого контейнера.
         // если вернуть true - вытащить не получится.
         if(ch.name != book.epidemy.ownerName) {
@@ -209,7 +209,7 @@
         }
         return false;
     };
-    necronomicon.onCantPut = function(book, ch, obj, pocket, verbose) {
+    Necronomicon.onCantPut = function(book, ch, obj, pocket, verbose) {
         //onCantPut(ch, obj, pocket, verbose) - чар ch пытается положить предмет obj
         // в этот контейнер (возможно в карман с именем pocket).
         // если вернуть true - положить не получится.
@@ -231,7 +231,7 @@
             }
         }
     };
-    necronomicon.onPut = function(book, ch, obj, cont) {
+    Necronomicon.onPut = function(book, ch, obj, cont) {
         //onPut(ch,obj,cont) - ch кладет obj в контейнер cont.
         // Триггер вызывается для всех троих.
         //начинает вибрировать если в нее положить бумажку
@@ -245,12 +245,12 @@
             ch.in_room.ppl.call.act('%1$^O1 вспыхивает магическим огнём.',book);
             book.extra_flags = .set_bit(book.extra_flags, .tables.extra_flags.glow);
             book.epidemy.isLorem = 1;
-            obj.epidemy = null;
+            obj.clear();
             obj.extract(true);
 
         }
     };
-    necronomicon.onFetch = function(book,ch,obj) {
+    Necronomicon.onFetch = function(book,ch,obj) {
         //onFetch(ch,obj) - ch вынул obj из этого предмета-контейнера
         //если бумажек внутри не осталось, перестаём вибрировать
         if(book.items.size()==0) {
@@ -258,7 +258,7 @@
             ch.in_room.ppl.call.act('%1$^O1 перестаёт вибрировать.', book);
         }
     };
-    necronomicon.postSpeech = function(book,ch,str) {
+    Necronomicon.postSpeech = function(book,ch,str) {
         this=.tmp.epidemy;
         try{
             if(str.toLower().match('lorem ipsum dolor sit amet')) {
@@ -461,7 +461,7 @@
         }
     };
     //бывает и такая фигня, надо удалить из списка
-    necronomicon.onExtract = function(book, jopa) {
+    Necronomicon.onExtract = function(book, jopa) {
         if(jopa) {
             //оказалось, еще и клочки нужно уничтожить...
             var piecesList;
@@ -475,7 +475,7 @@
                 }
             }
 
-            .tmp.epidemy.books[book.epidemy.ownerName] = null;
+            .tmp.epidemy.booksList[book.epidemy.ownerName] = null;
 
             var i; var c;
             c = piecesList.size();
@@ -489,8 +489,8 @@
 
     };
 
-    Necronomicon = function(ch) {
-        this = .tmp.epidemy.necronomicon.create();
+    NecronomiconInit = function(ch) {
+        this = .tmp.epidemy.Necronomicon.create();
 
         epidemy = .Map();
 
@@ -501,20 +501,20 @@
     };
 
     count_wk = function(chname) {
+        this = .tmp.epidemy;
         var count, l,c,i,wk;
         count = 0;
-        l = .tmp.epidemy.warlocks.clone();
+        l = .tmp.epidemy.warlocksList.clone();
         c = l.size();
-        for(i=0 ; i < c ; i=i+1) {
-            wk=l.back();
-            if(wk.epidemy==null) {
-                .tmp.epidemy.warlocks.sub(wk);
+        for(wk in warlocksList) {
+            if(wk.epidemy==null || wk.epidemy.pieces==null) {
+                wk.clear();
+                warlocksList.sub(wk);
                 continue;
             }
 
             if(wk.epidemy.pieces[chname]!=null)
                 count=count+1;
-            l.pop_back();
         }
 
         return count;
@@ -524,14 +524,14 @@
         var carrier;
         result = .Array();
 
-        for(piece in .tmp.epidemy.piece.instances) {
+        for(piece in .tmp.epidemy.Piece.instances) {
             //ваще не торт
             if(piece.epidemy==null) {
                 continue;
             }
 
             //не наше
-            if(piece.epidemy.ownerName!=chname) {
+            if(piece.epidemy.ownerName==null || piece.epidemy.ownerName!=chname) {
                 continue;
             }
 
@@ -569,7 +569,6 @@
             var slen,i,s,maxlen;
             ra = .Array(); //resultArray strings
             cc = 0;
-            blank = '';
             header = '            | ритуалов|  демонов|  исчадий|   чертят|одержимых|    убито| обращено|\n' +
                 '------------+---------+---------+---------+---------+---------+---------+---------|';
             for(key in .List().add('epidemy start','demon','fiend','imp','infect','fiend_kill','demon_invert')) {
@@ -696,12 +695,13 @@
             //а вот тут заражаем!
 
             preInfect(target,ch);//target.postSpec = function(){.tmp.epidemy.infect(rose);};
-            ch = getChMaster(ch);
-            if(ch!=null){
-                regChar(ch);
-                regStat(ch.name,'epidemy start');
-                regHistory(.fmt('в месте называемом %3$s, %1$^C1 посеял%1$Gо||а зерно {DТьмы{x в %2$C4',ch,target,ch.in_room.areaname));
-                check_reward(ch.name,'epidemy start');
+            var chMaster;
+            chMaster = getChMaster(ch);
+            if(chMaster!=null){
+                regChar(chMaster);
+                regStat(chMaster.name,'epidemy start');
+                regHistory(.fmt('в месте называемом %3$s, %1$^C1 посеял%1$Gо||а зерно {DТьмы{x в %2$C4',chMaster,target,chMaster.in_room.areaname));
+                check_reward(chMaster.name,'epidemy start');
                 if(running==null)
                     start();
             }

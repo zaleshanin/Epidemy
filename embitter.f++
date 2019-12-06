@@ -1,0 +1,21 @@
+.apply(function() {
+    if(.tmp.epidemy==null) .tmp.epidemy = .Map();
+    this = .tmp.epidemy;
+    if(invertedList==null) invertedList = .List();
+
+    setEmbitterTriggers = function(mob) {
+        //вешаем тригера на лечение и на вылупление импа в случае убийства (имп заразный)
+        mob.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
+        mob.onExtract = function(count) {.tmp.epidemy.triggers.invertedOnExtract(this,count);};
+        mob.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
+    };
+
+    if(triggers==null) triggers = .Map();
+    triggers.invertedOnExtract = function(mob,count) {.tmp.epidemy.invertedList.sub(mob);};
+    triggers.invertedPostSpeech = function() {};
+
+    for(mob in invertedList) {
+        setEmbitterTriggers(mob);
+    }
+
+})

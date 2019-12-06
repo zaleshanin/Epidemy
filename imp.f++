@@ -3,8 +3,8 @@
     if(.tmp.epidemy==null)
 .tmp.epidemy = .Map();
 
-    if(.tmp.epidemy.imps==null)
-.tmp.epidemy.imps = .List();
+    if(.tmp.epidemy.impsList==null)
+.tmp.epidemy.impsList = .List();
 
     this=.tmp.epidemy;
 
@@ -35,30 +35,61 @@
     /*onImmune скопирован из demon*/
     triggers.impOnImmune = function(attacker, dam, damType, wield, dam_flag, skillName) {
         if (damType == 'holy') {
-            return dam * 30;
+            return dam * 25;
         }
 
         if(wield!=null) {
-            if(wield.extra_flags&.tables.extra_flags.bless) {
-                if(!(wield.extra_flags&.tables.extra_flags.evil || wield.extra_flags&.tables.extra_flags.anti_good)) {
-                    return dam * 10;
-                }
-            }
             if(wield.value4&.tables.weapon_type2.holy) {
-                return dam * 50;
+                return dam * 35;
+            }
+            if(wield.extra_flags&.tables.extra_flags.bless) {
+                if(wield.extra_flags&.tables.extra_flags.evil) return 0;
+                if(wield.extra_flags&.tables.extra_flags.anti_good) return 0;
+                return dam * 10;
             }
         }
 
         return 0;
     };
+    triggers.impOnExtract = function(mob,count) {
+        this = .tmp.epidemy;
+        //выпиливаемся из списка
+        impsList.sub(mob);
+        if(mob.postSpec!=null && .tmp.epidemy.impsList.size()>0)
+            impsList.random().postSpec = function(){.tmp.epidemy.triggers.infectedPostSpec(this);};
+    };
     triggers.impPostSpec = function (imp) {
+        this = .tmp.epidemy;
+        for(imp in impsList) {
+
+            if(imp.dead) {
+                impsList.sub(imp);
+                continue;
+            }
+
+            if(imp.epidemy==null) {
+                imp.clear();
+                impsList.sub(imp);
+                continue;
+            }
+
+            triggers.impEngine(imp);
+        }
+    };
+    triggers.impEngine = function (imp) {
         this = .tmp.epidemy;
 
         try {
 //            debug(imp,'impPostSpec.');
-            if(imp.dead) return;
+            if(imp.dead) {
+                impsList.sub(imp);
+                return;}
 
-            if(imp.epidemy==null) throw('imp:NO epidemy Map\n');
+            if(imp.epidemy==null) {
+                imp.clear();
+                impsList.sub(imp);
+                throw(.fmt('imp(%C[%d]):NO epidemy Map\n',imp,imp.in_room.vnum));
+            }
 
             if(imp.epidemy.victims==null) {
                 getVictims(imp);
@@ -101,7 +132,7 @@
 
             //чертяка-кусака!
             if(imp.epidemy.victims.size() && .chance(10)) {
-                debug(imp,'impPostSpec: кусака');
+                debug('impPostSpec: кусака',imp);
                 //кусаем если есть кого
                 bite(imp);
                 return;
@@ -213,30 +244,34 @@
         if(!imp.epidemy.fearList.has(ch))
             imp.epidemy.fearList.push_back(ch);
     };
-    triggers.impOnLeave = function(imp, ch, from_room, movetype){
-    .tmp.epidemy.debug(imp,'onLeave '+ch.name);
-    .tmp.epidemy.triggers.sickOnLeave(imp, ch, from_room, movetype);
+    triggers.impOnLeaveEntryGreet = function(imp){
+        this = .tmp.epidemy;
+        debug('impOnLeaveEntryGreet',imp);
+        triggers.sickOnLeaveEntryGreet(imp);
         imp.epidemy.cowards=null;
     };
-    triggers.impOnEntry = function(imp){
-    .tmp.epidemy.debug(imp,'onEntry');
-    .tmp.epidemy.triggers.sickOnEntry(imp);
+    /*triggers.impOnEntry = function(imp){
+        this = .tmp.epidemy;
+        debug(imp,'onEntry');
+        triggers.sickOnEntry(imp);
         imp.epidemy.cowards=null;
-    };
+    };*/
+/*
     triggers.impOnGreet = function(imp, ch){
-    .tmp.epidemy.debug(imp,'onGreet '+ch.name);
+    .tmp.epidemy.debug('onGreet '+ch.name,imp);
     .tmp.epidemy.triggers.sickOnGreet(imp, ch);
         imp.epidemy.cowards=null;
     };
+*/
     triggers.impOnDeath = function(imp, ch) {
         this = .tmp.epidemy;
-        ch = getChMaster(ch);
-        if(ch!=null){
-            regChar(ch);
-            regStat(ch.name, 'imp_slay');
-            check_reward(ch.name, 'imp_slay');
+        var chMaster;
+        chMaster = getChMaster(ch);
+        if(chMaster!=null){
+            regChar(chMaster);
+            regStat(chMaster.name, 'imp_slay');
+            check_reward(chMaster.name, 'imp_slay');
         }
-        imps.sub(imp);
     };
 
     initImp = function(mob) {
@@ -249,10 +284,10 @@
         mob.epidemy.fearList = .List();
         mob.epidemy.status = 'imp';
 
-        if(imps==null)
-            imps=.List();
+        if(impsList==null)
+            impsList=.List();
 
-        imps.push_back(mob);
+        impsList.push_back(mob);
 
         //заполняем тригера
         mob.onHit = .tmp.epidemy.triggers.impOnHit;
@@ -260,10 +295,10 @@
         mob.postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
         //подходят тригеры от фидошек:
         mob.onDeath = function(ch){.tmp.epidemy.triggers.impOnDeath(this,ch);};
-        mob.onExtract = function(count){.tmp.epidemy.triggers.infectedOnExtract(this,count);};
-        mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.impOnLeave(this,ch, from_room, movetype);};
-        mob.onEntry = function(){.tmp.epidemy.triggers.impOnEntry(this);};
-        mob.onGreet = function(ch){.tmp.epidemy.triggers.impOnGreet(this, ch);};
+        mob.onExtract = function(count){.tmp.epidemy.triggers.impOnExtract(this,count);};
+        mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
+        mob.onEntry = function(ch){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
+        mob.onGreet = function(ch){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
         mob.onAttack = function(ch,vict) {.tmp.epidemy.triggers.impOnAttack(this,ch,vict);};
 
         /*
@@ -350,7 +385,7 @@
     };
 
     getCowards = function(imp) {
-    .tmp.epidemy.debug(imp,'imp: getCovards()');
+    .tmp.epidemy.debug('imp: getCovards()',imp);
         var result;
         result = .List();
         if(imp.epidemy.fearList.size()==0)

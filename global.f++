@@ -13,20 +13,20 @@ odif yltsaeb~
 
     if(infectedList==null) infectedList = .List();
     if(invertedList==null) invertedList = .List();
-    if(warlocks==null) warlocks = .List();
-    if(books==null) books=.Array();
-    if(demons==null) demons=.List();
+    if(warlocksList==null) warlocksList = .List();
+    if(booksList==null) booksList=.Array();
+    //if(demons==null) demons=.List();
     if(statistic==null) statistic = .Array();
     if(statistic_total==null) statistic_total = .Array();
-    if(imps==null) imps = .List();
+    if(impsList==null) impsList = .List();
     if(triggers==null) triggers = .Map();
     if(charNames==null) charNames = .Array();
     if(reward==null) reward= .Array();
     if(reward_final==null) reward_final = .Array();
 
-    bookkeeper = .get_mob_index(761);
-    necronomicon = .get_obj_index(732);
-    piece = .get_obj_index(9607);
+    Bookkeeper = .get_mob_index(761);
+    Necronomicon = .get_obj_index(732);
+    Piece = .get_obj_index(9607);
     chocolatesVnumsList = .List().add(18078, 27110, 50042); //шоколадки чёрные 18078 27110 50042
     ashVnum = 39002; //пепел 39002
     roseVnum = 204; //роза (rose black flower роза черная цветок)
@@ -137,7 +137,7 @@ odif yltsaeb~
         result = '';
         res = .Array();
 
-        for(demon in .tmp.epidemy.demons){
+        for(demon in Demon.instances){
             res_str='';
             if(res[demon.in_room.areaname]==null)
                 res[demon.in_room.areaname]=.Array();
@@ -185,7 +185,7 @@ odif yltsaeb~
                 res[demon.in_room.areaname][demon.epidemy.status].push_back('   '+res_str);
             }
         }
-        for(mobList in .List().add(infectedList,imps,invertedList)) {
+        for(mobList in .List().add(infectedList,impsList,invertedList)) {
             for(mob in mobList){
                 res_str = '';
                 if(mob.dead || !mob.online || mob.epidemy==null)
@@ -226,15 +226,22 @@ odif yltsaeb~
         }
         return result;
     };
-    debug = function(mob,str) {
-        if(!.buildplot || mob.epidemy.debug==null || mob.epidemy.debug==false)
-        return;
+    debug = function(str,mob) {
+        if(!.buildplot) return;
         var ch;
         ch = .get_char_world('miyamoto');
         if(ch==null)
             ch = .get_char_world('zaleshanin');
-        if(ch!=null)
-            ch.act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
+        //
+        if(ch!=null) {
+            if(mob==null)
+                ch.act('debug:%s',str);
+            else{
+                if(mob.epidemy.debug==null || mob.epidemy.debug==false) return;
+                ch.act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
+            }
+        }
+
     };
     str_utterance = function(str) {
         var new_str, tmp_str;
@@ -428,9 +435,9 @@ odif yltsaeb~
                 //где искать:
                 var res; res=.Array();
                 var lists; lists=.Array();
-                lists['demon']=.List().add(.tmp.epidemy.demons);
+                lists['demon']=.List().add(.tmp.epidemy.Demon.instances);
                 lists['fiend']=.List().add(.tmp.epidemy.Fiend.instances);
-                lists['imp']=.List().add(.tmp.epidemy.imps);
+                lists['imp']=.List().add(.tmp.epidemy.impsList);
                 lists['obsessed']=.List().add(.tmp.epidemy.infectedList,.tmp.epidemy.invertedList);
 
                 for(key in lists.keys){
@@ -560,9 +567,9 @@ odif yltsaeb~
 
         if(running==null) return;
 
-        for(list in .List().add(Demon.instances,Fiend.instances,infectedList,invertedList,imps)){
+        for(list in .List().add(Demon.instances,Fiend.instances,infectedList,invertedList,impsList)){
             for(mob in list) {
-                if(mob.dead || !mob.online) continue;
+                if(mob.dead || !mob.online || mob.epidemy==null) continue;
                 else return;
             }
         }
@@ -615,7 +622,7 @@ odif yltsaeb~
             }
 
         }
-
+        var ch;
         ch = .get_char_world(chname);
         if(ch!=null && ch.online) {
             rewarding(ch);
@@ -642,16 +649,26 @@ odif yltsaeb~
     };
     final_rewarding = function(ch) {
         this = .tmp.epidemy;
+        debug('final_rewarding: start');
 
         if(reward_final[ch.name]==null) return;
+
+        ch.act('\n{Y"Эпидемия {DЗахватчиков{Y"{y была остановлена!{x');
 
         if(ch.clan.name!='invader') {
             ch.questpoints = ch.questpoints + reward_final[ch.name]['qp'];
             ch.gold = ch.gold + reward_final[ch.name]['gold'];
-            if(ch.clan.name=='knight')
+            if(ch.clan.name=='knight'){
                 ch.act('{yЗа участие в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
-            else
+            }else{
                 ch.act('{yЗа помощь {WРыцарям{y в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
+            }
+            if(reward_final[ch.name]['rank']!=null) {
+                var coupon;
+                coupon = getCoupon(ch,reward_final[ch.name]['rank']);
+                coupon.obj_to_char(ch);
+                ch.act('{yТак же ты получаешь %O4.{x',coupon);
+            }
         }
         reward_final[ch.name]=null;
         if(reward_final.keys.size()==0) {
@@ -663,14 +680,17 @@ odif yltsaeb~
 
         this = .tmp.epidemy;
 
+        debug('count_final_reward:start',null);
+
         var jackpot; jackpot = 325;
         var reward_points; reward_points=.Array();
+        var reward_rank; reward_rank=.Array();
         var reward_count; reward_count = .Array();
         var total, count; total=0;
         reward_points['demon_slay'] = 10;
         reward_points['fiend_slay'] = 5;
         reward_points['imp_slay'] = 2;
-        reward_points['heal'] = 4;
+        reward_points['heal'] = 2;
         for(type in statistic.keys){
             if(reward_points[type]==null) {
                 continue;}
@@ -699,6 +719,13 @@ odif yltsaeb~
             }
         }
         for(name in reward_count.keys) {
+            debug(.fmt('count_final_reward: %s->%d',name,reward_count[name]),null);
+            if(reward_count[name]<100) continue;
+
+            if(reward_rank[reward_count[name]]==null) {
+                reward_rank[reward_count[name]]=.List();
+            }
+            reward_rank[reward_count[name]].add(name);
             if(reward_final[name]==null){
                 reward_final[name]=.Array();
                 reward_final[name]['qp']=0;
@@ -706,8 +733,23 @@ odif yltsaeb~
             }
             reward_final[name]['qp'] = reward_final[name]['qp'] + get_rest_reward(name);
             reward_final[name]['qp'] = reward_final[name]['qp'] + (jackpot * ((reward_count[name]*100)/total)) / 100;
-            reward_final[name]['gold'] = reward_final[name]['gold'] + number_range(reward_count[name]/2,reward_count[name]);
+            reward_final[name]['gold'] = reward_final[name]['gold'] + .number_range(reward_count[name]/2,reward_count[name]);
+            debug(.fmt('count_final_reward: qp:%d gold:%d',reward_final[name]['qp'],reward_final[name]['gold']),null);
         }
+        var i,count;
+        if(reward_rank.keys.size()>3) {
+            count = 3;
+        } else {
+            count = reward_rank.keys.size();
+        }
+        for(i=1;i<=count;i=i+1) {
+            for(name in reward_rank[reward_rank.keys.back()]) {
+                debug(.fmt('count_final_reward: %d. %s',i,name),null);
+                reward_final[name]['rank'] = i;
+            }
+            reward_rank[reward_rank.keys.back()]=null;
+        }
+        debug('count_final_reward:end',null);
 
     };
     get_rest_reward = function(name) {

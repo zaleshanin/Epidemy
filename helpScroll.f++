@@ -5,7 +5,7 @@
 .tmp.epidemy.triggers = .Map();
 
     this = .tmp.epidemy;
-    piece = .get_obj_index(9607);
+    Piece = .get_obj_index(9607);
 
     healPiecesNames=.Array();
     healPiecesNames[0] = 'requiem';
@@ -30,12 +30,12 @@
             if(wordIndexMin==healPiecesNames.keys.front() && wordIndexMax==healPiecesNames.keys.back()) {
                 ch.act('Ты прикладываешь один фрагмент к другому...\nПо разрыву пробегает белый огонь, и клочки соединяются в {Dчерный свиток{x.');
                 ch.recho('%1$^C1 соединняет два клочка бумаги, между ними вспыхивает белое пламя и они соединяются в {Dчерный свиток{x.',ch);
-                helpScroll().obj_to_char(ch);
+                helpScrollInit().obj_to_char(ch);
             } else {
                 ch.act('Ты прикладываешь одину часть свитка к другой...\nПо разрыву пробегает белый огонь, и клочки соединяются.');
                 ch.recho('%1$^C1 соединяет две части свитка, между ними вспыхивает белое пламя и они соединяются.',ch);
                 //создаём новый кусок
-                helpPiece(wordIndexMin,wordIndexMax,(obj.epidemy.wordName+' '+piece.epidemy.wordName)).obj_to_char(ch);
+                helpPieceInit(wordIndexMin,wordIndexMax,(obj.epidemy.wordName+' '+piece.epidemy.wordName)).obj_to_char(ch);
             }
             //убираем старые клочки
             obj.epidemy = null;
@@ -49,7 +49,6 @@
         return true;
 
     };
-
     triggers.helpScrollPostSpeech = function(scroll,ch,str) {
         this=.tmp.epidemy;
         try {
@@ -104,17 +103,27 @@
         .tmp.epidemy.catchMsg(e);
         }
     };
+
     postSpeachHelpScrollCheck = function(scroll, ch) {
         //тут можно будет скрол уничтожить
+        if(.chance(10)) {
+            ch.act('{1%1$O1{2 в твоих руках вспыхивает ярким пламенем и изчезает.',scroll);
+            ch.recho('{1%1$O1{2 в руках %2$C2 вспыхивает ярким пламенем и изчезает.',scroll, ch);
+            scroll.extract(true);
+        }
     };
-    helpScroll = function(){
+
+    helpScrollInit = function(){
         //this = .tmp.epidemy;
         var one_scroll;
         var extradesc;
 
-        one_scroll = piece.create();
+        one_scroll = Piece.create();
         one_scroll.extra_flags = .set_bit(one_scroll.extra_flags, .tables.extra_flags.glow);
         one_scroll.extra_flags = .set_bit(one_scroll.extra_flags, .tables.extra_flags.magic);
+
+        one_scroll.epidemy = .Map();
+        one_scroll.epidemy.status = 'helpScroll';
 
         one_scroll.name = 'scroll black черный свиток quo altior gradus tanto profundior casus';
         one_scroll.short_descr = "{Dчерн|ый|ого|ому|ый|ым|ом свит|ок|ка|ку|ок|ком|ке с надписью {x'{WRequiem aeternam dona eis, Domine{x'";
@@ -135,17 +144,18 @@
 
         return one_scroll;
     };
-    helpPiece = function(min, max, spell) {
+    helpPieceInit = function(min, max, spell) {
         this = .tmp.epidemy;
         var one_piece;
         var extradesc;
 
-        one_piece = piece.create();
+        one_piece = Piece.create();
 
         one_piece.epidemy = .Map();
         one_piece.epidemy.wordIndexMin = min;
         one_piece.epidemy.wordIndexMax = max;
         one_piece.epidemy.wordName = spell;
+        one_piece.epidemy.status = 'helpScroll piece';
 
         one_piece.name = 'piece paper scroll клочок бумаги бумага свиток свитка '+spell;
         one_piece.short_descr = "{Dобрывок||а|у||ом|е свитка с надписью {x'{W"+spell+"{x'";
@@ -170,7 +180,7 @@
         var rnum;
         rnum = healPiecesNamesRandomList.random();
         healPiecesNamesRandomList.sub(rnum);
-        return helpPiece(rnum,rnum,healPiecesNames[rnum]);
+        return helpPieceInit(rnum,rnum,healPiecesNames[rnum]);
     };
 
     healPiecesNamesRandomList==null;

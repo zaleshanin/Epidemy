@@ -2,22 +2,22 @@
 //bookKeeperInit = function() {
     if(.tmp.epidemy==null)
         .tmp.epidemy = .Map();
-    if(.tmp.epidemy.books==null)
-        .tmp.epidemy.books=.Array();
+    if(.tmp.epidemy.booksList==null)
+        .tmp.epidemy.booksList=.Array();
 
     this = .tmp.epidemy;
 
-    if(bookkeeper == null)
-        bookkeeper = .get_mob_index(761);
+    if(Bookkeeper == null)
+        Bookkeeper = .get_mob_index(761);
 
-    bookkeeper.postGreet = function(mob, ch) {
+    Bookkeeper.postGreet = function(mob, ch) {
         try {
             if(ch.is_npc())
                 return;
 
             var book;
 
-            if((.tmp.epidemy.books[ch.name]!=null && !.tmp.epidemy.books[ch.name].dead)
+            if((.tmp.epidemy.booksList[ch.name]!=null && !.tmp.epidemy.booksList[ch.name].dead)
                 || ch.clan.name!='invader')
                 return;
 
@@ -28,13 +28,13 @@
             ch.act("%1$^C1 говорит тебе '{GЯ подготовил%1$Gо||а для тебя копию. Думаю, ты разберешься что с ним делать.{x'",mob,ch);
 
             .tmp.quest.sleep(1, mob, ch);
-            book = .tmp.epidemy.Necronomicon(ch);
+            book = .tmp.epidemy.NecronomiconInit(ch);
 
             book.obj_to_char(ch);
             ch.act("%1$^C1 даёт тебе %2$O4.", mob, book);
 
             //выданные на руки книжки заносим в картотеку, чтоб по две не брали.
-            .tmp.epidemy.books[ch.name] = book;
+            .tmp.epidemy.booksList[ch.name] = book;
 
             if(.tmp.epidemy.loadLoremPieces!=null) {
                 //генерим 5 колочков заклинания

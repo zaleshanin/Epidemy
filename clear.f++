@@ -1,0 +1,31 @@
+.apply(function() {
+    this = .tmp.epidemy;
+    var r;
+    ch=null;
+    demons=null;
+    imps = null;
+    piece = null;
+    Piece = .get_obj_index(9607);
+
+    triggers.infectedOnDeath = null;
+    triggers.sickOnLeave = null;
+    triggers.sickOnEntry = null;
+    triggers.sickOnGreet = null;
+    triggers.wkOnDeath = null;
+    triggers.impOnLeave = null;
+    triggers.impOnEntry = null;
+    triggers.impOnGreet = null;
+
+    booksList = books.clone();
+    books = null;
+    Demon.postSpec = null;
+    Fiend.onSpec = null;
+    Fiend.postSpec = null;
+    bookkeeper = null;
+    necronomicon = null;
+    blank = null;
+    helpScroll = null;
+    helpPiece = null;
+    warlocksList = warlocks.clone();
+    warlocks = null;
+})

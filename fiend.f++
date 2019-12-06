@@ -1,10 +1,8 @@
 .apply(function() {
-//fiendInit = function(){
     if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     this = .tmp.epidemy;
     if(triggers==null)
         triggers=.Map();
-    var fill_fiend_triggers;
 
     if(fiends_names==null) fiends_names = .Array();
     if(fiends_names_descr==null) fiends_names = .Array();
@@ -101,6 +99,9 @@
 
         if(getRandomHelpPiece!=null)
             getRandomHelpPiece().obj_to_char(fiend);
+
+        if(Fiend.instances.size()==1)
+            fiend.postSpec = function(){.tmp.epidemy.triggers.fiendPostSpec();};
 
         return fiend;
     };
@@ -317,11 +318,11 @@
 
     make_your_move = function(mob) {
         this = .tmp.epidemy;
-//        debug(mob,'make_your_move 0:start');
-        if(mob.epidemy.plan_room!=null) debug(mob,'make_your_move 0: plan_room:'+mob.epidemy.plan_room.vnum); else debug(mob,'make_your_move 0: no plan_room');
-        if(mob.epidemy.plan_way!=null) debug(mob,'make_your_move 0: plan_way:'+mob.epidemy.plan_way.size()); else debug(mob,'make_your_move 0: no plan_way');
-        if(mob.epidemy.plan_waypoint!=null) debug(mob,'make_your_move 0: plan_waypoint:'+mob.epidemy.plan_waypoint.vnum); else debug(mob,'make_your_move 0: no plan_waypoint');
-        if(mob.epidemy.plan_nextroom!=null) debug(mob,'make_your_move 0: plan_nextroom:'+mob.epidemy.plan_nextroom.vnum); else debug(mob,'make_your_move 0: no plan_nextroom');
+//        debug('make_your_move 0:start',mob);
+        if(mob.epidemy.plan_room!=null) debug('make_your_move 0: plan_room:'+mob.epidemy.plan_room.vnum,mob); else debug('make_your_move 0: no plan_room',mob);
+        if(mob.epidemy.plan_way!=null) debug('make_your_move 0: plan_way:'+mob.epidemy.plan_way.size(),mob); else debug('make_your_move 0: no plan_way',mob);
+        if(mob.epidemy.plan_waypoint!=null) debug('make_your_move 0: plan_waypoint:'+mob.epidemy.plan_waypoint.vnum,mob); else debug('make_your_move 0: no plan_waypoint',mob);
+        if(mob.epidemy.plan_nextroom!=null) debug('make_your_move 0: plan_nextroom:'+mob.epidemy.plan_nextroom.vnum,mob); else debug('make_your_move 0: no plan_nextroom',mob);
         if(mob.dead)
             return;
 
@@ -332,7 +333,7 @@
         }
 
         if(mob.epidemy.plan_way == null) {
-//            debug(mob,'make_your_move [bug]: нет маршрута');
+//            debug('make_your_move [bug]: нет маршрута',mob);
             //не должно сюда попадать
 
             //[ВНЕЗАПНО!] нет маршрута... Бедааааа!
@@ -342,27 +343,27 @@
 //            debug(mob,'make_your_move 1: plan_way:'+mob.epidemy.plan_way.size());
             //Сверимся с маршрутом
             if(mob.epidemy.plan_waypoint==null){
-//                debug(mob,'make_your_move 1.1: нет вэйпоинта');
+//                debug('make_your_move 1.1: нет вэйпоинта',mob);
                 //ГДЕ Я???
                 clearPlan(mob);//.epidemy.plan = null;
             } else if(mob.epidemy.plan_waypoint != mob.in_room) {
-//                debug(mob,'make_your_move 1.2: ушел с маршрута, пытаюсь вернуться ');
+//                debug('make_your_move 1.2: ушел с маршрута, пытаюсь вернуться ',mob);
                 //cбился с пути, пытаюсь вернуться на маршрут
                 if(back_on_way(mob, mob.epidemy.plan_waypoint)) {
-//                    debug(mob,'make_your_move 1.2.1: получилось вернуться');
+//                    debug('make_your_move 1.2.1: получилось вернуться',mob);
                     //Cнова на маршруте
                 } else {
-//                    debug(mob,'make_your_move 1.2.2: потерялося я');
+//                    debug('make_your_move 1.2.2: потерялося я',mob);
                     //(чистим всё) Поретялося я! Нужен новый маршрут!!
                     clearPlan(mob);
                 }
             } else {
-//                debug(mob,'make_your_move 1.3: мы в вейпоинте');
+//                debug('make_your_move 1.3: мы в вейпоинте',mob);
 
                 if(mob.epidemy.plan_nextroom==null) {
-//                    debug(mob,'make_your_move 1.3.1: нет следующей комнаты');
+//                    debug('make_your_move 1.3.1: нет следующей комнаты',mob);
                     if(mob.epidemy.plan_way.size()==0) {
-//                        debug(mob,'make_your_move 1.3.1.1: пустой маршрут');
+//                        debug('make_your_move 1.3.1.1: пустой маршрут',mob);
                         if(mob.in_room!=mob.epidemy.plan_room) {
                             //Маршрут закончился, на место не прибыли. Может где-то рядом?
                             if (back_on_way(mob, mob.epidemy.plan_waypoint)) {
@@ -411,33 +412,33 @@
                     var door;
                     door = mob.in_room.doorTo(mob.epidemy.plan_nextroom);
                     if(door < 0) {
-//                        debug(mob,'make_your_move 1.3.2.0: похоже тупик. чистим план.');
+//                        debug('make_your_move 1.3.2.0: похоже тупик. чистим план.',mob);
                         //сюда тоже не должно попадать, но вдруг...
                         //(чистим всё) В нужную комнату от сюда не попасть
                         clearPlan(mob);//.epidemy.plan = null;
                     } else {
-//                        debug(mob,'make_your_move 1.3.2.1: выход есть...');
+//                        debug('make_your_move 1.3.2.1: выход есть...',mob);
                         if(mob.in_room.getExitFlags(door) & .tables.exit_flags.closed){
                             //здесь закрытая дверь
                             if(mob.in_room.getExitFlags(door) & .tables.exit_flags.locked) {
-//                                debug(mob,'make_your_move 1.3.2.1.1: запертая дверь!!!');
+//                                debug('make_your_move 1.3.2.1.1: запертая дверь!!!',mob);
                                 //дверь закрыта. еще и заперта!
                                 mob.recho('%1$^C1 дергает за ручку %2$N2.',mob,mob.in_room.exitShortDescr(door));
                             } else {
-//                                debug(mob,'make_your_move 1.3.2.1.2: открываем дверь');
+//                                debug('make_your_move 1.3.2.1.2: открываем дверь',mob);
                                 //открывать нужно правильную дверь
                                 mob.interpret('open '+mob.in_room.doorName(door)); // doorName() вернет название направления
                             }
                         } else {
-//                            debug(mob,'make_your_move 1.3.2.2: проход свободен');
+//                            debug('make_your_move 1.3.2.2: проход свободен',mob);
                             if(mob.in_room == mob.epidemy.plan_nextroom
                                 || mob.move_char(door)){
                                 mob.epidemy.plan_waypoint = mob.epidemy.plan_nextroom;
 
                                 mob.epidemy.plan_nextroom = null;
-//                                debug(mob,'make_your_move 1.3.2.2.1: переход удался');
+//                                debug('make_your_move 1.3.2.2.1: переход удался',mob);
                                 if(mob.in_room == mob.epidemy.plan_room) {
-//                                    debug(mob,'make_your_move 1.3.2.2.2: я на месте');
+//                                    debug('make_your_move 1.3.2.2.2: я на месте',mob);
                                     //mob.epidemy.plan=null;
                                     //Похоже я на месте! Что дальше?
                                 }
@@ -450,11 +451,11 @@
                 }
             }
         }
-//        debug(mob,'make_your_move 99:end');
-        if(mob.epidemy.plan_room!=null) debug(mob,'make_your_move 99: plan_room:'+mob.epidemy.plan_room.vnum); else debug(mob,'make_your_move 99: no plan_room');
-        if(mob.epidemy.plan_way!=null) debug(mob,'make_your_move 99: plan_way:'+mob.epidemy.plan_way.size()); else debug(mob,'make_your_move 99: no plan_way');
-        if(mob.epidemy.plan_waypoint!=null) debug(mob,'make_your_move 99: plan_waypoint:'+mob.epidemy.plan_waypoint.vnum); else debug(mob,'make_your_move 99: no plan_waypoint');
-        if(mob.epidemy.plan_nextroom!=null) debug(mob,'make_your_move 99: plan_nextroom:'+mob.epidemy.plan_nextroom.vnum); else debug(mob,'make_your_move 99: no plan_nextroom');
+//        debug('make_your_move 99:end',mob);
+        if(mob.epidemy.plan_room!=null) debug('make_your_move 99: plan_room:'+mob.epidemy.plan_room.vnum,mob); else debug('make_your_move 99: no plan_room',mob);
+        if(mob.epidemy.plan_way!=null) debug('make_your_move 99: plan_way:'+mob.epidemy.plan_way.size(),mob); else debug('make_your_move 99: no plan_way',mob);
+        if(mob.epidemy.plan_waypoint!=null) debug('make_your_move 99: plan_waypoint:'+mob.epidemy.plan_waypoint.vnum,mob); else debug('make_your_move 99: no plan_waypoint',mob);
+        if(mob.epidemy.plan_nextroom!=null) debug('make_your_move 99: plan_nextroom:'+mob.epidemy.plan_nextroom.vnum,mob); else debug('make_your_move 99: no plan_nextroom',mob);
 
     };
     back_on_way = function(mob, room) {
@@ -534,9 +535,8 @@
     wear_item = function(mob,t,item,replaced) {
     .scheduler.sleep(1); if(mob.dead) throw('wear_item(): mob is dead');
 
-        if((t.conteiner!=null && t.conteiner.dead) || (item.dead)){
-            return false;
-        }
+        if(t.conteiner!=null && t.conteiner.dead) return false;
+        if(item.dead) return false;
         //подбираем или достаем из контейнера
         mob.recho(t.get_msg, mob, item, t.conteiner);
         item.obj_to_char(mob);
@@ -599,7 +599,11 @@
                 //a уже тю-тю!
                 mob.epidemy.last_room_looted = null;
                 return false;
-            } else if ((corpse==null && i.in_room!=mob.in_room) || (corpse!=null && i.in_obj!=corpse)) {
+            } else if (corpse==null && i.in_room!=mob.in_room) {
+                //кто-то уже упёр.
+                mob.epidemy.last_room_looted = null;
+                return false;
+            } else if (corpse!=null && i.in_obj!=corpse) {
                 //кто-то уже упёр.
                 mob.epidemy.last_room_looted = null;
                 return false;
@@ -820,233 +824,6 @@
         return null;
     };
 
-    fill_fiend_triggers = function(Fiend){
-        this = Fiend;
-
-        /*onHit скопирован из demon*/
-        onHit = function(demon, demon_slayer, dam, damType, wield) {
-            if(wield==null){
-                for(ch in .players) {
-                    if(ch.in_room==demon.in_room) {
-                        ch.act('%1$^C1 корчится и кричит от боли.',demon);
-                    } else if (ch.in_room.areaname == demon.in_room.areaname){
-                        ch.act('До тебя доносятся нечеловеческие крики боли %1$C2.',demon);
-                    }
-                }
-            }else {
-                for(ch in demon.in_room.ppl) {
-                    ch.act('%1$^O1 оставляет глубокие раны на теле %2$C2.',wield,demon);
-                }
-            }
-
-        };
-
-        /*onImmune скопирован из demon*/
-        onImmune = function(demon, attacker, dam, damType, wield, dam_flag, skillName) {
-            if (damType == 'holy') {
-                return dam * 30;
-            }
-
-            if(wield!=null) {
-                if(wield.extra_flags&.tables.extra_flags.bless) {
-                    if(!(wield.extra_flags&.tables.extra_flags.evil || wield.extra_flags&.tables.extra_flags.anti_good)) {
-                        return dam * 10;
-                    }
-                }
-                if(wield.value4&.tables.weapon_type2.holy) {
-                    return dam * 50;
-                }
-            }
-
-            /*
-                        if(attacker.is_npc()) {
-                            return dam/2; //у npc вс же должен быть шанс нанести повреждение. половинный, чтоб не приходилось генерировать новых исчадий.
-                        }
-            */
-
-            return 0;
-        };
-
-
-        onSpec = function(fiend) {
-            this = .tmp.epidemy;
-
-            if(fiend.dead) { // || fiend.fighting!=null
-                return;
-            } else if(fiend.epidemy.plan == null) {
-                if(fiend.epidemy.primary_target!=null) {
-                    fiend.epidemy.plan = fiend_plan_check(fiend);
-                }
-            }
-        };
-
-        postSpec = function(fiend) {
-            try{
-
-                this = .tmp.epidemy;
-
-                if(fiend.dead)
-                    return;
-
-                if(!(fiend.position&.tables.position_table.stand)){
-                    fiend.interpret('stand');
-                    return;
-                }
-
-                if(fiend.epidemy.plan == 0) {
-                    if(fiend.epidemy.snd!=null
-                        && !fiend.epidemy.snd.dead
-                        && fiend.epidemy.snd.epidemy.plan==null
-                        && fiend.epidemy.snd.in_room==fiend.in_room
-                        && fiend.epidemy.snd.fighting==null) {
-                        fiend.epidemy.snd.epidemy.plan=fiend.epidemy.plan;
-                    }
-                } else {
-                .scheduler.sleep(.number_range(0,5)); //пытаюсь разнести чуток по времени
-                    if(fiend.dead || fiend.epidemy.plan==null)
-                        return;
-
-                    if(fiend.epidemy.plan == 1) { //ходим
-                        make_your_move(fiend);
-                    } else if(fiend.epidemy.plan == 2) { //бьем
-                        if(fiend.fighting==null) {
-                            var victim;
-
-                            if(fiend.epidemy.genocide!=null && !fiend.epidemy.genocide.dead
-                                && fiend.epidemy.genocide.in_room==fiend.in_room) {
-                                victim = fiend.epidemy.genocide;
-                            } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
-                                && fiend.in_room == fiend.epidemy.victim.in_room) { //если добрались до цели
-                                victim = fiend.epidemy.victim;
-                            }
-
-                            if(victim==null || victim.dead || victim.in_room!=fiend.in_room || victim.alignment<350 || victim.epidemy!=null) {
-                                clearPlan(fiend);
-                            } else {
-                                if(victim.in_room.room_flags&.tables.room_flags.safe) {
-                                    clearPlan(fiend);
-                                    return;
-                                }
-                                //2do не ввязываемся если у нас меньше 50% жизни
-                                fiend.interpret('yell '+get_phrase(fiend,victim));
-                                fiend.multi_hit(victim);
-                            }
-                        } else {
-                        }
-                    } else if(fiend.epidemy.plan==3) {// стоим в очереди на сбор урожая
-                        if(time_to_loot(fiend)) {
-                            fiend.epidemy.plan = 4;
-                        }
-                    } else if(fiend.epidemy.plan==4) {//plan 4 - собираем
-
-                        if(fiend.in_room!=fiend.epidemy.last_room_looted) {
-                            if(scavenge(fiend, fiend.in_room.items, corpse)){
-
-                                fiend.epidemy.plan = null;
-                            } else {
-                                //неудачный loot. начинаем заново
-                                fiend.epidemy.plan = 3;
-                            }
-                        }
-                    }
-                }
-            }catch(e) {
-            .tmp.epidemy.catchMsg(e);
-            }
-        };
-
-        onEntry = function(fiend) {
-
-            if(fiend.in_room.items.size()>0 && fiend.epidemy.last_room_looted!=fiend.in_room) {
-                fiend.epidemy.plan = null;
-            } else if(fiend.in_room.ppl.size()>1) {
-                fiend.epidemy.plan = null;
-            }
-        };
-
-        onKill = function(fiend, ch) {
-            this = .tmp.epidemy;
-            fiend.epidemy.last_room_looted=null;
-            fiend.epidemy.plan=null;
-            regStat(fiend.epidemy.invader,'fiend_kill');
-            check_reward(fiend.epidemy.invader,'fiend_kill');
-            if(!fiend.epidemy.demon.dead) {
-                if(fiend.epidemy.demon.epidemy.fiend_kill_count==null)
-                    fiend.epidemy.demon.epidemy.fiend_kill_count=0;
-                fiend.epidemy.demon.epidemy.fiend_kill_count = fiend.epidemy.demon.epidemy.fiend_kill_count + 1;
-            }
-            if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
-                && fiend.epidemy.snd.in_room == fiend.in_room)
-                fiend.epidemy.snd.epidemy.last_room_looted=null;
-
-            if(fiend.epidemy.victim == ch) {
-                clearPlan(fiend);
-                if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
-                    clearPlan(fiend.epidemy.snd);
-                }
-            } else if (fiend.epidemy.genocide==ch) {
-                if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
-                    && fiend.epidemy.snd.epidemy.genocide!=null
-                    && fiend.epidemy.snd.epidemy.genocide==fiend.epidemy.genocide) {
-                    fiend.epidemy.snd.epidemy.genocide = null;
-                    fiend.epidemy.snd.epidemy.plan = null;
-                }
-                fiend.epidemy.genocide=null;
-            }
-        };
-
-        //onFight(ch) - вызывается каждый баттл-тик (3 секунды) при сражении с ch
-        onFight = function (fiend, ch) {
-            this = .tmp.epidemy;
-            if(fiend.get_eq_char('wield')==null && fiend.epidemy.has_weapon==true
-                && (fiend.epidemy.plan==null || (fiend.epidemy.plan!=3 && fiend.epidemy.plan!=4))) {
-                if(loot(fiend)) {
-                    fiend.epidemy.plan = 3;
-                    fiend.epidemy.last_room_looted = null;
-                    fiend.epidemy.has_weapon=false;
-                }
-            }
-        };
-
-        onDeath = function(fiend,ch) {
-            this=.tmp.epidemy;
-            ch = getChMaster(ch);
-            if(ch!=null) {
-                regChar(ch);
-                regStat(ch.name, 'fiend_slay');
-                check_reward(ch.name, 'fiend_slay');
-            }
-        };
-
-        onExtract = function(fiend, count) {
-
-            if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
-                //убираемся из напарников
-                fiend.epidemy.snd.epidemy.snd = null;
-                if(fiend.epidemy.fst) {
-                    //ты теперь за старшего
-                    fiend.epidemy.snd.epidemy.fst = true;
-                }
-            }
-
-            //выпиливаемся из списка
-            if(fiend.epidemy.demon!=null && !fiend.epidemy.demon.dead) {
-                fiend.epidemy.demon.epidemy.fiends.sub(fiend);
-                fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]=fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]-1;
-            }
-        .tmp.epidemy.check_stop();
-        };
-
-        onArea = function(fiend) {
-            if(fiend.epidemy.plan == 0)
-                fiend.epidemy.plan = null;
-        };
-
-        // не надо ничего собирать
-        onCantScavenge = function(fiend,obj) {
-            return true;
-        };
-    };
     get_phrase = function(fiend,victim){
 
         this = .tmp.epidemy;
@@ -1332,20 +1109,258 @@
     };
 
     Fiend = .get_mob_index(763);
+    /*onHit скопирован из demon*/
+    Fiend.onHit = function(demon, demon_slayer, dam, damType, wield) {
+        if(wield==null){
+            for(ch in .players) {
+                if(ch.in_room==demon.in_room) {
+                    ch.act('%1$^C1 корчится и кричит от боли.',demon);
+                } else if (ch.in_room.areaname == demon.in_room.areaname){
+                    ch.act('До тебя доносятся нечеловеческие крики боли %1$C2.',demon);
+                }
+            }
+        }else {
+            for(ch in demon.in_room.ppl) {
+                ch.act('%1$^O1 оставляет глубокие раны на теле %2$C2.',wield,demon);
+            }
+        }
+
+    };
+    /*onImmune скопирован из demon*/
+    Fiend.onImmune = function(demon, attacker, dam, damType, wield, dam_flag, skillName) {
+        if (damType == 'holy') {
+            return dam * 25;
+        }
+
+        if(wield!=null) {
+            if(wield.value4&.tables.weapon_type2.holy) {
+                return dam * 35;
+            }
+            if(wield.extra_flags&.tables.extra_flags.bless) {
+                if(wield.extra_flags&.tables.extra_flags.evil) return 0;
+                if(wield.extra_flags&.tables.extra_flags.anti_good) return 0;
+                return dam * 10;
+            }
+        }
+
+        return 0;
+    };
+    Fiend.onEntry = function(fiend) {
+        if(fiend.in_room.items.size()>0 && fiend.epidemy.last_room_looted!=fiend.in_room) {
+            fiend.epidemy.plan = null;
+        } else if(fiend.in_room.ppl.size()>1) {
+            fiend.epidemy.plan = null;
+        }
+    };
+    Fiend.onKill = function(fiend, ch) {
+        this = .tmp.epidemy;
+        fiend.epidemy.last_room_looted=null;
+        fiend.epidemy.plan=null;
+        regStat(fiend.epidemy.invader,'fiend_kill');
+        check_reward(fiend.epidemy.invader,'fiend_kill');
+        if(!fiend.epidemy.demon.dead) {
+            if(fiend.epidemy.demon.epidemy.fiend_kill_count==null)
+                fiend.epidemy.demon.epidemy.fiend_kill_count=0;
+            fiend.epidemy.demon.epidemy.fiend_kill_count = fiend.epidemy.demon.epidemy.fiend_kill_count + 1;
+        }
+        if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
+            && fiend.epidemy.snd.in_room == fiend.in_room)
+            fiend.epidemy.snd.epidemy.last_room_looted=null;
+
+        if(fiend.epidemy.victim == ch) {
+            clearPlan(fiend);
+            if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
+                clearPlan(fiend.epidemy.snd);
+            }
+        } else if (fiend.epidemy.genocide==ch) {
+            if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
+                && fiend.epidemy.snd.epidemy.genocide!=null
+                && fiend.epidemy.snd.epidemy.genocide==fiend.epidemy.genocide) {
+                fiend.epidemy.snd.epidemy.genocide = null;
+                fiend.epidemy.snd.epidemy.plan = null;
+            }
+            fiend.epidemy.genocide=null;
+        }
+    };
+    //onFight(ch) - вызывается каждый баттл-тик (3 секунды) при сражении с ch
+    Fiend.onFight = function (fiend, ch) {
+        this = .tmp.epidemy;
+        if(fiend.get_eq_char('wield')==null && fiend.epidemy.has_weapon==true
+            && (fiend.epidemy.plan==null || (fiend.epidemy.plan!=3 && fiend.epidemy.plan!=4))) {
+            if(loot(fiend)) {
+                fiend.epidemy.plan = 3;
+                fiend.epidemy.last_room_looted = null;
+                fiend.epidemy.has_weapon=false;
+            }
+        }
+    };
+    Fiend.onDeath = function(fiend,ch) {
+        this=.tmp.epidemy;
+        var chMaster;
+        chMaster = getChMaster(ch);
+        if(chMaster!=null) {
+            regChar(chMaster);
+            regStat(chMaster.name, 'fiend_slay');
+            check_reward(chMaster.name, 'fiend_slay');
+        }
+    };
+    Fiend.onExtract = function(fiend, count) {
+        this = .tmp.epidemy;
+        if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead) {
+            //убираемся из напарников
+            fiend.epidemy.snd.epidemy.snd = null;
+            if(fiend.epidemy.fst) {
+                //ты теперь за старшего
+                fiend.epidemy.snd.epidemy.fst = true;
+            }
+        }
+
+        //выпиливаемся из списка
+        if(fiend.epidemy.demon!=null && !fiend.epidemy.demon.dead) {
+            fiend.epidemy.demon.epidemy.fiends.sub(fiend);
+            fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]=fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]-1;
+        }
+
+        if(fiend.postSpec!=null) {
+            for(mob in Fiend.instances) {
+                if(mob.postSpec==null) {
+                    mob.postSpec = function () {.tmp.epidemy.triggers.fiendPostSpec();};
+                    break;
+                }
+            }
+        }
+        check_stop();
+    };
+    Fiend.onArea = function(fiend) {
+        if(fiend.epidemy.plan == 0)
+            fiend.epidemy.plan = null;
+    };
+    // не надо ничего собирать
+    Fiend.onCantScavenge = function(fiend,obj) {
+        return true;
+    };
+
+    if(triggers==null) triggers = .Map();
+    triggers.fiendPostSpec = function() {
+        try{
+            this = .tmp.epidemy;
+            //debug('fiendPostSpec:start (Fiend.instances:'+Fiend.instances.size()+')',null);
+            for(fiend in Fiend.instances) {
+                //debug(.fmt('fiendPostSpec: fiendEngine for %C1',fiend),null);
+                triggers.fiendEngine(fiend);
+            }
+            //debug('fiendPostSpec:end',null);
+        }catch(e){.tmp.epidemy.catchMsg(e);}
+    };
+    triggers.fiendEngine = function(fiend) {
+        try{
+
+            this = .tmp.epidemy;
+            debug('fiendEngine().start',fiend);
+
+            if(fiend.dead)
+                return;
+
+            if(!(fiend.position&.tables.position_table.stand)){
+                fiend.interpret('stand');
+                return;
+            }
+
+            if(fiend.epidemy.plan == null) {
+                if(fiend.epidemy.primary_target!=null) {
+                    fiend.epidemy.plan = fiend_plan_check(fiend);
+                }
+            }
+
+            if(fiend.epidemy.plan == 0) {
+                debug('fiendEngine() plan 0',fiend);
+                if(fiend.epidemy.snd!=null
+                    && !fiend.epidemy.snd.dead
+                    && fiend.epidemy.snd.epidemy.plan==null
+                    && fiend.epidemy.snd.in_room==fiend.in_room
+                    && fiend.epidemy.snd.fighting==null) {
+                    fiend.epidemy.snd.epidemy.plan=fiend.epidemy.plan;
+                }
+            }
+            else {
+            .scheduler.sleep(.number_range(0,5)); //пытаюсь разнести чуток по времени
+                if(fiend.dead || fiend.epidemy.plan==null)
+                    return;
+
+                if(fiend.epidemy.plan == 1) { //ходим
+                    debug('fiendEngine() plan 1',fiend);
+                    make_your_move(fiend);
+                } else if(fiend.epidemy.plan == 2) { //бьем
+                    debug('fiendEngine() plan 2',fiend);
+                    if(fiend.fighting==null) {
+                        var victim;
+
+                        if(fiend.epidemy.genocide!=null && !fiend.epidemy.genocide.dead
+                            && fiend.epidemy.genocide.in_room==fiend.in_room) {
+                            victim = fiend.epidemy.genocide;
+                            debug(.fmt('fiendEngine() plan 2 genocide->victim:%C1',victim),fiend);
+                        } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
+                            && fiend.in_room == fiend.epidemy.victim.in_room) { //если добрались до цели
+                            victim = fiend.epidemy.victim;
+                            debug(.fmt('fiendEngine() plan 2 victim->victim:%C1',victim),fiend);
+                        }
+
+                        if(victim==null) {
+                            debug('fiendEngine() plan 2 no victim',fiend);
+                            clearPlan(fiend);
+
+                        } else if(victim.dead){
+                            debug('fiendEngine() plan 2 victim dead!',fiend);
+                            clearPlan(fiend);
+
+                        } else if(victim.in_room!=fiend.in_room) {
+                            debug('fiendEngine() plan 2 no victim in room!',fiend);
+                            clearPlan(fiend);
+
+                        } else if(victim.alignment<350) {
+                            debug('fiendEngine() plan 2 victim isnt GOOD!',fiend);
+                            clearPlan(fiend);
+
+                        } else if(victim.epidemy!=null) {
+                            debug('fiendEngine() plan 2 victim epidemed?',fiend);
+                            clearPlan(fiend);
+                        } else {
+                            if(victim.in_room.room_flags&.tables.room_flags.safe) {
+                                debug('fiendEngine() plan 2 safe room',fiend);
+                                clearPlan(fiend);
+                                return;
+                            }
+                            debug('fiendEngine() plan 2 genocide',fiend);
+                            //2do не ввязываемся если у нас меньше 50% жизни
+                            fiend.interpret('yell '+get_phrase(fiend,victim));
+                            fiend.multi_hit(victim);
+                        }
+                    } else {
+                    }
+                } else if(fiend.epidemy.plan==3) {// стоим в очереди на сбор урожая
+                    debug('fiendEngine() plan 3',fiend);
+                    if(time_to_loot(fiend)) {
+                        fiend.epidemy.plan = 4;
+                    }
+                } else if(fiend.epidemy.plan==4) {//plan 4 - собираем
+                    debug('fiendEngine() plan 4',fiend);
+
+                    if(fiend.in_room!=fiend.epidemy.last_room_looted) {
+                        if(scavenge(fiend, fiend.in_room.items, corpse)){
+
+                            fiend.epidemy.plan = null;
+                        } else {
+                            //неудачный loot. начинаем заново
+                            fiend.epidemy.plan = 3;
+                        }
+                    }
+                }
+            }
+        }catch(e) {
+        .tmp.epidemy.catchMsg(e);
+        }
+    };
+
     fill_fiends_names();
     fill_fiends_phrases();
-    fill_fiend_triggers(Fiend);
 })
-
-/*
-0                       зомби (                     зомби)
-1                  меняющийся (                меняющаяся)
-2                        змей (                      змея)
-3                        черт (                      черт)
-4                       демон (                     демон)
-5                      смерть (                    смерть)
-6                черный ангел (              черный ангел)
-7                  князь тьмы (              княгиня тьмы)
-8                   властелин (            властительница)
-
-* */
