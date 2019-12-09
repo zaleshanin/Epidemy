@@ -366,10 +366,12 @@
                         debug('pl_chk 0.2: '+m.name+'('+m.in_room.vnum+')'+' status:'+m.epidemy.status+'->planG=null',mob);
                     }
                     if(m.in_room != mob.in_room) {
-                        if(m.epidemy.plan==1 && m.epidemy.plan_room==plan_room && m.epidemy.plan_way.size()==0) {
-                            //тварь больная, но добраться не может
-                            debug(.fmt('pl_chk 0.4: %C1 from %s(%d) cant go to %s(d)',m,m.in_room.name,m.in_room.vnum,plan_room.name,plan_room.vnum),mob);
-                            continue;
+                        if(m.epidemy.plan==1 && m.epidemy.plan_room==plan_room) {
+                            if(m.epidemy.plan_way!=null && m.epidemy.plan_way.size()==0){
+                                //тварь больная, но добраться не может
+                                debug(.fmt('pl_chk 0.4: %C1 from %s(%d) cant go to %s(d)',m,m.in_room.name,m.in_room.vnum,plan_room.name,plan_room.vnum),mob);
+                                continue;
+                            }
                         }
                         planD = false;
                         debug('pl_chk 0.3: '+m.name+'('+m.in_room.vnum+')'+' not in '+plan_room.vnum+'->planD=null',mob);
@@ -522,6 +524,7 @@
         debug('helpMe: helper selected->'+helper.name+'['+helper.in_room.name+']',mob);
 
     .tmp.quest.sleep(1, mob, helper);
+        if(mob.dead || mob.epidemy==null) throw('helpMe: no .epidemy or mob dead');
 
         if(mob.epidemy.status=='infected' || mob.epidemy.status=='sick') {
             if(mob.leader!=null && mob.leader.pet==mob && mob.leader.in_room==helper.in_room) {

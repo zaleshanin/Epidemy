@@ -1254,12 +1254,14 @@
     };
     triggers.fiendEngine = function(fiend) {
         try{
-
             this = .tmp.epidemy;
-            debug('fiendEngine().start',fiend);
 
             if(fiend.dead)
                 return;
+            if(fiend.epidemy==null)
+                return;
+
+            debug('fiendEngine().start',fiend);
 
             if(!(fiend.position&.tables.position_table.stand)){
                 fiend.interpret('stand');

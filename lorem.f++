@@ -197,7 +197,7 @@
     чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
     triggers.pieceOnExtract = function (piece, count) {
         this = .tmp.epidemy;
-        if(piece.epidemy!=null && booksList[piece.epidemy.ownerName] != null && count) {
+        if(piece.epidemy!=null && piece.epidemy.ownerName!=null && booksList[piece.epidemy.ownerName] != null && count) {
             piece_to_warlock(
                 LoremPiece(piece.epidemy.spellIndexMin,
                     piece.epidemy.spellIndexMax,

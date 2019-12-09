@@ -3,7 +3,7 @@
     if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     this = .tmp.epidemy;
 
-    warlock_version = 1;
+    warlock_version = '1.1';
 
     if(warlocksList==null) warlocksList = .List();
     if(triggers == null) triggers = .Map();
@@ -83,6 +83,7 @@
             continue;
         }
         if(wk.epidemy==null || wk.epidemy.pieces==null){
+            wk.clear();
             warlocksList.sub(wk);
             continue;
         }

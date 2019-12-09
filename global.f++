@@ -649,7 +649,7 @@ odif yltsaeb~
     };
     final_rewarding = function(ch) {
         this = .tmp.epidemy;
-        debug('final_rewarding: start');
+        debug('final_rewarding: start',null);
 
         if(reward_final[ch.name]==null) return;
 
