@@ -165,7 +165,7 @@
         obj.onRemove = function(ch) {
             if (ch.isAffected("protection evil")) {
                 ch.affectStrip("protection evil");
-                ch.act("{1%^O1{2 перестаёт излучать свет, и ты чувствуешь себя менее перед {1{Dзлом{2.",this);
+                ch.act("{1%^O1{2 перестаёт излучать свет, и ты чувствуешь себя менее защищённым перед {1{Dзлом{2.",this);
                 ch.recho("{1%^O1{2 перестаёт излучать свет.", this);
             }
         };
