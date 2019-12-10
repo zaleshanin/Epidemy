@@ -362,8 +362,8 @@
                 //тварь в нашем городе
                 if (m.in_room.areaname == city){
                     if(m.epidemy.status!='sick') {
-                        planG = false;
-                        debug('pl_chk 0.2: '+m.name+'('+m.in_room.vnum+')'+' status:'+m.epidemy.status+'->planG=null',mob);
+                        planG = false; planD = false;
+                        debug('pl_chk 0.2: '+m.name+'('+m.in_room.vnum+')'+' status:'+m.epidemy.status+'->planG=false;planD=false;',mob);
                     }
                     if(m.in_room != mob.in_room) {
                         if(m.epidemy.plan==1 && m.epidemy.plan_room==plan_room) {
@@ -393,10 +393,12 @@
                     continue;
                 }
                 if (imp.in_room.areaname == city){
-                    if(imp.epidemy.plan==1 && imp.epidemy.plan_room==plan_room && imp.epidemy.plan_way.size==0) {
-                        //добраться не может
-                        debug(.fmt('pl_chk 0.5: %C1 from %s(%d) cant go to %s(d)',imp,imp.in_room.name,imp.in_room.vnum,plan_room.name,plan_room.vnum),mob);
-                        continue;
+                    if(imp.epidemy.plan==1 && imp.epidemy.plan_room==plan_room) {
+                        if(imp.epidemy.plan_way!=null && imp.epidemy.plan_way.size()==0){
+                            //imp добраться не может
+                            debug(.fmt('pl_chk 0.5: %C1 from %s(%d) cant go to %s(d)',imp,imp.in_room.name,imp.in_room.vnum,plan_room.name,plan_room.vnum),mob);
+                            continue;
+                        }
                     }
                     if(imp.in_room != mob.in_room) {
                         planD = false;

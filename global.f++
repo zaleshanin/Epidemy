@@ -651,26 +651,27 @@ odif yltsaeb~
         this = .tmp.epidemy;
         debug('final_rewarding: start',null);
 
-        if(reward_final[ch.name]==null) return;
+        if(reward_final[ch.name]!=null) {
 
-        ch.act('\n{Y"Эпидемия {DЗахватчиков{Y"{y была остановлена!{x');
+            ch.act('\n{Y"Эпидемия {DЗахватчиков{Y"{y была остановлена!{x');
 
-        if(ch.clan.name!='invader') {
-            ch.questpoints = ch.questpoints + reward_final[ch.name]['qp'];
-            ch.gold = ch.gold + reward_final[ch.name]['gold'];
-            if(ch.clan.name=='knight'){
-                ch.act('{yЗа участие в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
-            }else{
-                ch.act('{yЗа помощь {WРыцарям{y в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
+            if(ch.clan.name!='invader') {
+                ch.questpoints = ch.questpoints + reward_final[ch.name]['qp'];
+                ch.gold = ch.gold + reward_final[ch.name]['gold'];
+                if(ch.clan.name=='knight'){
+                    ch.act('{yЗа участие в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
+                }else{
+                    ch.act('{yЗа помощь {WРыцарям{y в борьбе с {Y"Эпидемией {DЗахватчиков{Y"{y ты получаешь {Y%1$d{y квестов%1$Iую|ые|ых едини%1$Iцу|цы|ц и {Y%2$d{y золот%2$Iой|ых|ых.{x',reward_final[ch.name]['qp'],reward_final[ch.name]['gold']);
+                }
+                if(reward_final[ch.name]['rank']!=null) {
+                    var coupon;
+                    coupon = getCoupon(ch,reward_final[ch.name]['rank']);
+                    coupon.obj_to_char(ch);
+                    ch.act('{yТак же ты получаешь %O4.{x',coupon);
+                }
             }
-            if(reward_final[ch.name]['rank']!=null) {
-                var coupon;
-                coupon = getCoupon(ch,reward_final[ch.name]['rank']);
-                coupon.obj_to_char(ch);
-                ch.act('{yТак же ты получаешь %O4.{x',coupon);
-            }
+            reward_final[ch.name]=null;
         }
-        reward_final[ch.name]=null;
         if(reward_final.keys.size()==0) {
             reward_final = .Array();
             .tmp.gquest.notifiers["epidemy"] = null;
