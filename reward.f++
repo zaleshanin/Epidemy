@@ -111,15 +111,11 @@
 
     };
     makeRewardObj=function(obj,ch){
-        var measure;
+        var measure, gender;
         measure = ch.getModifyLevel();
 
         obj.owner = ch.name;
         obj.personal = ch.name;
-/*
-        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.nosac);
-        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.nopurge);
-*/
 
         var extradesc;
         if(obj.wear_flags&.tables.wear_flags.wear_about){
@@ -169,44 +165,35 @@
                 ch.recho("{1%^O1{2 перестаёт излучать свет.", this);
             }
         };
-/*
-        obj.onGet = function(ch) {
-            if(owner!=ch.name) {
-                obj_to_room(ch.in_room);
-                ch.act('Ты не можешь владеть {1%1$O5{2 и бросаешь е%1$Gго|го|ё.', this);
-                ch.recho('%1$^C1 не можешь владеть {1%2$O5{2 и бросает е%2$Gго|го|ё.',ch,this);
-            }
-        };
-*/
 
         var objAffects; objAffects = .List();
         var hr,dr,cha,bless;hr=0;dr=0;cha=0;bless=0;
         for(aff in obj.affected) {
-            if(.tables.apply_flags.names(aff.location)=='hitroll') {
-                hr=aff.modifier;
-            } else if(.tables.apply_flags.names(aff.location)=='damroll') {
-                dr=aff.modifier;
-            } else if(.tables.apply_flags.names(aff.location)=='cha') {
-                cha=aff.modifier;
+            if(aff.location == .tables.apply_flags.hitroll) { //.tables.apply_flags.names(aff.location)=='hitroll'
+                hr=.max(hr,aff.modifier);
+            } else if(aff.location == .tables.apply_flags.damroll) {
+                dr=.max(dr,aff.modifier);
+            } else if(aff.location == .tables.apply_flags.cha) {
+                cha=.max(cha,aff.modifier);
             } else if(aff.type=='bless') {
-                bless=aff.modifier;
+                bless=.min(bless,aff.modifier);
             } else {
                 objAffects.push_back(aff);
             }
         }
         obj.enchanted=true;
-        obj.affectStrip('bless');
+        obj.affectStripAll();
         for(aff in objAffects) {
             obj.affectAdd(aff);
         }
         if(measure==0) measure=1;
         var new_hr,new_dr;new_hr=measure;new_dr=measure;
         if(ch.alignment>=350) {
-            new_hr = new_hr + (mewsure*10/40);
-            new_dr = new_dr - (mewsure*10/40);
+            new_hr = new_hr + (measure*10/40);
+            new_dr = new_dr - (measure*10/40);
         } else if (ch.alignment<=-350) {
-            new_hr = new_hr - (mewsure*10/40);
-            new_dr = new_dr + (mewsure*10/40);
+            new_hr = new_hr - (measure*10/40);
+            new_dr = new_dr + (measure*10/40);
         }
         var aff;
         aff=.Affect();
