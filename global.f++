@@ -62,6 +62,8 @@ odif yltsaeb~
         var door_opened;
         for(mob in coligendi) {
             door_opened = false;
+            if(mob.epidemy==null)
+                throw(.fmt('colligendi():%C1 (%s[%d]-%s) without .epidemy in colligendi list',mob,mob.in_room.name,mob.in_room.vnum,mob.in_room.areaname));
             if(mob.epidemy.coligendi==null) {
                 mob.in_room.echo('Разверзлись врата преисподней, и хор сотен истязаемых душ заполонил улицу...');
                 door_opened=true;
@@ -89,11 +91,16 @@ odif yltsaeb~
         this = .tmp.epidemy;
         if(statistic[str]==null)
             statistic[str]=.Array();
+        if(statistic_total[str]==null)
+            statistic_total[str]=.Array();
 
         if(statistic[str][chName]==null)
             statistic[str][chName]=0;
+        if(statistic_total[str][chName]==null)
+            statistic_total[str][chName]=0;
 
         statistic[str][chName]=statistic[str][chName]+1;
+        statistic_total[str][chName]=statistic_total[str][chName]+1;
     };
     regHistory = function(str) {
         this = .tmp.epidemy;
@@ -145,7 +152,7 @@ odif yltsaeb~
                 res[demon.in_room.areaname][demon.epidemy.status]=.List();
 
             res_str = res_str + .fmt('%1$C1',demon)+' VictVnums:'+demon.epidemy.victimsVnums.size()+' '+demon.in_room.name+'['+demon.in_room.vnum+']';
-            if(demon.epidemy.invader!=null)
+            if(demon.epidemy==null && demon.epidemy.invader!=null)
                 res_str=res_str+' ('+demon.epidemy.invader+')';
             else
                 res_str=res_str+' (causer unknown)';
@@ -159,11 +166,11 @@ odif yltsaeb~
                 if(fiend.dead){
                     res_str=res_str+' DEAD';
                 } else {
-                    if(fiend.epidemy.plan!=null)
+                    if(fiend.epidemy!=null && fiend.epidemy.plan!=null)
                         res_str=res_str+' plan:'+fiend.epidemy.plan;
                     else
                         res_str=res_str+' plan:nope';
-                    if(fiend.epidemy.victim!=null) {
+                    if(fiend.epidemy!=null && fiend.epidemy.victim!=null) {
                         if(fiend.epidemy.victim.dead) {
                             res_str=res_str+' victim DEAD';
                         } else {
@@ -176,7 +183,7 @@ odif yltsaeb~
                     else
                         res_str=res_str+' no victim';
 
-                    if(fiend.epidemy.invader!=null)
+                    if(fiend.epidemy!=null && fiend.epidemy.invader!=null)
                         res_str=res_str+' ('+fiend.epidemy.invader+')';
                     else
                         res_str=res_str+' (causer unknown)';
@@ -550,6 +557,7 @@ odif yltsaeb~
     clear_statistic = function() {
         this = .tmp.epidemy;
         //очищаем статистику
+/*
         for(type in statistic.keys) {
             if(statistic_total[type]==null)
                 statistic_total[type]=.Array();
@@ -559,6 +567,7 @@ odif yltsaeb~
                 statistic_total[type][name]=statistic_total[type][name]+statistic[type][name];
             }
         }
+*/
         statistic=.Array();
     };
 
@@ -683,7 +692,7 @@ odif yltsaeb~
 
         debug('count_final_reward:start',null);
 
-        var jackpot; jackpot = 325;
+        var jackpot; jackpot = 0;
         var reward_points; reward_points=.Array();
         var reward_rank; reward_rank=.Array();
         var reward_count; reward_count = .Array();
@@ -719,9 +728,11 @@ odif yltsaeb~
                 }
             }
         }
+
+        jackpot = jackpot + (total/100)*100;
+
         for(name in reward_count.keys) {
             debug(.fmt('count_final_reward: %s->%d',name,reward_count[name]),null);
-            if(reward_count[name]<100) continue;
 
             if(reward_rank[reward_count[name]]==null) {
                 reward_rank[reward_count[name]]=.List();
@@ -745,7 +756,8 @@ odif yltsaeb~
         }
         for(i=1;i<=count;i=i+1) {
             for(name in reward_rank[reward_rank.keys.back()]) {
-                debug(.fmt('count_final_reward: %d. %s',i,name),null);
+                debug(.fmt('count_final_reward: %d. %s (%d)',i,name,reward_count[name]),null);
+                if(reward_count[name]<100) continue;
                 reward_final[name]['rank'] = i;
             }
             reward_rank[reward_rank.keys.back()]=null;
@@ -827,11 +839,13 @@ odif yltsaeb~
     qp_rewards['heal']['qp']=2;
     qp_rewards['heal']['evil']=false;
 
+/*
     for(type in statistic.keys) {
         for(name in statistic[type].keys) {
             check_reward(name,type);
         }
     }
+*/
 
 
 })

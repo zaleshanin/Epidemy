@@ -11,6 +11,13 @@
     if(Piece == null)
         Piece = .get_obj_index(9607);
 
+    loremPieceNamesArray = .Array();
+    loremPieceNamesArray[0] = 'lorem';
+    loremPieceNamesArray[1] = 'ipsum';
+    loremPieceNamesArray[2] = 'dolor';
+    loremPieceNamesArray[3] = 'sit';
+    loremPieceNamesArray[4] = 'amet';
+    
     setPieceNames = function(piece, spell) {
         var extradesc;
         this = piece;
@@ -81,27 +88,19 @@
     };
 
     //сгенерировать бумажки с надписями Lorem ipsum dolor sit amet
-    loadLoremPieces = function(book) {
+    loadLoremPieces = function(book,loremArray) {
         try {
-            var i,wl,wk;
-            var loremArray;
+            var i,wlkList,wlk;
             var onePiece;
             if(book.epidemy==null)
                 book.epidemy=.Map();
 
-            loremArray = .Array();
-            loremArray[0] = 'lorem';
-            loremArray[1] = 'ipsum';
-            loremArray[2] = 'dolor';
-            loremArray[3] = 'sit';
-            loremArray[4] = 'amet';
+            wlkList = .tmp.epidemy.get_evil_mage(loremArray.size());
 
-            wl = .tmp.epidemy.get_evil_mage(loremArray.size());
-
-            var c, cList; cList = .List().add(0,1,2,3,4);
+            var c, cList; cList = loremArray.keys.clone();
             for(i=0 ; i<loremArray.size() ; i=i+1){
-                wk = wl.back();
-                wl.pop_back();
+                wlk = wlkList.back();
+                wlkList.pop_back();
 
                 c = cList.random();
                 cList.sub(c);
@@ -109,9 +108,9 @@
                 onePiece = LoremPiece(c,c,loremArray[c], book.epidemy.ownerName);
 
                 //готовим из найденого мага выдавателя бумажки
-                wk = .tmp.epidemy.warlockInit(wk);
+                wlk = .tmp.epidemy.warlockInit(wlk);
 
-                .tmp.epidemy.piece_to_warlock(onePiece, wk);
+                .tmp.epidemy.piece_to_warlock(onePiece, wlk);
 
             }
         } catch (e) {
@@ -252,6 +251,7 @@
         return piece;
     };
 
+/*
     for(piece in Piece.instances) {
         if(!piece.online) continue;
         if(piece.epidemy==null) continue;
@@ -264,5 +264,6 @@
             piece.timer = 150;
         }
     }
+*/
 
 })
