@@ -122,22 +122,28 @@
             obj.name = 'superpelliceum exorcist суперпеллицеум экзорциста';
             obj.short_descr = "{cсу{Cпер{Wпелл{Cице{cум||а|у||ом|е {cэ{Cкз{Wорци{Cст{cа{x";
             //obj.gender
+            extradesc = .fmt("Персональный %1$O1, полученный в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
+            obj.description = .fmt("Чей-то персональный {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
             measure = (measure/10) + 2;
         }
         else if(obj.wear_flags&.tables.wear_flags.wear_face){
             obj.name = 'mask plague doctor маска чумного доктора';
             obj.short_descr = "{Dм{wа{Wс{wк{D|а|и|е|у|ой|е {Dч{wу{Wм{Cн{Wо{wг{Dо {Dд{wо{Wк{Cт{Wо{wр{Dа{x";
             //obj.gender
+            extradesc = .fmt("Персональная %1$O1, полученная в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
+            obj.description = .fmt("Чья-то персональная {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
             measure = (measure/10) + 1;
         }
         else if(obj.wear_flags&.tables.wear_flags.wear_neck){
             obj.name = 'medal knights assistant орден помощника рыцарей';
             obj.short_descr = "{cо{Cр{Wде{Cн{c {cп{Cом{Wощн{Cик{cа {WРыцарей{x";
             //obj.gender
+            extradesc = .fmt("Персональная %1$O1, полученная в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
+            obj.description = .fmt("Чья-то персональная {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
             measure = measure/10;
         }
-        obj.description = .fmt("Ч%1$Gьё|ей|ья-то персональн%1$Gое|ый|ая {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
-        extradesc = .fmt("Персональн%1$Gое|ый|ая %1$O1, полученн%1$Gое|ый|ая в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
+        //obj.description = .fmt("Ч%1$Gьё|ей|ья-то персональн%1$Gое|ый|ая {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
+        //extradesc = .fmt("Персональн%1$Gое|ый|ая %1$O1, полученн%1$Gое|ый|ая в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
         obj.set_extra_descr(obj.name, extradesc);
 
         obj.onEquip = function(ch){
@@ -155,7 +161,7 @@
                 ch.affectAdd(af);
 
                 ch.act("{1%^O1{2 начинает излучать легкое {1{Wсвечение{2, и ты чувствуешь защиту светлых сил.", this);
-                ch.recho("{1%^O1{2 на{1 %^C6{2 начинает излучать лекое {1{Wсвечение{2.", this, ch);
+                ch.recho("{1%^O1{2 на{1 %^C6{2 начинает излучать легкое {1{Wсвечение{2.", this, ch);
             }
         };
         obj.onRemove = function(ch) {
