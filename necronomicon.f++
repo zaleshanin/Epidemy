@@ -12,6 +12,9 @@
         //onExtraDescr(ch,str) - возвращает строку, которую надо показать чару ch,
         // при взгляде на экстра-дескр str. Если вернуть пустую строку, продолжится
         // поиск другого экстра-деска, иначе -- покажет то что мы вернули, и оборвет поиск.
+        this = .tmp.epidemy;
+        restockLoremPieces(book);
+
         if(book.epidemy.isLorem==null)
             book.epidemy.isLorem=0;
         this = .tmp.epidemy;
@@ -590,12 +593,13 @@
                 extractLorePiece(wlk,name);
             }
         }
-        book.epidemy.lOnEntry = null;
+        book.epidemy.restock = null;
     };
-    Necronomicon.onEntry = function(book) {
+
+    restockLoremPieces = function(book) {
         if(book.epidemy.isLorem)
             return;
-        if(book.epidemy.lOnEntry!=null)
+        if(book.epidemy.restock!=null)
             return;
         
         this = .tmp.epidemy;
@@ -613,8 +617,9 @@
             }            
         }
         loadLoremPieces(book,loremPieces);
-        book.epidemy.lOnEntry==true;
+        book.epidemy.restock=true;
     };
+    Necronomicon.onEntry = null;
 
     extractLorePiece = function(wlk,chName) {
         var piece;

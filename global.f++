@@ -152,7 +152,7 @@ odif yltsaeb~
                 res[demon.in_room.areaname][demon.epidemy.status]=.List();
 
             res_str = res_str + .fmt('%1$C1',demon)+' VictVnums:'+demon.epidemy.victimsVnums.size()+' '+demon.in_room.name+'['+demon.in_room.vnum+']';
-            if(demon.epidemy==null && demon.epidemy.invader!=null)
+            if(demon.epidemy!=null && demon.epidemy.invader!=null)
                 res_str=res_str+' ('+demon.epidemy.invader+')';
             else
                 res_str=res_str+' (causer unknown)';
