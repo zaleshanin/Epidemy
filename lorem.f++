@@ -59,7 +59,8 @@
                 continue;
             //проверяем на алигн, уровень, количество
             if(i.alignment>-350 || i.level < 30 || i.pIndexData.instances.size() > 1) continue;
-            if(!i.act&.tables.act_flags.mage && !i.act&.tables.act_flags.necromancer) continue;
+            if(!(i.act&.tables.act_flags.mage)
+                && !(i.act&.tables.act_flags.necromancer)) continue;
             //проверяем зону на квестовость и моба на агрессивность
             if(i.in_room.area.area_flag&.tables.area_flags.noquest
             || i.in_room.area.area_flag&.tables.area_flags.hidden
@@ -196,6 +197,8 @@
     };
     triggers.LoremOnExtract = function(piece, count) {
         this = .tmp.epidemy;
+        if(count==false) return;
+
         if(piece.epidemy.ownerName==null || piece.epidemy.spellIndexMin==null
             || piece.epidemy.spellIndexMax==null || piece.epidemy.spellName==null
             || piece.epidemy.ownerName==null) {
