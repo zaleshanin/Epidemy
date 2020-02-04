@@ -12,7 +12,7 @@
 
     if(triggers==null) triggers = .Map();
     triggers.invertedOnExtract = function(mob,count) {.tmp.epidemy.invertedList.sub(mob);};
-    triggers.invertedPostSpeech = function() {};
+//    triggers.invertedPostSpeech = function() {};
 
     for(mob in invertedList) {
         setEmbitterTriggers(mob);

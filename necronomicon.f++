@@ -31,7 +31,7 @@
             debug(.fmt('page: %s page:%d wnum:%d',str,page,wnum),null);
         } else {
             page = 1;
-            debug('page: default',null);
+            debug('page: default - 1',null);
         }
         debug(.fmt('before wnum: %s',str),null);
         if(str.match("[0-9]{1}\.[a-zа-я]+")) {
@@ -41,7 +41,7 @@
             debug(.fmt('wnum: %s page:%d wnum:%d',str,page,wnum),null);
         } else {
             wnum = 0;
-            debug('wnum: default',null);
+            debug('wnum: default - 0',null);
         }
 
         var isBook, isNecronomicon, isRitual, isClosed, isWarlock, isSpells, isHistory, isStatistic, isLorem, isInvader;
@@ -206,8 +206,8 @@
                             break;
                         }
                     }
-                }
-                */
+                }*/
+
                 if(aWk[wnum]['found']=='carrier') {
                     //наш маг из списка
                     if(warlocksList.has(aWk[wnum]['link'])) {
@@ -628,6 +628,8 @@
     };
     //бывает и такая фигня, надо удалить из списка
     Necronomicon.onExtract = function(book, jopa) {
+        this = .tmp.epidemy;
+        debug(.fmt('necronomicon.onExtract(%s)',book.epidemy.ownerName),null);
         if(jopa) {
             //оказалось, еще и клочки нужно уничтожить...
             var piecesList;
@@ -656,15 +658,19 @@
     };
     Necronomicon.onQuit = function(book, ch, count) {
         this = .tmp.epidemy;
-        //убираем бумажки у магов
+        debug(.fmt('necronomicon.onQuit(%C1)',ch),null);
         book.epidemy.restock = null;
+        //убираем бумажки у магов
         for(wlk in warlocksList) {
             if(wlk.dead) {
                 warlocksLists.sub(wlk);
                 continue;
             }
             for(name in wlk.epidemy.pieces.keys) {
-                extractLorePiece(wlk,name);
+                if(book.epidemy!=null&&book.epidemy.ownerName!=null
+                    &&book.epidemy.ownerName==name){
+                    extractLorePiece(wlk,name);
+                }
             }
         }
     };
@@ -747,7 +753,7 @@
     get_wk_array = function(chname) {
         var result;
         var carrier;
-        var i;
+        var i; i=0;
         result = .Array();
 
         for(piece in .tmp.epidemy.Piece.instances) {
@@ -776,17 +782,19 @@
                     continue;
                 }
 
-                for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
+                //for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
                     result[i]=.Array();
                     result[i]['found'] = 'carrier';
                     result[i]['link'] = carrier;
-                }
+                    break;
+                //}
             } else {
-                for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
+                //for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
                     result[i]=.Array();
                     result[i]['found'] = 'room';
                     result[i]['link'] = piece.getRoom();
-                }
+                    break;
+                //}
             }
         }
 
