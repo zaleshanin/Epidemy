@@ -1,6 +1,5 @@
 .apply(function() {
     this = .tmp.epidemy;
-    Piece = .get_obj_index(9607);
 
     getCoupon = function(ch, rank) {
         var color,rankName;color='';rankName='';
@@ -25,9 +24,6 @@
             coupon.short_descr = color+" купон||а|у||ом|е с надписью '{1{WЗа "+rankName+" место в борьбе с {Dнечистью Захватчиков{2'";
             coupon.description = .fmt('%^N1',color)+' именной купон (coupon) за борьбу с нечистью Захватчиков лежит здесь.';
 
-            coupon.onExtraDescr = function(ch,str){return .tmp.epidemy.triggers.couponOnExtraDescr(this, ch, str);};
-            coupon.onGive = function (ch, vict) {.tmp.epidemy.triggers.couponOnGive(this, ch, vict);};
-
             return coupon;
         }catch(e){.tmp.epidemy.catchMsg('getCoupon('+ch.name+','+rank+')\ncolor:'+color+'\nrankName:'+rankName+'\n'+e);}
     };
@@ -37,6 +33,10 @@
         //onExtraDescr(ch,str) - возвращает строку, которую надо показать чару ch,
         // при взгляде на экстра-дескр str. Если вернуть пустую строку, продолжится
         // поиск другого экстра-деска, иначе -- покажет то что мы вернули, и оборвет поиск.
+
+        if(coupon.epidemy.rank==null || coupon.owner==null)
+            throw(.fmt('epidemy:triggers.couponOnExtraDescr(%O1,%C1): incorrect coupon',coupon,ch));
+
         var result;
         if(coupon.name.match('(^| )'+str)) {
             result = .fmt('Ты смотришь на блестящий %O1.\n', coupon)
@@ -51,14 +51,6 @@
             + '   P.P.S. не лимитная, не личная, не перекрашеная, не измененная.\n'
             + 'Эх. Похоже это очередное подобие рестринг купона. Но, возможно, стоит сходить...';
 
-/*
-            + 'Может обратиться за наградой к {WРыцарям{x?\n'
-            + 'Или стоит подождать, поглядывать время от времени на купон и что-то прояснится само собой.';
-*/
-
-            //fix for coupon v1
-            if (coupon.onGive == null)
-                coupon.onGive = function (ch, vict) {.tmp.epidemy.triggers.couponOnGive(this, ch, vict);};
         }
         return result;
     };
@@ -68,7 +60,7 @@
         if(!vict.is_npc()) return false;
 
         if(vict.pIndexData.vnum!=7900) {
-            .returnObj(vict,ch,coupon,null);
+            returnObj(vict,ch,coupon,null);
             return true;
         }
 

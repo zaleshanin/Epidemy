@@ -1,15 +1,13 @@
 .apply(function() {
-    var fillPieceTriggers;
+    /*переписываем все куски с Piece в прототип 9607*/
+
     if (.tmp.epidemy == null) .tmp.epidemy = .Map();
     this = .tmp.epidemy;
 
-    lorem_version = '1';
+    lorem_version = null;
+
     if (warlocksList == null)
         warlocksList = .List();
-
-
-    if(Piece == null)
-        Piece = .get_obj_index(9607);
 
     loremPieceNamesArray = .Array();
     loremPieceNamesArray[0] = 'lorem';
@@ -17,8 +15,8 @@
     loremPieceNamesArray[2] = 'dolor';
     loremPieceNamesArray[3] = 'sit';
     loremPieceNamesArray[4] = 'amet';
-    
-    setPieceNames = function(piece, spell) {
+
+    setLoremPieceNames = function(piece, spell) {
         var extradesc;
         this = piece;
 
@@ -89,6 +87,7 @@
 
     //сгенерировать бумажки с надписями Lorem ipsum dolor sit amet
     loadLoremPieces = function(book,loremArray) {
+
         try {
             var i,wlkList,wlk;
             var onePiece;
@@ -137,52 +136,54 @@
         piece.epidemy.spellName = spell;
         piece.epidemy.ownerName = name;
         piece.epidemy.status = 'lorem piece';
-        piece.epidemy.version = lorem_version;
 
-        piece = setPieceNames(piece, spell);
-
-        piece.onUse = function(ch,str){return .tmp.epidemy.triggers.pieceOnUse(this,ch,str);};
-        piece.onExtract = function(count){.tmp.epidemy.triggers.pieceOnExtract(this,count);};
-        piece.onQuit = function(ch,count){.tmp.epidemy.triggers.pieceOnQuit(this,ch,count);};
-
-        piece.onDrop = function(ch){.tmp.epidemy.triggers.pieceOnDrop(this,ch);};
-        piece.onPut = function(ch){.tmp.epidemy.triggers.pieceOnPut(this,ch, obj, cont);};
-        piece.onGet = function(ch){.tmp.epidemy.triggers.pieceOnGet(this,ch);};
+        piece = setLoremPieceNames(piece, spell);
 
         return piece;
     };
 
     if (triggers == null) triggers = .Map();
-
-    triggers.pieceOnUse = function(piece, ch,str){
-        this = piece;
+    triggers.LoremOnUse = function(piece, ch,str) {
         if(ch.clan.name!='invader')
             return false;
 
         var obj, newPiece;
-
         obj = ch.get_obj_carry(str);
-        if(obj==null || obj.epidemy==null || obj.epidemy.spellName==null)
+        if(obj==null || obj.epidemy==null || obj.epidemy.status!='lorem piece')
             return false;
 
-        //переименовываем this(больший номер), уничтожаем obj (меньший)
-        //obj.epidemy.wordIndexMax+1 == piece.epidemy.wordIndexMin || piece.epidemy.wordIndexMax+1 == obj.epidemy.wordIndexMin
-        if(obj.epidemy.spellIndexMax+1 == epidemy.spellIndexMin || epidemy.spellIndexMax+1 == obj.epidemy.spellIndexMin) {
+        for(one_piece in .List().add(piece,obj)) {
+            if(one_piece.epidemy.ownerName!=ch.name) {
+                ch.act('Похоже %O1 не из твоей книги. На обороте ты замечешь надпись \'%s\'',one_piece,one_piece.epidemy.ownerName);
+                ch.recho('%1$^C1 безуспешно пытается соединить два клочка бумаги.',ch);
+                return true;
+            }
+        }
 
+        if(obj.epidemy.spellIndexMax==null || obj.epidemy.spellIndexMin==null
+            || piece.epidemy.spellIndexMax==null || piece.epidemy.spellIndexMin==null )
+            throw(.fmt('Piece.onUse: бракованный фрагмент у %C1: %O1 или %O1',ch,piece,obj));
 
+        if(obj.epidemy.spellIndexMax+1 == piece.epidemy.spellIndexMin
+            || piece.epidemy.spellIndexMax+1 == obj.epidemy.spellIndexMin) {
             ch.act('Ты прикладываешь один клочок бумаги к другому...\nПо разрыву пробегает фиолетовый огонь, и клочки соединяются.');
             ch.recho('%1$^C1 соединяет два клочка бумаги, между ними вспыхивает фиолетовое пламя и они соединяются.',ch);
 
             //создаём новый кусок
-            var wordIndexMax, wordIndexMin;
-            wordIndexMin = .min(epidemy.spellIndexMin,obj.epidemy.spellIndexMin);
-            wordIndexMax = .max(epidemy.spellIndexMax,obj.epidemy.spellIndexMax);
-        .tmp.epidemy.LoremPiece(wordIndexMin,wordIndexMax,(obj.epidemy.spellName+' '+epidemy.spellName),epidemy.ownerName).obj_to_char(ch);
+            var wordIndexMax, wordIndexMin, spells;
+            wordIndexMin = .min(piece.epidemy.spellIndexMin,obj.epidemy.spellIndexMin);
+            wordIndexMax = .max(piece.epidemy.spellIndexMax,obj.epidemy.spellIndexMax);
+            if(piece.epidemy.spellIndexMin==wordIndexMin) {
+                spells = piece.epidemy.spellName + ' ' + obj.epidemy.spellName;
+            } else {
+                spells = obj.epidemy.spellName + ' ' + piece.epidemy.spellName;
+            }
+        .tmp.epidemy.LoremPiece(wordIndexMin,wordIndexMax,spells,piece.epidemy.ownerName).obj_to_char(ch);
             //убираем старые
             obj.clear();
             obj.extract(true);
-            this.clear();
-            this.extract(true);
+            piece.clear();
+            piece.extract(true);
 
         } else {
             ch.act('Похоже этот клочок сюда не подходит.');
@@ -190,80 +191,60 @@
         }
         return true;
 
+
+
     };
-    /*onExtract(count) - предмет разрушается. count == false означает, что
-    разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
-    чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
-    triggers.pieceOnExtract = function (piece, count) {
+    triggers.LoremOnExtract = function(piece, count) {
         this = .tmp.epidemy;
-        if(piece.epidemy!=null && piece.epidemy.ownerName!=null && booksList[piece.epidemy.ownerName] != null && count) {
+        if(piece.epidemy.ownerName==null || piece.epidemy.spellIndexMin==null
+            || piece.epidemy.spellIndexMax==null || piece.epidemy.spellName==null
+            || piece.epidemy.ownerName==null) {
+            var ad,str; ad = piece.getCarrier();
+            if(ad!=null) str = ad.name;
+            else {ad = piece.getRoom();str = ad.name+'['+ad.vnum+']';}
+            throw(.fmt('epidemy.LoremOnExtract: incorrect lorem piece %O1 (%s)',piece,str));
+        }
+        //новы[й|e] кус[ок|ки] вместо уничтожаемого:
+        var i;
+        for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
             piece_to_warlock(
-                LoremPiece(piece.epidemy.spellIndexMin,
-                    piece.epidemy.spellIndexMax,
-                    piece.epidemy.spellName,
+                LoremPiece(i,
+                    i,
+                    loremPieceNamesArray[i],
                     piece.epidemy.ownerName),
                 warlockInit(get_evil_mage(1).back())
             );
         }
-        if(piece.getCarrier()!=null) {
-            if(piece.getCarrier().epidemy!=null && piece.getCarrier().epidemy.pieces!=null) {
-                piece.getCarrier().epidemy.pieces[piece.epidemy.ownerName]=null;
 
-                if(piece.getCarrier().epidemy.pieces.keys.size()==0) {
+        //чистим варлока/некроманта если необходимо:
+        var carrier; carrier=piece.getCarrier();
+        if(carrier!=null) {
+            if(carrier.epidemy!=null && carrier.epidemy.pieces!=null) {
+                carrier.epidemy.pieces[piece.epidemy.ownerName]=null;
+                if(pcarrier.epidemy.pieces.keys.size()==0) {
                     piece.getCarrier().clear();
                 }
             }
         }
     };
-    //onQuit(ch,count) - ch покидает мир. Если разрушаем предмет, надо вернуть true.
-    // count == false при обычном quit, и true при делите.
-    triggers.pieceOnQuit = function (piece,ch,count) {
+    triggers.LoremOnQuit = function (piece,ch,count) {
         this = .tmp.epidemy;
         if(piece.epidemy.ownerName!=ch.name) {
             piece.getCarrier().act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', piece);
             piece_to_warlock(piece,warlockInit(get_evil_mage(1).back()));
         }
     };
-    triggers.pieceOnDrop = function(piece,ch) {
-        if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+    triggers.LoremOnDrop = function(piece,ch) {
+        piece.timer=150;
+    };
+    triggers.LoremOnPut = function(piece, ch, obj, cont) {
+        if(piece.epidemy.ownerName!=null
             && piece.epidemy.ownerName!=ch.name)
             piece.timer=150;
     };
-    triggers.pieceOnPut = function(piece, ch, obj, cont) {
-        if(piece.epidemy!=null && piece.epidemy.ownerName!=null
-            && piece.epidemy.ownerName!=ch.name)
-            piece.timer=150;
-    };
-    triggers.pieceOnGet = function(piece,ch) {
-        if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+    triggers.LoremOnGet = function(piece,ch) {
+        if(piece.epidemy.ownerName!=null
             && piece.epidemy.ownerName==ch.name)
             piece.timer=-1;
     };
-
-    chkLoremVersion = function(piece) {
-        if(piece.epidemy.status==null || piece.epidemy.version==null || piece.epidemy.version!=lorem_version) {
-            if(piece.epidemy.spellIndexMin!=null
-                && piece.epidemy.spellIndexMax!=null
-                && piece.epidemy.spellName!=null
-                && piece.epidemy.ownerName!=null)
-                piece = LoremPiece(piece.epidemy.spellIndexMin,piece.epidemy.spellIndexMax,piece.epidemy.spellName,piece.epidemy.ownerName);
-        }
-        return piece;
-    };
-
-/*
-    for(piece in Piece.instances) {
-        if(!piece.online) continue;
-        if(piece.epidemy==null) continue;
-        if(piece.epidemy.spellName==null) continue;
-        if(!.List().add('lorem','ipsum','dolor','sit','amet').has(piece.epidemy.spellName)) continue;
-        //перепрошиваем устаревшие кусочки
-        piece = chkLoremVersion(piece);
-
-        if(piece.getCarrier()==null) {
-            piece.timer = 150;
-        }
-    }
-*/
-
 })

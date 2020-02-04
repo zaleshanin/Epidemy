@@ -1,0 +1,105 @@
+.apply(function() {
+    /*переписываем все куски с Piece в прототип 9607*/
+    var Piece;
+
+    Piece = .get_obj_index(9607);
+
+    Piece.onUse = function(piece, ch,str){
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='lorem piece') {
+                    return .tmp.epidemy.triggers.LoremOnUse(piece, ch,str);
+                }
+                if(piece.epidemy.status=='helpScroll piece') {
+                    return .tmp.epidemy.triggers.helpPieceOnUse(piece, ch,str);
+                }
+            }
+        }
+    };
+    Piece.onExtract = function (piece, count) {
+        /*onExtract(count) - предмет разрушается. count == false означает, что
+        разрушение не уменьшит счетчика предметов с этим внумом. Пример - выход
+        чара из мира. На момент вызова триггера предмет уже удален из всех списков.*/
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='lorem piece') {
+                    .tmp.epidemy.triggers.LoremOnExtract(piece, count);
+                }
+            }
+        }
+    };
+    Piece.onQuit = function (piece,ch,count) {
+        //onQuit(ch,count) - ch покидает мир. Если разрушаем предмет, надо вернуть true.
+        // count == false при обычном quit, и true при делите.
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='lorem piece') {
+                    .tmp.epidemy.triggers.LoremOnQuit(piece,ch,count);
+                }
+            }
+        }
+    };
+    Piece.onDrop = function(piece,ch) {
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='lorem piece') {
+                    .tmp.epidemy.triggers.LoremOnDrop(piece,ch);
+                }
+            }
+        }
+    };
+    Piece.onPut = function(piece, ch, obj, cont) {
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='lorem piece') {
+                    .tmp.epidemy.triggers.LoremOnPut(piece, ch, obj, cont);
+                }
+            }
+        }
+    };
+    Piece.onGet = function(piece,ch) {
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='lorem piece') {
+                    .tmp.epidemy.triggers.LoremOnGet(piece,ch);
+                }
+            }
+        }
+    };
+    Piece.postSpeech = function(piece, ch,str) {
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='helpScroll') {
+                    .tmp.epidemy.triggers.helpScrollPostSpeech(piece,ch,str);
+                }
+            }
+        }
+    };
+    Piece.onGive = function (piece,ch, vict) {
+        if(piece.epidemy!=null) {
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='coupon') {
+                    return .tmp.epidemy.triggers.couponOnGive(piece, ch,str);
+                }
+            }
+        }
+     };
+    Piece.onExtraDescr = function(piece,ch,str){
+        if(piece.epidemy!=null) {
+            piece.onExtract = null;
+            piece.onQuit = null;
+            piece.onDrop = null;
+            piece.onPut = null;
+            piece.onGet = null;
+            piece.postSpec = null;
+            piece.onGive = null;
+            piece.onExtraDescr = null;
+            if(piece.epidemy.status!=null) {
+                if(piece.epidemy.status=='coupon') {
+                    return .tmp.epidemy.triggers.couponOnExtraDescr(piece, ch, str);
+                }
+            }
+        }
+    };
+
+})

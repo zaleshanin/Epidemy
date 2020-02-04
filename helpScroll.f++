@@ -1,11 +1,8 @@
 .apply(function() {
-    if (.tmp.epidemy == null)
-.tmp.epidemy = .Map();
-    if (.tmp.epidemy.triggers == null)
-.tmp.epidemy.triggers = .Map();
+    if (.tmp.epidemy == null) .tmp.epidemy = .Map();
+    if (.tmp.epidemy.triggers == null) .tmp.epidemy.triggers = .Map();
 
     this = .tmp.epidemy;
-    Piece = .get_obj_index(9607);
 
     healPiecesNames=.Array();
     healPiecesNames[0] = 'requiem';
@@ -24,9 +21,15 @@
         if(obj==null || obj.epidemy==null || obj.epidemy.wordName==null)
             return false;
         if(obj.epidemy.wordIndexMax+1 == piece.epidemy.wordIndexMin || piece.epidemy.wordIndexMax+1 == obj.epidemy.wordIndexMin) {
-            var wordIndexMax, wordIndexMin;
+            var wordIndexMax, wordIndexMin, words;
             wordIndexMin = .min(piece.epidemy.wordIndexMin,obj.epidemy.wordIndexMin);
             wordIndexMax = .max(piece.epidemy.wordIndexMax,obj.epidemy.wordIndexMax);
+            if(piece.epidemy.wordIndexMin==wordIndexMin) {
+                words = piece.epidemy.wordName + ' ' + obj.epidemy.wordName;
+            } else {
+                words = obj.epidemy.wordName + ' ' + piece.epidemy.wordName;
+            }
+
             if(wordIndexMin==healPiecesNames.keys.front() && wordIndexMax==healPiecesNames.keys.back()) {
                 ch.act('Ты прикладываешь один фрагмент к другому...\nПо разрыву пробегает белый огонь, и клочки соединяются в {Dчерный свиток{x.');
                 ch.recho('%1$^C1 соединняет два клочка бумаги, между ними вспыхивает белое пламя и они соединяются в {Dчерный свиток{x.',ch);
@@ -35,7 +38,7 @@
                 ch.act('Ты прикладываешь одину часть свитка к другой...\nПо разрыву пробегает белый огонь, и клочки соединяются.');
                 ch.recho('%1$^C1 соединяет две части свитка, между ними вспыхивает белое пламя и они соединяются.',ch);
                 //создаём новый кусок
-                helpPieceInit(wordIndexMin,wordIndexMax,(obj.epidemy.wordName+' '+piece.epidemy.wordName)).obj_to_char(ch);
+                helpPieceInit(wordIndexMin,wordIndexMax,words).obj_to_char(ch);
             }
             //убираем старые клочки
             obj.epidemy = null;
@@ -140,8 +143,6 @@
 
         one_scroll.set_extra_descr(one_scroll.name, extradesc);
 
-        one_scroll.postSpeech = function(ch,str) {.tmp.epidemy.triggers.helpScrollPostSpeech(this,ch,str);};
-
         return one_scroll;
     };
     helpPieceInit = function(min, max, spell) {
@@ -168,8 +169,6 @@
             "для борьбы с каким-то {DЗлом{x.";
 
         one_piece.set_extra_descr(one_piece.name, extradesc);
-
-        one_piece.onUse = function(ch,str){return .tmp.epidemy.triggers.helpPieceOnUse(this, ch, str);};
 
         return one_piece;
     };
