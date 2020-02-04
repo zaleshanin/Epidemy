@@ -13,258 +13,331 @@
         // при взгляде на экстра-дескр str. Если вернуть пустую строку, продолжится
         // поиск другого экстра-деска, иначе -- покажет то что мы вернули, и оборвет поиск.
         this = .tmp.epidemy;
+        debug(.fmt('onExtra(srt:%s)',str),null);
         restockLoremPieces(book);
 
         if(book.epidemy.isLorem==null)
             book.epidemy.isLorem=0;
         this = .tmp.epidemy;
-        var result, ritual, tstr, page;
+        var result, ritual, tstr, page, wnum;
         var cwk, aWk;
         result = '';
 
+        debug(.fmt('before page: %s',str),null);
         if(str.match("[a-zа-я]+([0-9]+)")) {
             page = str.matchGroups("[a-zа-я]+([0-9]+)").at(0);
             str = str.replace(page,'');
             page = 0+page;
+            debug(.fmt('page: %s page:%d wnum:%d',str,page,wnum),null);
         } else {
             page = 1;
+            debug('page: default',null);
         }
-        if(!(book.value1&.tables.container_flags.closed)) {
-            //смотрим в открытую книгу.
-            if(ch.clan.name!='invader') {
-                if('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str)) {
-                    result = 'Вся книга написана на странном, незнакомом тебе языке.\nЕдинственное, что ты можешь разобрать -  рисунки.  На  рисунках  преобладают\nизображения всевозможной нечисти. Однако встречаются и изображения  каких-то\nорганов, частей тела, растений, котлов. Возможно это просто поваренная книга\nдля желающих отведать экзотической кухни.';
+        debug(.fmt('before wnum: %s',str),null);
+        if(str.match("[0-9]{1}\.[a-zа-я]+")) {
+            wnum = str.matchGroups("([0-9]{1})\.[a-zа-я]+").at(0);
+            str = str.replace(wnum+'.','');
+            wnum = 0 + wnum - 1;
+            debug(.fmt('wnum: %s page:%d wnum:%d',str,page,wnum),null);
+        } else {
+            wnum = 0;
+            debug('wnum: default',null);
+        }
+
+        var isBook, isNecronomicon, isRitual, isClosed, isWarlock, isSpells, isHistory, isStatistic, isLorem, isInvader;
+        isBook=false; isClosed=false; isLorem = book.epidemy.isLorem; isInvader = (ch.clan.name=='invader');
+        isNecronomicon=false; isRitual=false;  isWarlock=false; isSpells=false; isHistory=false; isStatistic=false;
+        if(book.value1&.tables.container_flags.closed) {isClosed = true;}
+        if('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str)) {
+            isNecronomicon = true;
+        } else if('ritual demon summon ритуал призыва демона Lorem lorem ipsum dolor sit amet лорем'.match('(^| )'+str)){
+            isRitual = true;
+        } else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
+            isWarlock = true;
+        } else if ('spells заклятия'.match('(^| )'+str)) {
+            isSpells = true;
+        } else if('history история'.match('(^| )'+str)) {
+            isHistory = true;
+        } else if('statistic статистика'.match('(^| )'+str)){
+            isStatistic=true;
+        }
+
+        if(isNecronomicon == false && isClosed) {
+            return result; //если книга закрыта и не смотрим на некрономикон - ничего не показываем
+        }
+
+        if(isNecronomicon) {
+            if(isClosed) {
+                isBook = true; //некрономикон закрыт - показываем обложку
+            } else {
+                if(!isLorem) {
+                    isRitual = true; //фрагменты не собраны, показываем несобранный ритуал
                 }
+            }
+        } else {
+            if(!isLorem) {
+                //книга не востановлена, по ключевым словам ничего не показываем кроме ритуала и варлоков
+                isSpells=false; isHistory=false; isStatistic=false;
+            }
+            if(!isInvader) {
+                //не Инвайдеру по ключевым словам ничего не показываем
+                isRitual=false;  isWarlock=false; isSpells=false; isHistory=false; isStatistic=false;
+            }
+        }
+
+        if(isBook) {
+            //показываем обложку прописаную в прототипе
+            return result;
+        }
+
+        if(isNecronomicon) {
+            if(isInvader) {
+                result ='   Теперь, когда целостность книги востановлена, ты обращаешь внимание, что на\n' +
+                    '   заглавной странице имеется содержание.  Среди  пунктов  написаных  древними\n' +
+                    '   символами, ты можешь разобрать всего несколько пунктов:\n' +
+                    '       - Ритуал вызова Демонов "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x" ({D{hcсм ритуал{x)\n' +
+                    '       - Прочие заклятия ({D{hcсм заклятия{x)\n' +
+                    '       - История Захвата Мира Захватчиками ({D{hcсм история{x)\n' +
+                    '       - Занимательная статистика ({D{hcсм статистика{x) Захвата Мира Захватчиками\n' +
+                    '\n' +
+                    '   На странице еще множество пунктов, но ты пока можешь прочесть только эти.\n' +
+                    '   Возможно когда-нибудь...';
+            } else {
+                result = 'Вся книга написана на странном, незнакомом тебе языке.\nЕдинственное, что ты можешь разобрать -  рисунки.  На  рисунках  преобладают\nизображения всевозможной нечисти. Однако встречаются и изображения  каких-то\nорганов, частей тела, растений, котлов. Возможно это просто поваренная книга\nдля желающих отведать экзотической кухни.';
+
+            }
+        }
+
+        if(isRitual) {
+            ritual = 'На одной из страниц с изображением Демона в верхнем углу, ты можешь прочесть\n' +
+                'описание ритуала написанного кровью (может и чернилами, но ты уверен что {rкровью{x): \n' +
+                '\n' +
+                '               {rК{RАК П{rРА{DВИ{dТЬ {RМИ{rРОМ {DНЕ {dП{RРИВ{rЛЕК{DАЯ ВН{RИ{rМАНИЯ {WР{wЫ{WЦАРЕЙ\n' +
+                '\n' +
+                '{r  В {Dночь Лжи{r в месяц {DВеликого Зла{r в {DТёмном храме{r срединного города  положи  {Dчёрный\n' +
+                '  цветок{r, {Dгорсть чёрного пепла{r и {Dплитку чёрного шоколада{R (без него  вообще  никак)\n'
+                + '{r  в жертвенник перед алтарём.\n' +
+                '\n' +
+                '  Призови {DТёмные Силы{r произнеся заклинание {R(смотри ниже){r. \n' +
+                '\n' +
+                '  Забери цветок. Посей зерно {DТьмы{r в мелкое кровожадное существо в любом из городов.\n' +
+                '  Дождись когда все существа будут под властью {DЗла{r. Узри появление {DДемона{r, который \n' +
+                '  принесёт в город {DТьму{r, и поможет присоединить его территорию к {DИмперии Зла{r.{x\n' +
+                '\n' ;
+
+            if(isLorem) {
+                //видим весь ритуал
+                result = ritual +
+                    'Ниже под, погасшими изображениями чернокнижников и некромантов, написано заклинание:\n' +
+                    '                       "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x"';
+
             }
             else {
-                if(('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && !book.epidemy.isLorem) || ('ritual demon summon ритуал призыва демона Lorem lorem ipsum dolor sit amet лорем'.match('(^| )'+str) && book.epidemy.isLorem)) {
-                    ritual = 'На одной из страниц с изображением Демона в верхнем углу, ты можешь прочесть\n' +
-                        'описание ритуала написанного кровью (может и чернилами, но ты уверен что {rкровью{x): \n' +
-                        '\n' +
-                        '               {rК{RАК П{rРА{DВИ{dТЬ {RМИ{rРОМ {DНЕ {dП{RРИВ{rЛЕК{DАЯ ВН{RИ{rМАНИЯ {WР{wЫ{WЦАРЕЙ\n' +
-                        '\n' +
-                        '{r  В {Dночь Лжи{r в месяц {DВеликого Зла{r в {DТёмном храме{r срединного города  положи  {Dчёрный\n' +
-                        '  цветок{r, {Dгорсть чёрного пепла{r и {Dплитку чёрного шоколада{R (без него  вообще  никак)\n'
-                        + '{r  в жертвенник перед алтарём.\n' +
-                        '\n' +
-                        '  Призови {DТёмные Силы{r произнеся заклинание {R(смотри ниже){r. \n' +
-                        '\n' +
-                        '  Забери цветок. Посей зерно {DТьмы{r в мелкое кровожадное существо в любом из городов.\n' +
-                        '  Дождись когда все существа будут под властью {DЗла{r. Узри появление {DДемона{r, который \n' +
-                        '  принесёт в город {DТьму{r, и поможет присоединить его территорию к {DИмперии Зла{r.{x\n' +
-                        '\n' ;
-
-                    //видим весь ритуал
-                    if(book.epidemy.isLorem) {
-                        result = ritual +
-                            'Ниже под, погасшими изображениями чернокнижников и некромантов, написано заклинание:\n' +
-                            '                       "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x"';
-
-                    }
-                    else { //видим часть ритуала (заклинание не найдено, в книгу не вставлено)
-                        cwk = .tmp.epidemy.count_wk(ch.name);
-                        result = ritual +
-                            'Нижняя часть страницы оторвана, возможно именно там было написано заклинание.\n' +
-                            'Над разрывом нарисованы пять фигур чернокнижников и некромантов.\n';
-                        if(cwk==5){
-                            result = result + 'Изображения светятся и выглядят как живые.';
-                        } else if (cwk < 5) {
-                            if( cwk == 0 ) {
-                                result  = result + 'Изображения темных магов выглядят потухшами и безжизненными.';
-                            }else if( cwk == 1 ) {
-                                result = result + 'Одно из изображений продолжает светиться и выглядит как живое.';
-                            } else {
-                                if( cwk == 2 ) {
-                                    tstr = 'Два';
-                                } else if( cwk == 3 ) {
-                                    tstr = 'Три';
-                                } else if( cwk == 4 ) {
-                                    tstr = 'Четыре';
-                                }
-                                result = result + tstr + ' из которых продолжают светиться и выглядят как живые.';
-                            }
-                        }
-                        if(cwk>0)
-                            result = result + ' Надо бы разглядеть повнимательнее... ({D{hcсм чернокнижник{x / {D{hcсм некромант{x)';
-
-                        var c,i,l;
-                        c = book.items.size();
-                        if(c>0) {
-                            result = result + '\nПод разрывом ';
-                            if(c==1) {
-                                result = result + 'лежит клочок бумаги с надписью "{D'+book.items.back().epidemy.spellName+'{x".';
-                            } else {
-                                result = result + 'лежат клочки бумаги с надписями ';
-                                l = book.items.clone();
-                                for(i=0;i<c;i=i+1) {
-                                    if(i==0) {
-                                        result = result + '"{D'+l.back().epidemy.spellName+'{x"';
-
-                                    } else {
-                                        if(i==c-1) {
-                                            result = result + ' и "{D'+l.back().epidemy.spellName+'{x"';
-                                        } else {
-                                            result = result + ', "{D'+l.back().epidemy.spellName+'{x"';
-                                        }
-                                    }
-                                    if(i==c-1)
-                                        result = result + '.';
-                                    l.pop_back();
-                                }
-                            }
-                        }
-                    }
-
-                }
-                else if ('Necronomicon necronomicon book grimoire гримуар древний книга мертвых некрономикон'.match('(^| )'+str) && book.epidemy.isLorem) {
-                    result ='   Теперь, когда целостность книги востановлена, ты обращаешь внимание, что на\n' +
-                        '   заглавной странице имеется содержание.  Среди  пунктов  написаных  древними\n' +
-                        '   символами, ты можешь разобрать всего несколько пунктов:\n' +
-                        '       - Ритуал вызова Демонов "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x" ({D{hcсм ритуал{x)\n' +
-                        '       - Прочие заклятия ({D{hcсм заклятия{x)\n' +
-                        '       - История Захвата Мира Захватчиками ({D{hcсм история{x)\n' +
-                        '       - Занимательная статистика ({D{hcсм статистика{x) Захвата Мира Захватчиками\n' +
-                        '\n' +
-                        '   На странице еще множество пунктов, но ты пока можешь прочесть только эти.\n' +
-                        '   Возможно когда-нибудь...';
-                }
-                else if('warlock mage necromant necromancer чернокнижник колдун некромант)'.match('(^| )'+str)) {
-                    aWk = get_wk_array(ch.name); //получаем список магов с нашими бумажками
-                    if(aWk.size()==0 || book.epidemy.isLorem) {
-                        result  = 'Ты тщательно вглядываешся в рисунки на странице:\nИзображения темных магов выглядят потухшами и безжизненными.';
+                //видим часть ритуала (заклинание не найдено, в книгу не вставлено)
+                cwk = .tmp.epidemy.count_wk(ch.name);
+                result = ritual +
+                    'Нижняя часть страницы оторвана, возможно именно там было написано заклинание.\n' +
+                    'Над разрывом нарисованы пять фигур чернокнижников и некромантов.\n';
+                if(cwk==5){
+                    result = result + 'Изображения светятся и выглядят как живые.';
+                } else if (cwk < 5) {
+                    if( cwk == 0 ) {
+                        result  = result + 'Изображения темных магов выглядят потухшами и безжизненными.';
+                    }else if( cwk == 1 ) {
+                        result = result + 'Одно из изображений продолжает светиться и выглядит как живое.';
                     } else {
-
-                        result = 'Ты тщательно вглядываешь в изображение';
-                        //бумажка на руках
-                        if(aWk['found']=='carrier') {
-                            //наш маг из списка
-                            if(warlocksList.has(aWk['link'])) {
-                                if(aWk['link'].act&.tables.act_flags.mage)
-                                result = result + ' {Dчернокнижника{x.\n';
-                            else if(aWk['link'].act&.tables.act_flags.necromancer)
-                                result = result + ' {Dнекроманта{x.\n';
-
-                                result = result + aWk['link'].description;
-
-                                result = result + '{DТемный маг{x';
-                            } else {
-                                result = result + ', но это не темный маг, а '
-                                    + .fmt('%1$C1',aWk['link']) + '\n';
-
-                                result = result + .fmt('%1$C1',aWk['link']);
-                            }
-                            result = result + ' находится в месте под названием'
-                                +' "{W'+aWk['link'].in_room.name+'{x".';
-                            //test
-                            //+' ('+aWk['link'].in_room.vnum+')\n';
+                        if( cwk == 2 ) {
+                            tstr = 'Два';
+                        } else if( cwk == 3 ) {
+                            tstr = 'Три';
+                        } else if( cwk == 4 ) {
+                            tstr = 'Четыре';
                         }
-                        if(aWk['found']=='room') {
-                            result = result + ', но ты не видишь {Dтёмного мага{x.\n'
-                                + ' '+aWk['link'].description + '\n'
-                                + '{G     Клочок бумаги с магическими символами лежит здесь.{x';
-
-                        }
+                        result = result + tstr + ' из которых продолжают светиться и выглядят как живые.';
                     }
                 }
-                else if ('spells заклятия'.match('(^| )'+str) && book.epidemy.isLorem) {
-                    result ='На странице готическим шрифтом записаны заклятия и пояснения к ним.\n' +
-                        'Часть из них ты можешь прочесть уже сейчас:\n' +
-                        '\n' +
-                        ' {DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x - Произносится в нужном месте, в нужное время  для\n' +
-                        ' получения частицы {DТьмы{x. ({D{hcсм ритуал{x)\n' +
-                        '\n' +
-                        ' {DTempus Eos Colligendi{x - Заклятие возвращающее {DДемона{x и его {DЛегионы{x  обратно в\n' +
-                        ' преисподнюю.\n' +
-                        '\n' +
-                         ' {DMens Sana In Corpore Sano{x - Заклятие забирающее частицу {DТьмы{x из  одержимого в\n' +
-                        ' Книгу.\n' +
-                        '\n' +
-                         ' {DTempus Spargendi Lapides{x - Заклятие помещающее частицу {DТьмы{x из Книги в мелкое\n ' +
-                        'существо - городского падальщика.\n' +
-                      '\n' +
-                        'Помни, ' + .fmt('%1$C1',ch) + ', что все заклятия должны произноситься с Книгой в руках.\n';
+                if(cwk>0)
+                    result = result + ' Надо бы разглядеть повнимательнее... ({D{hcсм чернокнижник{x / {D{hcсм некромант{x)';
 
-                }
-                else if('history история'.match('(^| )'+str) && book.epidemy.isLorem) {
-                    if(history.size()==0) {
-                        result = 'Страницы истории пусты. ' +
-                            'Возможно, кто-то что-то должен сделать, чтоб вписать своё имя в Историю Захватчиков.\n' +
-                            'Может быть ты?\n';
+                var c,i,l;
+                c = book.items.size();
+                if(c>0) {
+                    result = result + '\nПод разрывом ';
+                    if(c==1) {
+                        result = result + 'лежит клочок бумаги с надписью "{D'+book.items.back().epidemy.spellName+'{x".';
                     } else {
-                        var pages, rest, i, rec_per_page;
-                        i=0;  rec_per_page=10;
+                        result = result + 'лежат клочки бумаги с надписями ';
+                        l = book.items.clone();
+                        for(i=0;i<c;i=i+1) {
+                            if(i==0) {
+                                result = result + '"{D'+l.back().epidemy.spellName+'{x"';
 
-                        pages = history.size()/rec_per_page;
-                        rest = history.size()%rec_per_page;
-
-                        if(rest!=0) pages = pages + 1;
-
-                        if(page <= pages) {
-                            result = 'Кажется, что записи на этих страницах появляются сами собой.\n' +
-                                'Возможно и ты сможешь попасть в Историю.\n\n' +
-                                'Страница Истории '+page+'\n\n';
-
-                            for(h in history) {
-                                i=i+1;
-                                if(i/rec_per_page == page) {
-                                    result = result + h.format(80) + '\n';
-                                }
-                            }
-                            if(page == pages) {
-                                //history last page
-                                result = result +
-                                    'На этом записи обрываются. Возможно пришло время тебе дополнить Историю Захватчиков?\n';
-                                if(pages>1){
-                                    //history have some page
-                                    result = result +
-                                        'Ты можешь начать читать Историю с начала ({hcсм история1{x)';
-                                    if(pages==2) {result = result + '.\n';}
-                                    else {
-                                        //more than 2 page
-                                        result = result + '\n' +
-                                            (.fmt('или вернуться к предыдущей странице ({hcсм история%d{x)',page-1));
-                                    }
-                                }
                             } else {
-                                //not a last page
-                                if(pages!=1) {
-                                    result = result +
-                                        (.fmt('Ты можешь прочитать следующую страницу Истории ({hcсм история%d{x)',page+1));
-                                }
-                                if(page==1) {
-                                    if(pages>1) {
-                                        result = result + '\n' +
-                                            (.fmt('или перейти сразу к последней странице ({hcсм история%d{x).',pages));
-                                    } else {
-                                        result = result +
-                                            '.\n';
-                                    }
-                                }
-                                else if(page!=1) {
-                                    result = result + '\n' +
-                                        (.fmt('или вернуться к предыдущей ({hcсм история%d{x).\n',page-1));
+                                if(i==c-1) {
+                                    result = result + ' и "{D'+l.back().epidemy.spellName+'{x"';
+                                } else {
+                                    result = result + ', "{D'+l.back().epidemy.spellName+'{x"';
                                 }
                             }
-                        } else {
-                            if(pages==1) {
-                                result = result + 'В книге всего одна страница Истории ({hcсм история1{x)';
-                            } else if (pages==2) {
-                                result = result + 'В книге всего две страницы Истории ({hcсм история1{x, {hcсм история2{x)';
-                            } else {
-                                result = result + .fmt('В книге всего %1$d страниц%1$Iа|ы| Истории ({hcсм история1{x, {hcсм история%1$d{x)',pages);
-
-                            }
+                            if(i==c-1)
+                                result = result + '.';
+                            l.pop_back();
                         }
-
                     }
                 }
-                else if('statistic статистика'.match('(^| )'+str) && book.epidemy.isLorem) {
-                    result = showStat();
-                } /*else if ('epidemy эпидемия'.match('(^| )'+str) && book.epidemy.isLorem) {
-                    result = show();
-                }*/
+            }
+
+        }
+
+        if(isWarlock) {
+            aWk = get_wk_array(ch.name); //получаем список магов с нашими бумажками
+            if(aWk.size()==0 || book.epidemy.isLorem) {
+                result  = 'Ты тщательно вглядываешся в рисунки на странице:\nИзображения темных магов выглядят потухшами и безжизненными.';
+            } else {
+                result = 'Ты тщательно вглядываешь в изображение';
+
+                /*//бумажка на руках
+
+                if(aWk[wnum]['found']=='self') {
+                    //костыль, убрать когда можно будет делать look 4.warlock
+                    for(key in aWk) {
+                        if(aWk[key]['found']!='self') {
+                            wnum = key;
+                            break;
+                        }
+                    }
+                }
+                */
+                if(aWk[wnum]['found']=='carrier') {
+                    //наш маг из списка
+                    if(warlocksList.has(aWk[wnum]['link'])) {
+                        if(aWk[wnum]['link'].act&.tables.act_flags.mage)
+                        result = result + ' {Dчернокнижника{x.\n';
+                    else if(aWk[wnum]['link'].act&.tables.act_flags.necromancer)
+                        result = result + ' {Dнекроманта{x.\n';
+
+                        result = result + aWk[wnum]['link'].description;
+
+                        result = result + '{DТемный маг{x';
+                    } else {
+                        result = result + ', но это не темный маг, а '
+                            + .fmt('%1$C1',aWk[wnum]['link']) + '\n';
+
+                        result = result + .fmt('%1$C1',aWk[wnum]['link']);
+                    }
+                    result = result + ' находится в месте под названием'
+                        +' "{W'+aWk[wnum]['link'].in_room.name+'{x".';
+                }
+                if(aWk[wnum]['found']=='room') {
+                    result = result + ', но ты не видишь {Dтёмного мага{x.\n'
+                        + ' '+aWk[wnum]['link'].description + '\n'
+                        + '{G     Клочок бумаги с магическими символами лежит здесь.{x';
+                }
             }
         }
+
+        if(isSpells) {
+            result ='На странице готическим шрифтом записаны заклятия и пояснения к ним.\n' +
+                'Часть из них ты можешь прочесть уже сейчас:\n' +
+                '\n' +
+                ' {DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x - Произносится в нужном месте, в нужное время  для\n' +
+                ' получения частицы {DТьмы{x. ({D{hcсм ритуал{x)\n' +
+                '\n' +
+                ' {DTempus Eos Colligendi{x - Заклятие возвращающее {DДемона{x и его {DЛегионы{x  обратно в\n' +
+                ' преисподнюю.\n' +
+                '\n' +
+                ' {DMens Sana In Corpore Sano{x - Заклятие забирающее частицу {DТьмы{x из  одержимого в\n' +
+                ' Книгу.\n' +
+                '\n' +
+                ' {DTempus Spargendi Lapides{x - Заклятие помещающее частицу {DТьмы{x из Книги в мелкое\n ' +
+                'существо - городского падальщика.\n' +
+                '\n' +
+                'Помни, ' + .fmt('%1$C1',ch) + ', что все заклятия должны произноситься с Книгой в руках.\n';
+
+        }
+
+        if(isHistory) {
+            if(history.size()==0) {
+                result = 'Страницы истории пусты. ' +
+                    'Возможно, кто-то что-то должен сделать, чтоб вписать своё имя в Историю Захватчиков.\n' +
+                    'Может быть ты?\n';
+            }
+            else {
+                var pages, rest, i, rec_per_page;
+                i=0;  rec_per_page=10;
+
+                pages = history.size()/rec_per_page;
+                rest = history.size()%rec_per_page;
+
+                if(rest!=0) pages = pages + 1;
+
+                if(page <= pages) {
+                    result = 'Кажется, что записи на этих страницах появляются сами собой.\n' +
+                        'Возможно и ты сможешь попасть в Историю.\n\n' +
+                        'Страница Истории '+page+'\n\n';
+
+                    for(h in history) {
+                        i=i+1;
+                        if(i/rec_per_page == page) {
+                            result = result + h.format(80) + '\n';
+                        }
+                    }
+                    if(page == pages) {
+                        //history last page
+                        result = result +
+                            'На этом записи обрываются. Возможно пришло время тебе дополнить Историю Захватчиков?\n';
+                        if(pages>1){
+                            //history have some page
+                            result = result +
+                                'Ты можешь начать читать Историю с начала ({hcсм история1{x)';
+                            if(pages==2) {result = result + '.\n';}
+                            else {
+                                //more than 2 page
+                                result = result + '\n' +
+                                    (.fmt('или вернуться к предыдущей странице ({hcсм история%d{x)',page-1));
+                            }
+                        }
+                    } else {
+                        //not a last page
+                        if(pages!=1) {
+                            result = result +
+                                (.fmt('Ты можешь прочитать следующую страницу Истории ({hcсм история%d{x)',page+1));
+                        }
+                        if(page==1) {
+                            if(pages>1) {
+                                result = result + '\n' +
+                                    (.fmt('или перейти сразу к последней странице ({hcсм история%d{x).',pages));
+                            } else {
+                                result = result +
+                                    '.\n';
+                            }
+                        }
+                        else if(page!=1) {
+                            result = result + '\n' +
+                                (.fmt('или вернуться к предыдущей ({hcсм история%d{x).\n',page-1));
+                        }
+                    }
+                } else {
+                    if(pages==1) {
+                        result = result + 'В книге всего одна страница Истории ({hcсм история1{x)';
+                    } else if (pages==2) {
+                        result = result + 'В книге всего две страницы Истории ({hcсм история1{x, {hcсм история2{x)';
+                    } else {
+                        result = result + .fmt('В книге всего %1$d страниц%1$Iа|ы| Истории ({hcсм история1{x, {hcсм история%1$d{x)',pages);
+
+                    }
+                }
+
+            }
+        }
+
+        if(isStatistic) {
+            result = showStat();
+        }
+        /*else if ('epidemy эпидемия'.match('(^| )'+str) && book.epidemy.isLorem) {
+            result = show();
+        }*/
+
         return result;
     };
     Necronomicon.onCantFetch = function(book, ch, unknownobj, unknownstr) {
@@ -584,6 +657,7 @@
     Necronomicon.onQuit = function(book, ch, count) {
         this = .tmp.epidemy;
         //убираем бумажки у магов
+        book.epidemy.restock = null;
         for(wlk in warlocksList) {
             if(wlk.dead) {
                 warlocksLists.sub(wlk);
@@ -593,28 +667,28 @@
                 extractLorePiece(wlk,name);
             }
         }
-        book.epidemy.restock = null;
     };
 
     restockLoremPieces = function(book) {
+        this = .tmp.epidemy;
+        debug(.fmt('restockLoremPieces(%s)',book.epidemy.ownerName),null);
         if(book.epidemy.isLorem)
             return;
         if(book.epidemy.restock!=null)
             return;
-        
-        this = .tmp.epidemy;
+
         var loremPieces;  loremPieces = loremPieceNamesArray.clone();
         for(piece in Piece.instances) {
-            if(piece.epidemy==null 
-                || piece.epidemy.spellIndexMin==null 
+            if(piece.epidemy==null
+                || piece.epidemy.spellIndexMin==null
                 || piece.epidemy.spellIndexMax == null
                 || piece.epidemy.spellName == null
                 || piece.epidemy.ownerName == null) continue;
-            
+
             var i;
             for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
                 loremPieces[i]=null;
-            }            
+            }
         }
         loadLoremPieces(book,loremPieces);
         book.epidemy.restock=true;
@@ -673,15 +747,18 @@
     get_wk_array = function(chname) {
         var result;
         var carrier;
+        var i;
         result = .Array();
 
         for(piece in .tmp.epidemy.Piece.instances) {
-            //ваще не торт
-            if(piece.epidemy==null) {
+            //ваще не торт что нам нужно
+            if(piece.epidemy==null
+                || piece.epidemy.status==null
+                || piece.epidemy.status!='lorem piece') {
                 continue;
             }
 
-            //не наше
+            //не наше или бракованое
             if(piece.epidemy.ownerName==null || piece.epidemy.ownerName!=chname) {
                 continue;
             }
@@ -690,17 +767,26 @@
             if(carrier!=null) {
                 //уже у меня
                 if(carrier.name == chname) {
+/*
+                    for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
+                        result[i]=.Array();
+                        result[i]['found']='self';
+                    }
+*/
                     continue;
                 }
 
-                result['found'] = 'carrier';
-                result['link'] = carrier;
-                break;
+                for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
+                    result[i]=.Array();
+                    result[i]['found'] = 'carrier';
+                    result[i]['link'] = carrier;
+                }
             } else {
-                result['found'] = 'room';
-                result['link'] = piece.getRoom();
-                break;
-
+                for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
+                    result[i]=.Array();
+                    result[i]['found'] = 'room';
+                    result[i]['link'] = piece.getRoom();
+                }
             }
         }
 
