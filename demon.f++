@@ -13,6 +13,8 @@
             if(mob.epidemy==null)
                 mob.epidemy=.Map();
 
+            mob.epidemy.status = 'embitter';
+
             var match;
 
             var long_descr;

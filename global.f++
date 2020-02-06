@@ -359,7 +359,11 @@ odif yltsaeb~
     start = function()    {
         .tmp.epidemy.running=true;
         .tmp.gquest.notifiers["epidemy"] = function() {
-            act("{yТы можешь принять участие в борьбе с распространением {Y\"Эпидемии {DЗахватчиков{Y\"{y. (подробности по команде {Y{hcgq info{x{y){x");
+            if(clan.name=='invader') {
+                act("{yТы можешь способствовать распространению {Y\"Эпидемии {DЗахватчиков{Y\"{y. (подробности по команде {Y{hcgq info{x{y){x");
+            } else {
+                act("{yТы можешь принять участие в борьбе с распространением {Y\"Эпидемии {DЗахватчиков{Y\"{y. (подробности по команде {Y{hcgq info{x{y){x");
+            }
             .tmp.epidemy.rewarding(this);
             return true;
         };
@@ -404,19 +408,20 @@ odif yltsaeb~
                         str='{yДемон уже появился в:';
                     else
                         str='{yДемоны уже появились в:';
-                    for(demon in .tmp.epidemy.Demon.instances) {
-                        if(areaList.has(demon.in_room.areaname)) continue;
-                        if(areaList.size()>0)
-                            str=str+'{y,';
-                        areaList.push_back(demon.in_room.areaname);
-                        str=str+' {Y'+demon.in_room.areaname;
-                    }
-                    act(str+'{y.{x');
+                        for(demon in .tmp.epidemy.Demon.instances) {
+                            if(areaList.has(demon.in_room.areaname)) continue;
+                            if(areaList.size()>0)
+                                str=str+'{y,';
+                            areaList.push_back(demon.in_room.areaname);
+                            str=str+' {Y'+demon.in_room.areaname;
+                        }
+                        act(str+'{y.{x');
                 }
-                if(.tmp.epidemy.infectedList.size()>0) {
+                if(.tmp.epidemy.invertedList.size()>0) {
                     areaList=.Array();
-                    for(mob in .tmp.epidemy.infectedList){
-                        if(mob.dead || !mob.online) continue;
+                    for(mob in .tmp.epidemy.invertedList){
+                        if(mob.dead) {.tmp.epidemy.invertedList.sub(mob);continue;}
+                        if(!mob.online) continue;
                         if(areaList[mob.in_room.areaname]==null)
                             areaList[mob.in_room.areaname]=0;
                         areaList[mob.in_room.areaname]=areaList[mob.in_room.areaname]+1;
