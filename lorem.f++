@@ -58,7 +58,7 @@
             if(areas.has(i.in_room.areaname))
                 continue;
             //проверяем на алигн, уровень, количество
-            if(i.alignment>-350 || i.level < 30 || i.pIndexData.instances.size() > 1) continue;
+            if(i.alignment>-350 || i.level <= 35 || i.pIndexData.instances.size() > 1) continue;
             if(!(i.act&.tables.act_flags.mage)
                 && !(i.act&.tables.act_flags.necromancer)) continue;
             //проверяем зону на квестовость и моба на агрессивность
@@ -88,14 +88,14 @@
 
     //сгенерировать бумажки с надписями Lorem ipsum dolor sit amet
     loadLoremPieces = function(book,loremArray) {
-
+        this = .tmp.epidemy;
         try {
             var i,wlkList,wlk;
             var onePiece;
             if(book.epidemy==null)
                 book.epidemy=.Map();
 
-            wlkList = .tmp.epidemy.get_evil_mage(loremArray.size());
+            wlkList = get_evil_mage(loremArray.size());
 
             var c, cList; cList = loremArray.keys.clone();
             for(i=0 ; i<loremArray.size() ; i=i+1){
@@ -108,13 +108,13 @@
                 onePiece = LoremPiece(c,c,loremArray[c], book.epidemy.ownerName);
 
                 //готовим из найденого мага выдавателя бумажки
-                wlk = .tmp.epidemy.warlockInit(wlk);
+                wlk = warlockInit(wlk);
 
-                .tmp.epidemy.piece_to_warlock(onePiece, wlk);
+                piece_to_warlock(onePiece, wlk);
 
             }
         } catch (e) {
-        .tmp.epidemy.catchMsg(e);
+        .tmp.epidemy.catchMsg('loadLoremPieces():'+e);
         }
     };
 
