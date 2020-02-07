@@ -13,7 +13,7 @@
             if(mob.epidemy==null)
                 mob.epidemy=.Map();
 
-            mob.epidemy.status = 'embitter';
+            mob.epidemy.status = 'inverted';
 
             var match;
 
@@ -105,12 +105,12 @@
 
         if(Demon.instances.size()>=demon_list.size()) {
             room.echo('...и ничего не произошло!');
-            throw('epidemy: demon amount owerflow! '+room.name+'['+room.vnum+']');
+            throw('demon.get_one_demon: demon amount owerflow! '+room.name+'['+room.vnum+']');
         }
         for(demon in Demon.instances) {
             if(!demon.dead && demon.in_room.areaname==room.areaname) {
                 room.echo('...и ничего не произошло!');
-                throw('epidemy: only one demon for '+room.areaname+'! '+room.name+'['+room.vnum+']');
+                throw('demon.get_one_demon: only one demon for '+room.areaname+'! '+room.name+'['+room.vnum+']');
             }
         }
 
@@ -518,7 +518,6 @@
                         embitter(demon.epidemy.victim);
 
                         demon.epidemy.victim.epidemy.invader = demon.epidemy.invader;
-                        demon.epidemy.victim.epidemy.status = 'inverted';
                         invertedList.push_back(demon.epidemy.victim);
                         regStat(demon.epidemy.invader,'demon_invert');
                         check_reward(demon.epidemy.invader,'demon_invert');

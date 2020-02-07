@@ -233,23 +233,6 @@ odif yltsaeb~
         }
         return result;
     };
-    debug = function(str,mob) {
-        if(!.buildplot) return;
-        var ch;
-        ch = .get_char_world('miyamoto');
-        if(ch==null)
-            ch = .get_char_world('zaleshanin');
-        //
-        if(ch!=null) {
-            if(mob==null)
-                ch.act('debug:%s',str);
-            else{
-                if(mob.epidemy.debug==null || mob.epidemy.debug==false) return;
-                ch.act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
-            }
-        }
-
-    };
     str_utterance = function(str) {
         var new_str, tmp_str;
 
@@ -304,17 +287,6 @@ odif yltsaeb~
 
         return new_str;
 
-    };
-    catchMsg = function(e) {
-        var ch;
-        ch = .get_char_world('Zaleshanin');
-        if(ch==null)
-            ch = .get_char_world('Miyamoto');
-
-        if(ch!=null)
-            ch.ptc(e);
-        else
-            throw e;
     };
     getChMaster = function(ch) {
         if(ch==null) return null;
@@ -785,6 +757,35 @@ odif yltsaeb~
             reward[name]=null;
         }
         return result;
+    };
+
+    catchMsg = function(e) {
+        var ch;
+        ch = .get_char_world('Zaleshanin');
+        if(ch==null)
+            ch = .get_char_world('Miyamoto');
+
+        if(ch!=null)
+            ch.ptc(e);
+        else
+            throw e;
+    };
+    debug = function(str,mob) {
+        //if(!.buildplot) return;
+        var ch;
+        ch = .get_char_world('zaleshanin');
+        if(ch==null)
+            ch = .get_char_world('miyamoto');
+        //
+        if(ch!=null) {
+            if(mob==null)
+                ch.act('debug:%s',str);
+            else{
+                if(mob.epidemy.debug==null || mob.epidemy.debug==false) return;
+                ch.act('debug:%1$C1 [%2$d] %3$s',mob,mob.in_room.vnum,str);
+            }
+        }
+
     };
 
     qp_rewards=.Array();
