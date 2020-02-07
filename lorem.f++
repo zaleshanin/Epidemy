@@ -111,7 +111,10 @@
                 wlk = warlockInit(wlk);
 
                 piece_to_warlock(onePiece, wlk);
-
+                var ii;
+                for(ii=onePiece.epidemy.spellIndexMin;ii<=onePiece.epidemy.spellIndexMax;ii=ii+1){
+                    book.epidemy.loremPieces[ii]=onePiece;
+                }
             }
         } catch (e) {
         .tmp.epidemy.catchMsg('loadLoremPieces():'+e);
@@ -207,6 +210,8 @@
             else {ad = piece.getRoom();str = ad.name+'['+ad.vnum+']';}
             throw(.fmt('epidemy.LoremOnExtract: incorrect lorem piece %O1 (%s)',piece,str));
         }
+
+        if(booksList[piece.epidemy.ownerName]==null || booksList[piece.epidemy.ownerName].online==false) return;
         //новы[й|e] кус[ок|ки] вместо уничтожаемого:
         var i;
         for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
