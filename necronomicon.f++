@@ -734,7 +734,11 @@
         } else {
             //помечаем бумажки для разваливания через 15 минут.
             for(piece_key in book.epidemy.loremPieces.keys) {
-                book.epidemy.loremPieces[piece_key].timer=15;
+                if(book.epidemy.loremPieces[piece_key].dead){
+                    book.epidemy.loremPieces[piece_key].clear();
+                    book.epidemy.loremPieces[piece_key]=null;
+                }
+                else book.epidemy.loremPieces[piece_key].timer=15;
             }
         }
 /*
@@ -843,20 +847,47 @@
         if(book.epidemy.loremPieces==null) {
             book.epidemy.loremPieces=.Array();
         }
+
+        //debug('check book.epidemy.loremPieces[]',null);
         for(spellIndex in book.epidemy.loremPieces.keys) {
             if(book.epidemy.loremPieces[spellIndex].dead) {
                 book.epidemy.loremPieces[spellIndex]=null;
-            } else if(book.epidemy.loremPieces[spellIndex].timer>=0) {
+                debug(.fmt('  %d->null',spellIndex),null);
+            }
+            else if(book.epidemy.loremPieces[spellIndex].timer>=0) {
                 book.epidemy.loremPieces[spellIndex].timer=-1;
+
+/*
+                if(book.epidemy.loremPieces[spellIndex].epidemy==null){
+                    debug(.fmt('  %d %O1 [epidemy==null] -> %C1[%d]',
+                        spellIndex,
+                        book.epidemy.loremPieces[spellIndex],
+                        book.epidemy.loremPieces[spellIndex].getCarrier(),
+                        book.epidemy.loremPieces[spellIndex].getCarrier().pIndexData.vnum),null);
+                }
+                else {
+                    debug(.fmt('  %d %O1 [%s] -> %C1[%d] %d %d',
+                        spellIndex,
+                        book.epidemy.loremPieces[spellIndex],
+                        book.epidemy.loremPieces[spellIndex].epidemy.ownerName,
+                        book.epidemy.loremPieces[spellIndex].getCarrier(),
+                        book.epidemy.loremPieces[spellIndex].getCarrier().pIndexData.vnum,
+                        book.epidemy.loremPieces[spellIndex].epidemy.spellIndexMin,
+                        book.epidemy.loremPieces[spellIndex].epidemy.spellIndexMax),null);
+                }
+*/
             }
         }
 
+        //debug('check Piece.instances',null);
         for(piece in Piece.instances) {
+            debug(.fmt('  %O1',piece),null);
             if(piece.epidemy==null || piece.epidemy.status==null || piece.epidemy.status!='lorem piece') continue;
             if(piece.epidemy.ownerName!=book.epidemy.ownerName) continue;
             var i;
+            //debug(.fmt('    [%d-%d]',piece.epidemy.spellIndexMin,piece.epidemy.spellIndexMax),null);
             for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1){
-                if(book.epidemy.loremPieces[i]!=null) {
+                if(book.epidemy.loremPieces[i]!=null && book.epidemy.loremPieces[i]!=piece) {
                     piece.clear();
                     piece.extract(true);
                 } else {
