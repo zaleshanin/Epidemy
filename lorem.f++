@@ -202,6 +202,14 @@
         this = .tmp.epidemy;
         if(count==false) return;
 
+        //уничтожение по таймеру, при выходе с книгой из мира
+        if(piece.epidemy!=null && piece.epidemy.ownerName!=null){
+            if(.tmp.epidemy.booksList[piece.epidemy.ownerName].online!=true) {
+                debug('LoremOnExtract(%O1)->extracted: book is offline');
+                return;
+            }
+        }
+
         if(piece.epidemy.ownerName==null || piece.epidemy.spellIndexMin==null
             || piece.epidemy.spellIndexMax==null || piece.epidemy.spellName==null
             || piece.epidemy.ownerName==null) {
