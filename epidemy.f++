@@ -577,17 +577,20 @@
 
     triggers.infectedPostSpec = function(mob){
         this = .tmp.epidemy;
+        try{
         for(mob in infectedList) {
 
             if(mob.dead || mob.epidemy==null) {
                 infectedList.sub(mob);
                 continue;
             }
-
+            debug(.fmt('infectedPostSpec:%C1',mob),mob);
             if(mob.epidemy.status=='sick') sickEngine(mob);
             else if(mob.epidemy.status=='infected') infectedEngine(mob);
         }
+        }catch(e){catchMsg('infectedPostSpec():'+e);}
     };
+
     infectedEngine = function(mob){
         try{
             this = .tmp.epidemy;
@@ -632,11 +635,11 @@
         this = .tmp.epidemy;
 
         try {
-            /*if(mob.epidemy.plan!=null)
+            if(mob.epidemy.plan!=null)
                 debug('sickEngine 0: start. plan:'+mob.epidemy.plan,mob);
             else
                 debug('sickEngine 0: start. plan:null',mob);
-*/
+
             if(mob.epidemy==null) throw('NO epidemy Map\n');
 
             if(mob.epidemy.victims==null) {

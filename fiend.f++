@@ -146,8 +146,15 @@
     find_way = function(mob,room){
         var sectorsDeny;
 
-        sectorsDeny = .set_bit_number(0, .tables.sector_table.water_noswim);
-        sectorsDeny = .set_bit_number(sectorsDeny, .tables.sector_table.air);
+        //get_obj_carry_type .tables.item_table
+        if(mob.affected_by&.tables.affect_flags.swim==false && mob.get_obj_carry_type(.tables.item_table.boat)==null)
+            sectorsDeny = .set_bit_number(0, .tables.sector_table.water_noswim);
+        if(mob.flying!=true) {
+            if(sectorsDeny==null)
+                sectorsDeny = .set_bit_number(0, .tables.sector_table.air);
+            else
+                sectorsDeny = .set_bit_number(sectorsDeny, .tables.sector_table.air);
+        }
 
         //test_ruffina
         //.print("epidemy: fiend traverseTo[" + room.vnum + "]");
