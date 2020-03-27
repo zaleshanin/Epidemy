@@ -29,7 +29,7 @@
             ch.act("%1$^C1 говорит тебе '{GЯ подготовил%1$Gо||а для тебя копию. Думаю, ты разберешься что с ним делать.{x'",mob,ch);
 
             .tmp.quest.sleep(1, mob, ch);
-            book = .tmp.epidemy.NecronomiconInit(ch);
+            book = NecronomiconInit(ch);
 
             book.obj_to_char(ch);
             ch.act("%1$^C1 даёт тебе %2$O4.", mob, book);

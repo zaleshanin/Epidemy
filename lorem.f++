@@ -205,7 +205,7 @@
         //уничтожение по таймеру, при выходе с книгой из мира
         if(piece.epidemy!=null && piece.epidemy.ownerName!=null){
             if(.tmp.epidemy.booksList[piece.epidemy.ownerName].online!=true) {
-                debug('LoremOnExtract(%O1)->extracted: book is offline');
+                debug(.fmt('LoremOnExtract(%O1)->extracted: book is offline',piece),null);
                 return;
             }
         }

@@ -145,15 +145,22 @@
 
     find_way = function(mob,room){
         var sectorsDeny;
+        //debug(.fmt('find_way(%C1)',mob),null);
 
         //get_obj_carry_type .tables.item_table
-        if(mob.affected_by&.tables.affect_flags.swim==false && mob.get_obj_carry_type(.tables.item_table.boat)==null)
-            sectorsDeny = .set_bit_number(0, .tables.sector_table.water_noswim);
+        sectorsDeny=0;
+        if((mob.affected_by&.tables.affect_flags.swim)==false && mob.boat==null && mob.flying!=true){
+
+            sectorsDeny = .set_bit_number(sectorsDeny, .tables.sector_table.water_noswim);
+            //debug('  - cannt swim!!! ('+sectorsDeny+')',null);
+        } else {
+            //debug('  - can swim or fly.('+sectorsDeny+')',null);
+        }
         if(mob.flying!=true) {
-            if(sectorsDeny==null)
-                sectorsDeny = .set_bit_number(0, .tables.sector_table.air);
-            else
-                sectorsDeny = .set_bit_number(sectorsDeny, .tables.sector_table.air);
+            sectorsDeny = .set_bit_number(sectorsDeny, .tables.sector_table.air);
+            //debug('  - cannt fly!!!('+sectorsDeny+')',null);
+        } else {
+            //debug('  - can fly.('+sectorsDeny+')',null);
         }
 
         //test_ruffina
@@ -276,11 +283,12 @@
                         fiend.epidemy.plan_waypoint = fiend.epidemy.snd.epidemy.plan_waypoint;
                         fiend.epidemy.plan_way = fiend.epidemy.snd.epidemy.plan_way.clone();
                         fiend.epidemy.plan_nextroom = null;
-                    } else {
+                    } else if (fiend_walker==null) {
                         //строим маршрут
                         fiend.epidemy.plan_room = fiend.epidemy.victim.in_room;
                         fiend.epidemy.plan_waypoint = fiend.in_room;
                         fiend.epidemy.plan_nextroom = null;
+                        fiend_walker=fiend;
                         fiend.epidemy.plan_way = find_way(fiend, fiend.epidemy.plan_room);
                         //2do не умеют стоить маршрут через запертые двери
                         if(fiend.epidemy.plan_way.size()==0) {
@@ -1252,6 +1260,7 @@
         try{
             this = .tmp.epidemy;
             //debug('fiendPostSpec:start (Fiend.instances:'+Fiend.instances.size()+')',null);
+            fiend_walker=null;
             for(fiend in Fiend.instances) {
                 //debug(.fmt('fiendPostSpec: fiendEngine for %C1',fiend),null);
                 triggers.fiendEngine(fiend);

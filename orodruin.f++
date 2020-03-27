@@ -1,0 +1,769 @@
+.apply(function() {
+    /*change list
+    2.015 - nopurge chagned to personal
+    2.014 - each eagle personal
+    2.013 - one eagle not an army
+    2.012 - extract uncharmed eagles
+    2.011 - Load eagle on enter 35001
+    2.010 - Eagle pet or dismount if not OneRingDestroer on mount
+    2.009 - Eagle.postCommand on mount
+    2.008 - getEagle function
+    2.007 - lava on floor give damage in 35002 while eruption
+    //2.006 - loading lava on floor 35002 on eruption
+    2.005 - presents reciving damage from lava clot
+    2.004 - cant moving in eruption rooms until flying
+    2.003 - outside rooms eruption description
+    2.002 - outside room eruption message
+    2.002 - SammathNaurRoom eruprion description
+    2.001 - destroy_item(obj,ch) <- ch added in param
+    2     - зажигаем вулкан
+    1.003 - сжигаем персонажей случайно оказавшихся в CrackOfDoomRoom
+    1.002 - сжигаем вещи валяющиеся в CrackOfDoomRoom
+    */
+    if(.tmp.Orodruin==null){.tmp.Orodruin=.Map();}
+    this = .tmp.Orodruin;
+
+    SammathNaurEntrance = .get_room_index(35001);
+    SammathNaurRoom = .get_room_index(35002);
+    CrackOfDoomRoom = .get_room_index(35003);
+    CrackOfDoom = .get_obj_index(35000);
+    //FloorLava = .get_obj_index(35002);
+    Eagle = .get_mob_index(35002);
+    heatTime = 10;
+
+    if(crackStorage==null) crackStorage=.Array();
+
+    OneRing = .get_obj_index(1105); //One Ring
+    //test
+    //OneRing = .get_obj_index(27027); //bang
+    //test end
+
+    eruption = false;
+    eruptionTime = 300;
+    eruptionTimer = null;
+
+    eruptionRooms = .List();
+.List().add(35000, 35001, 35002, 35004, 35005, 35006).forEach(function(){.tmp.Orodruin.eruptionRooms.push_back(.get_room_index(this));});
+
+    for(eroom in eruptionRooms) {
+
+        eroom.onDescr = function(ch, description){
+            return .tmp.Orodruin.eruptionOnDescr(this,ch, description);
+        };
+
+        if(eroom!=SammathNaurRoom) {
+            eroom.onCantMove = function(walker, targetRoom, moveType) {
+                if(.tmp.Orodruin.eruptionOnCantMove(this,walker, targetRoom, moveType)) return true;
+            };
+        }
+    }
+    eruptionOnDescr = function(room,ch,descr) {
+        this = .tmp.Orodruin;
+
+        debug(.fmt('eruptionOnDescr(%s)',room.name));
+
+        if(eruption) {
+            var txt;
+            txt = descr;
+            debug(.fmt('eruptionOnDescr: eruption'));
+
+            if(room==SammathNaurRoom) {
+                //35002 лава поднялась - надо валить
+                debug(.fmt('eruptionOnDescr: SammathNaurRoom'));
+
+                txt = txt + '\n{RЛ{Yа{rв{Yа {rп{Yо{rд{Dы{rм{Rа{Yе{rт{Yя и{Rз {rр{Yа{rс{Dщ{Yе{Rл{Yи{rн{Yы{D, заполняя всё простанство вокруг тебя. {YО{rск{Yо{Rл{rк{Yи {Yе{Wё{D,\nвылетая из {Rж{Yе{rр{Rл{Yа{D, падают совсем рядом с тобой. Нужно выбираться из этого\nместа пока ты еще жив.{x';
+
+            } else {
+                //вокруг лава - некуда бежать
+                txt = txt +'\n{YГ{Rора{D в содроганьях {Yи{Rс{rт{Yе{rк{Yае{rт {Rм{Yа{Rг{rм{Yо{rй{D, и медленно текут мимо тебя пологими\nсклонами {Yо{Rг{rн{Yе{Rн{rн{Dы{Yе {Rп{Yо{rт{Yо{rк{Yи{D, наползая со всех сторон. Ты стоишь на небольшом\nостровке, который вот-вот сгинет в корчах {YО{Rродруина{D. Кругом разверзалась\nземля и вздымаются столбы дыма. Густо сыпет горячий пепел. То и дело\nрядом падают {rс{Rг{Yу{Rс{rтк{Yи {rл{Yа{rв{Yы{D.{x\n';
+            }
+
+            return txt;
+        }
+
+        return descr;
+    };
+    eruptionOnCantMove = function(room,walker, targetRoom, moveType){
+        debug(.fmt('eruptionOnCantMove: %s->%s %C1 %s',room.name,targetRoom.name,walker,moveType));
+        if(eruption && !walker.flying) {
+            //только лететь
+            walker.act('Ты не находишь как можно пройти между {rп{Rо{rт{Yо{rк{Rа{rми {Rл{Yа{Rв{rы{x.');
+            return true;
+        }
+
+        return false;
+
+    };
+
+    Eagle.postCommand = function(eagle, ch, cmdName, cmdArgs){
+        this = .tmp.Orodruin;
+
+        if(eagle.in_room!=ch.in_room) return;
+
+        if(eagle.affected_by&.tables.affect_flags.charm) return;
+
+        if(cmdName=='mount') {
+            if(eagle.mount!=null) {
+                if(ch.OneRingDestroyer != null && eagle.OneRingDestroyer!=null
+                    && eagle.OneRingDestroyer==ch.name) {
+                    ch.act('%1$^C1 пронзительно клекочет и поднимает тебя над землёй.',eagle);
+                    ch.recho('%1$^C1 пронзительно клекочет и поднимает %2$C4 над землёй.',eagle,ch);
+
+                    if (ch.pet == null)
+                        ch.add_pet(eagle);
+                    else
+                        ch.add_charmed(eagle, -1);
+
+                    ch.OneRingDestroyer=null;
+                    eagle.OneRingDestroyer=null;
+
+                    ch.act("%^C1 будет защищать тебя в бою и подчиняться твоим приказам.", eagle);
+                } else {
+                    ch.act('%1$^C1 пронзительно клекочет и сбрасывает тебя на землю.',eagle);
+                    ch.recho('%1$^C1 пронзительно клекочет и сбрасывает %2$C4 на землю.',eagle,ch);
+                    ch.char_to_room(eagle.in_room);
+                    ch.position = .tables.position_table.sit;
+                }
+            }
+        }
+    };
+
+    CrackOfDoomRoom.onSpec = function() {
+        this = .tmp.Orodruin;
+
+        //сжигаем всё что появляется на полу
+        destroy_items(CrackOfDoomRoom);
+
+        //сжигаем бедолаг
+        for(ch in CrackOfDoomRoom.ppl) {
+            burnBastard(ch);
+        }
+
+        //извержение
+        if(eruptionTimer!=null) {
+            debug(.fmt('eruptionTimer: %d',eruptionTimer));
+            if(eruptionTimer==0) {
+                eruption = false;
+                eruptionTimer = null;
+                CrackOfDoomRoom.zecho('Вулкан затихает. Извержение прекращается.');
+                for(eagle in Eagle.instances) {
+                    if(!.isset_bit(eagle.affected_by,.tables.affect_flags.charm)){
+                        eagle.in_room.echo("%^C1 издаёт пронзительный клёкот и взмывает в небеса.", eagle);
+                        eagle.extract(1);
+                    }
+                }
+                /*for(lava in FloorLava.instances) {
+                    lava.extract(true);
+                }*/
+            } else {
+                eruptionTimer = eruptionTimer - 1;
+
+                //проверяем комнаты раздаём повреждения
+                for(eroom in eruptionRooms) {
+                    for(ch in eroom.ppl) {
+                        if(eroom==SammathNaurRoom) {
+                            damageByLava(ch);
+                        }
+
+                        if(.chance(10)){
+                            damageBastard(ch);
+                        }
+                    }
+                }
+
+            }
+        }
+
+    };
+
+    SammathNaurEntrance.onGreet = function(walker, fromRoom, moveType) {
+        if(walker.OneRingDestroyer!=null&&.tmp.Orodruin.eruption!=true)
+        walker.OneRingDestroyer=null;
+    };
+    SammathNaurEntrance.postGreet = function(walker, fromRoom, moveType) {
+        this = .tmp.Orodruin;
+        try{
+            debug('SammathNaurEntrance.postGreet');
+            if(walker.OneRingDestroyer==null||eruption!=true) return;
+
+            if(walker.in_room!=SammathNaurEntrance)
+                throw(.fmt('%C1 in %s not in %s',walker,walker.in_room.name,this.name));
+
+            for(eagle in Eagle.instances) {
+                if(eagle.OneRingDestroyer!=null && eagle.OneRingDestroyer==walker.name) {
+                    throw(.fmt('%C1 already arrived [%s/%s]'
+                        ,walker,eagle,eagle.in_room.name,eagle.in_room.areaname));
+                }
+
+                if(eagle.leader!=null && eagle.leader==walker)
+                    throw(.fmt('%C1 already has %C1 [%s/%s]'
+                        ,walker,eagle,eagle.in_room.name,eagle.in_room.areaname));
+            }
+
+            debug('SammathNaurEntrance.postGreet: ok -> get an eagle');
+
+            var eagle;
+            eagle = getEagle(walker);
+            eagle.char_to_room(walker.in_room);
+            walker.act('%1$^C1 спускается с небес и наклонив голову смотрит на тебя.',eagle);
+            walker.recho('%1$^C1 спускается с небес и наклонив голову смотрит на %2$C4.',eagle,walker);
+
+        }catch(e){
+            catchMsg('SammathNaurEntrance.postGreet:'+e);
+        }
+
+    };
+
+    SammathNaurRoom.onCantMove = function(walker, targetRoom, moveType) {
+        if(targetRoom.vnum==35003) {
+            if(!walker.is_immortal() && !walker.is_npc()){
+                if(walker.leader!=null && walker.affected_by&.tables.affect_flags.charm) { /*под чармом*/
+                    walker.act('Ты почти делаешь шаг, но инстинкт самосохранения останавливает тебя.');
+                    walker.recho('%1$C1 собирается броситься в {1{YР{Rасщелину {YС{Rудьбы{x{2, но в последний момент останавливается.',walker);
+
+                    return true;
+                } else if(walker.orodruin_lastchance==null) {
+                    walker.act('Ты почти делаешь шаг, но инстинкт самосохранения останавливает тебя.');
+                    walker.recho('%1$C1 собирается броситься в {1{YР{Rасщелину {YС{Rудьбы{x{2, но в последний момент останавливается.',walker);
+
+                    walker.orodruin_lastchance = true;
+
+                    return true;
+                } else {
+                    walker.act('Ты делаешь решительный шаг в {1{YР{Rасщелину {YС{Rудьбы{x{2.\n');
+                }
+            }
+        }
+    };
+    SammathNaurRoom.onLeave=function(walker, toRoom, moveType){
+        walker.orodruin_lastchance = null;
+    };
+
+    CrackOfDoomRoom.onGreet=function(walker, fromRoom, moveType){
+        this = .tmp.Orodruin;
+
+        burnBastard(walker);
+    };
+
+    CrackOfDoom.onCantFetch = function(fire, ch, obj, pocket) {
+        this = .tmp.Orodruin;
+        //test
+        /*if(obj==null) {
+            debug('CrackOfDoom.onCantFetch: obj==null');
+        } else {
+            debug(.fmt('CrackOfDoom.onCantFetch: %O1',obj));
+        }*/
+        //test end
+
+        if (obj == null)
+            return false;
+
+        if(ch.isAffected('protection heat'))
+            return false;
+
+        if (.number_range(1, 26) > ch.cur_dex) {
+            ch.act("Ты пытаешься вытащить %1$O4 из пылающих недр, но бушующее пламя не позволяет ухватиться за %1$P4.",obj);
+            ch.recho("%1$^C1 пытается вытащить %2$O4 из пылающих недр, но бушующее пламя не позволяет ухватиться за %2$P4.",ch,obj);
+            return true;
+        }
+        return false;
+    };
+    CrackOfDoom.onFetch = function(fire,ch,obj) {
+        this = .tmp.Orodruin;
+        obj.is_hot = heatTime;
+
+        //if (ch.isAffected('protection heat')!=true && obj.is_hot != null) {
+
+        obj.onSpec = function(){
+            var carrier;
+            carrier=getCarrier();
+
+            if(is_hot!=null && is_hot>0){
+                is_hot=is_hot-1;
+                if(carrier!=null && !carrier.isAffected('protection heat')) {
+                    obj_to_room(carrier.in_room);
+                    carrier.act("%1$^O1 обжигает тебя и ты роняешь %1$P2 на землю.",this);
+                    carrier.recho("%2$^O1 обжигает %1$^C4, и %1$P1 роняет %2$О4 на землю.",carrier, this);
+                }
+            }else{
+
+                if(carrier!=null) {
+                    carrier.act('{1%1$^O1{2 остывает.',this);
+
+                } else if(in_room!=null) {
+                    in_room.echo('{1%1$^O1{2 остывает.',this);
+                }
+                clear();
+            }
+        };
+
+        obj.onGet=function(ch){
+            if(is_hot!=null && is_hot>=0 && !ch.isAffected('protection heat')) {
+                obj_to_room(ch.in_room);
+
+                ch.act("Ты поднимаешь %1$O4, но обжигаешься и роняешь %1$P2 на землю.",this);
+                ch.recho("%1$^C1 поднимает %2$O4, но обжигается и роняет %2$P2 на землю.",ch,this);
+            }
+        };
+
+        if (ch.isAffected('protection heat')!=true && obj.is_hot != null) {
+            obj.obj_to_room(ch.in_room);
+
+            ch.act("Ты вытаскиваешь %1$O4 из {1%2$O2{2, но обжигаешься и роняешь %1$P2 на землю.",obj,fire);
+            ch.recho("%1$^C1 вытаскивает %2$O4 из {1%3$O2{2, но обжигается и роняет %2$P2 на землю.",ch,obj,fire);
+        }
+    };
+    CrackOfDoom.onExtraDescr = function(crack, ch,str) {
+        this = .tmp.Orodruin;
+        var result; result = '';
+        if(CrackOfDoom.name.toLower().match(str.toLower())) {
+            result = '{YР{Rасщелина {YС{Rудьбы{D Саммат Наур, открывающая доступ к пылающим недрам вулкана.\n'
+                +'Нужно быть последним глупцом (или иметь какой-то ОЧЕНЬ хитрый план), чтоб\n'
+                +'шагнуть в пропасть и лишиться не только всех своих вещей, но и жизни.{x';
+            if(crackStorage!=null && crackStorage['soul']!=null){
+                if(crackStorage['soul']>=10) {
+                    result = result + '\n'
+                        +'{D{RЛ{Yа{Rв{Yа{D в глубине {YР{Rасщелины{D, источающая невыносимый жар, выглядит спокойной.{x';
+                } else {
+                    result = result + '\n'
+                        +'{DИз глубины {YР{Rасщелины{D то и дело {rп{Rо{rл{Yы{rх{Rае{rт {Rо{rгн{Yё{rм{D.{x';
+                }
+            }
+        }
+        return result;
+    };
+    CrackOfDoom.postPut = function(crack, ch, obj, cont) {
+        this=.tmp.Orodruin;
+        debug('CrackOfDoom.postPut()'+ch.clan.name);
+        try{
+        if(ch.clan.name=='invader' && invader!=null)	{
+            debug('CrackOfDoom.postPut:invader put obj in CrackOfDoom');
+            if(obj.pIndexData.limit==-1 && obj.owner=='' && obj.enchanted==false
+                && obj.onEquip==null && obj.onWear==null && obj.onCantEquip==null && obj.onRemove==null
+                && obj.pIndexData.onEquip==null && obj.pIndexData.onWear==null && obj.pIndexData.onCantEquip==null && obj.pIndexData.onRemove==null) {
+                if(invader.getInvaderEquipName!=null) {
+                    var obj_names;
+                    obj_names = invader.getInvaderEquipName(obj);
+                    if(obj_names.size()==3) {
+                        debug(obj.short_descr+'->'+obj_names['short_descr']);
+                        return;
+                    } else {
+                        debug(.fmt('no names for %O1!',obj));
+                    }
+                } else {
+                    debug('no invader.getInvaderEquipName');
+                }
+            }
+        }
+        destroy_item(obj,ch);
+        } catch (e) {
+            debug('CrackOfDoom.postPut: '+e);
+        }
+    };
+    CrackOfDoom.onPutMsg = function (crack, ch, obj, container) {
+        this=.tmp.Orodruin;
+        if(crack==container){
+            if(ch.clan.name=='invader' && invader!=null) {
+                ch.act('Ты отпускаешь {1%1$O4{2 над {1%2$O5{2 и %1$Gоно|он|она остаётся висеть в воздухе.',obj,container);
+                ch.recho('%1$C1 отпускает {1%2$O4{2 над {1%3$O5{2 и %2$Gоно|он|она остаётся висеть в воздухе.',ch,obj,container);
+            } else {
+                ch.act('Ты бросаешь {1%1$O4{2 в {1%2$O4{2.',obj,container);
+                ch.recho('%1$C1 бросает {1%2$O4{2 в {1%3$O4{2.',ch,obj,container);
+            }
+            return true;
+        }
+    };
+    CrackOfDoom.postPutMoney = function(crack, ch, gold, silver){
+        /* - ch кладет деньги в этот предмет-контейнер (можно класть деньги
+        в no-take контейнеры на полу, такие как алтари).*/
+        this = .tmp.Orodruin;
+        for(item in crack.items) {
+            if(item.item_type==.tables.item_table.money) {
+
+                destroy_item(item,ch);
+
+            }
+        }
+        return true;
+    };
+    CrackOfDoom.onPutMoneyMsg = function(crack, ch, gold, silver){
+        /* - ch кладет деньги в этот предмет-контейнер. Если в тригере выдать
+        сообщения персонажу и комнате и вернуть true, стандартные
+        "Ты кладешь 5 серебра в У." показываться не будут.*/
+        var coins,fcoins,count;
+
+        if(gold>0 && silver>0) {
+            coins=''; count=silver;
+            fcoins = .fmt('%1$d золот%1$Iую|ые|ых и %2$d серебрянн%2$Iую|ые|ых', gold, silver);
+        } else if(gold>0) {
+            count=gold;
+            if(gold==1) {
+                coins='золотую';
+            } else {
+                coins='золотых';
+            }
+            fcoins = .fmt('%1$d золот%1$Iую|ые|ых',gold);
+        } else if(silver>0) {
+            count=silver;
+            if(silver==1) {
+                coins='серебрянную';
+            } else {
+                coins='серебрянных';
+            }
+            fcoins = .fmt('%1$d серебрянн%1$Iую|ые|ых',silver);
+        }
+        if(coins!='') coins=coins+' ';
+
+        if(gold+silver == 1) {
+            coins = coins + 'монету';
+        } else {
+            coins = 'несколько ' + coins + 'монет';
+        }
+        ch.act('Ты бросаешь %s монет%Iу|ы| в {1%O4{2',fcoins,count,crack);
+        ch.recho('%^C1 бросает %s в {1%O4{2.',ch,coins,crack);
+        return true;
+
+    };
+
+    destroy_items = function(container) {
+        this = .tmp.Orodruin;
+        try{
+            for(item in container.items) {
+                if(item.items.size()>0) {
+                    destroy_items(item);
+                }
+                if(item!=CrackOfDoomRoom){
+                    destroy_item(item,null);
+                }
+            }
+        } catch(e) {
+            catchMsg(.fmt('destroy_items(%O1): %s',container,e));
+        }
+    };
+
+    destroy_item = function(item,ch) {
+        this = .tmp.Orodruin;
+        try{
+            debug(.fmt('Orodruin.destroy_item(%O1)',item));
+
+            var crackOfDoom;
+
+            crackOfDoom = SammathNaurRoom.get_obj_vnum(CrackOfDoom.vnum);
+
+            if(crackOfDoom==null) throw('There is no Crack of Doom in Sammath-Naur!!!');
+
+            var destroy_str; destroy_str='';
+
+            if(item.pIndexData == OneRing) {
+                debug('destroy_item: OneRing!!!');
+
+                eruption = true;
+                if(ch!=null) {
+                    ch.OneRingDestroyer = true;
+                }
+                eruptionTimer = eruptionTime;
+                //FloorLava.create().obj_to_room(SammathNaurRoom);
+
+                item.getRoom().echo('%^O1 {rр{Yа{rск{Yа{rл{Yя{wе{Rт{Wс{Yя {wд{Yо {Wбела{x расплавля%1$nется|ются и исчеза%1$nет|ют.',item);
+                item.extract(true);
+                crackFlash();
+
+            } else if(item.personal!=null) {//item.extra_flags&.tables.extra_flags.nopurge
+                item.is_hot = null;
+                if(item.item_type==.tables.item_table.pc_corpse) {
+                    item.in_obj.getRoom().echo('%^O1 вспыхива%1$nет|ют и исчеза%1$nет|ют.',item);
+                    item.extract(true);
+                } else {
+                    item.getRoom().echo('%1$^O1{x {rр{Yа{rск{Yа{rл{Yя{wе{Rт{Wс{Yя {wд{Yо {Wбела{x.',item);
+                    if(item.getRoom()==CrackOfDoomRoom){
+                        item.getRoom().echo('...{rс{Rт{Yо{Rл{rб {Yо{Rгн{Yя {xвыбрасывает {1%O4{2 куда-то вверх.',item);
+                    }
+                    item.obj_to_obj(crackOfDoom);
+                    debug(.fmt('destroy_item[personal]: %O1->no extract',item));
+                }
+            } else if(item.pIndexData.vnum==.tmp.epidemy.ashVnum){
+                debug(.fmt('destroy_item[ash]: %O1->no extract',item));
+
+            } else if(item.item_type == .tables.item_table.money){
+                if(item.value1>0) {
+                    storageAdd('gold_coin',item.value1);
+                    if(item.value0==0) {
+                        if(item.value1==1) destroy_str = 'золотая ';
+                        else destroy_str = 'золотые ';
+                    }
+                }
+                if(item.value0>0){
+                    storageAdd('silver_coin',item.value0);
+                    if(item.value1==0) {
+                        if(item.value0==1) destroy_str = 'серебрянная ';
+                        else destroy_str = 'серебрянные ';
+                    }
+                }
+                debug(.fmt('destroy_item[money]: %O1[%s]->extract[gold:%d,silver:%d]',item,.tables.item_table.name(item.item_type),item.value1,item.value0));
+
+                if(item.value1+item.value0==1) destroy_str= destroy_str + 'монета расплавляется и исчезает';
+                else destroy_str= destroy_str + 'монеты расплавляются и исчезают';
+
+                item.getRoom().echo('%^s.',destroy_str);
+
+                item.extract(true);
+            } else {
+                var metal;
+                metal='';
+                if(item.madeOfMetal()) {
+                    storageAdd(item.material,.number_range(1,item.weight));
+                    metal = .fmt('[%s %d]',item.material,item.weight);
+                }
+                debug(.fmt('destroy_item[regular]: %O1[%s]->extract%s',item,.tables.item_table.name(item.item_type),metal));
+
+                if(metal!='') {
+                    item.getRoom().echo('%^O1 расплавля%1$nется|ются и исчеза%1$nет|ют.',item);
+                } else {
+                    item.getRoom().echo('%^O1 вспыхива%1$nет|ют и исчеза%1$nет|ют.',item);
+                }
+
+                if(item.short_descr!=item.pIndexData.short_descr) {
+                    item.obj_to_room(.get_room_index(9));
+                } else {
+                    item.extract(true);
+
+                }
+            }
+        } catch (e) {
+            catchMsg(.fmt('[Orodruin.destroy_item(%O1[%s])]: %s',item,.tables.item_table.name(item.item_type),e));
+        }
+    };
+
+    storageAdd = function(type,count) {
+        this = .tmp.Orodruin;
+
+        if(crackStorage[type] == null)
+            crackStorage[type] = 0;
+
+        crackStorage[type] = crackStorage[type]+count;
+
+        if(type=='gold_coin' && crackStorage[type]>=25) {
+            storageAdd('gold',crackStorage[type]/25);
+            crackStorage[type] = crackStorage[type]%25;
+        } else if(type=='silver_coin' && crackStorage[type]>=100) {
+            storageAdd('silver',crackStorage[type]/100);
+            crackStorage[type] = crackStorage[type]%100;
+        } else if(type=='soul'&&crackStorage[type]==10) {
+            var crackOfDoom;
+            crackOfDoom = SammathNaurRoom.get_obj_vnum(CrackOfDoom.vnum);
+            if(crackOfDoom!=null) {
+                // crackOfDoom.extra_flags = .unset_bit(book.extra_flags, .tables.extra_flags.glow);
+                // crackOfDoom.extra_flags = .set_bit(book.extra_flags, .tables.extra_flags.hum);
+                SammathNaurRoom.echo('{RП{rл{Yа{rм{Rя {cиз {YР{Rасщелины {YС{Rудьбы {cнемного стихает{x.');
+            }
+        }
+
+    };
+
+    crackFlash = function() {
+        this = .tmp.Orodruin;
+        SammathNaurRoom.echo('{RП{rл{Yа{rм{Rя {rв{Yы{rрв{Rае{rтс{Rя и{rз {YР{Rасщелины {YС{Rудьбы {rп{Rо{rд {Rс{rам{Yы{Rе {rсв{Rо{rд{Yы {rп{Rе{Yщ{Rе{rр{Yы{r!{x');
+        if(eruption) {
+            for(eroom in eruptionRooms) {
+                if(eroom==SammathNaurRoom) {
+                    eroom.echo('{YВ{Rулкан{D взревел, гул превратился в тяжкий грохот, и Гора задрожала{x.');
+                } else {
+                    eroom.echo('{DПрокатился гул, нарастая, разражаясь ревом и грохотом. Земля потрескалась.\n{YО{Rродруин {Dсодрогнулся, и его расколотая вершина извергла {rп{Rл{Yа{Rм{Yе{Rн{rн{Dы{rй {Rп{Yо{Rт{Yо{Rк{D.\nГрянул гром, {Cз{Wа{Cп{Wо{Cл{cых{Wа{Cл{Wи {Cм{Wо{Cлн{Wии{D, хлестнул темный ливень.{x');
+                }
+            }
+        }
+    };
+
+    burnBastard = function(walker) {
+        this = .tmp.Orodruin;
+
+        debug(.fmt('burnBastard(%C1)',walker));
+        //test on
+        if(walker.name=='Zaleshanin') {return;}
+        //test off
+
+        if(walker.is_immortal()) {
+            return;
+        }
+
+        walker.act('\n{rТ{Dы {rсг{Rо{rр{Rа{Yе{rш{Dь {rП{RО{rЛН{YО{rСТ{DЬ{RЮ{Y!{x');
+        //чар меньше 15го уровня - труп попадает к алатрю
+        if(walker.level<15) {
+            walker.act('Боги милостивы к тебе и сохраняют твой труп. Но так будет не всегда.');
+        }
+        walker.act('\n');
+        walker.recho('%1$^C1 полностью сгорает!',walker);
+
+        var ash;
+        ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
+        ash.obj_to_room(CrackOfDoomRoom);
+        if(walker.is_npc()){
+            ash.timer = 10;
+        } else {
+            ash.timer = -1;
+        }
+        ash.description = .fmt('Горсть пепла (ash) останков %1$C2 лежит у твоих ног.', walker);
+        ash.short_descr = ash.short_descr+.fmt(' останков %1$C2.', walker);
+
+        walker.raw_kill(-1);
+        walker.interpret_raw("look");
+        storageAdd('soul',1);
+        destroy_items(CrackOfDoomRoom);
+        crackFlash();
+    };
+    damageByLava = function(ch) {
+        this = .tmp.Orodruin;
+        var lava,dam,saves;
+
+        //если летаем - не повреждаем
+        if(ch.flying) return;
+
+        lava = .get_mob_index(35001).create();
+        lava.char_to_room(ch.in_room);
+
+        dam = .number_range(ch.max_hit/30, ch.max_hit/10);
+
+        if(ch.isAffected('protection heat')) {
+            if(.chance(30)) {
+                //защита от тепла спасла полностью
+                ch.act('Твоя защита от тепла спасает тебя от повреждений наносимых %C5.',lava);
+                lava.extract(true);
+                return;
+            } else {
+                //защита от тепла защитила
+                ch.act('Твоя защита от тепла снижает повреждения от %C2.',lava);
+                dam = dam/2;
+            }
+        }
+
+        lava.rawdamage(ch,dam,'fire');
+        lava.extract(true);
+
+    };
+    damageBastard = function(ch) {
+        this = .tmp.Orodruin;
+
+        var obj;
+
+        if(ch.is_npc()) {
+            if(.List().add(35000,35001,35002).has(ch.pIndexData.vnum)) return;
+            obj = ch.equipment.random();
+        } else {
+            obj = ch.get_eq_char(ch.wearloc.split(' ').random());
+        }
+        /*		if(.chance(50)) {
+                    obj = ch.equipment.random();
+                }*/
+
+        if(obj!=null && .chance(80)) {
+            if(obj.extra_flags&.tables.extra_flags.nopurge){
+                debug(.fmt('damageBastard:%O1[nopurge]',obj));
+            } else {
+                ch.act('{rСг{Rу{Dс{rт{Yо{rк {rл{Yа{rв{Dы{x, вылетевший из жерла, попадает в %O4{x.',obj);
+                ch.recho('{rСг{Rу{Dс{rт{Yо{rк {rл{Yа{rв{Dы{x, вылетевший из жерла, попадает %C4 в %O4{x.',ch,obj);
+
+                obj.condition = obj.condition - .number_range(1,10);
+                ch.act('{rСг{Rу{Dс{rт{Yо{rк {rл{Yа{rв{Dы{x повреждает %O4{x.',obj);
+            }
+            if (obj.condition < 1) {
+                ch.act("$O1 разлетается на мелкие части.", obj);
+                if(obj.items.size()>0){
+                    for(item in obj.items) {
+                        item.obj_to_char(ch);
+                    }
+                }
+                obj.extract(true);
+            } else {
+                if(.chance(25)) return;
+            }
+        } else {
+            ch.act('{rСг{Rу{Dс{rт{Yо{rк {rл{Yа{rв{Dы{x, вылетевший из жерла, попадает в тебя.');
+            ch.recho('{rСг{Rу{Dс{rт{Yо{rк {rл{Yа{rв{Dы{x, вылетевший из жерла, попадает в %C4.',ch);
+        }
+        var lava,dam,saves;
+
+        lava = .get_mob_index(35000).create();
+        lava.char_to_room(ch.in_room);
+        dam = .number_range(ch.max_hit/20, ch.max_hit/5);
+        if(ch.isAffected('sanctuary') || ch.isAffected('stardust')) {
+            dam = dam-dam/2;
+            debug(.fmt('damageBastard: [sanctuary]:%d->%d',dam,dam-dam/2));
+        } else if(ch.isAffected('dark shroud')) {
+            dam = dam-dam/5*2;
+            debug(.fmt('damageBastard: [dark shroud]:%d->%d',dam,dam-dam/5*2));
+
+        }
+        if(ch.isAffected('protection heat')) {
+            dam = dam-dam/8;
+            debug(.fmt('damageBastard: [protection heat]:%d->%d',dam,dam-dam/5*2));
+        }
+
+        lava.rawdamage(ch,dam,'fire');
+        lava.extract(true);
+    };
+    // Выдаём орла
+    getEagle = function(ch) {
+        var eagle;
+        eagle = .get_mob_index(35002).create();
+        eagle.OneRingDestroyer = ch.name;
+
+        var chname;
+        chname=ch.russianName;
+        if(chname=='') chname = ch.name;
+// 		eagle.description = .fmt(eagle.description,chname);
+
+        eagle.setLevel(ch.getModifyLevel());
+        eagle.perm_cha = ch.cur_cha;
+        eagle.perm_con = ch.cur_con;
+        eagle.perm_dex = ch.cur_dex;
+        eagle.perm_wis = ch.cur_wis;
+        eagle.perm_int = ch.cur_int;
+        eagle.perm_str = ch.cur_str;
+
+        eagle.max_hit = .number_range(ch.perm_hit,ch.perm_hit*2);
+        eagle.hit = eagle.max_hit;
+
+        eagle.max_mana = ch.perm_mana;
+        eagle.mana = eagle.max_mana;
+
+        eagle.armor3 = 100 + eagle.level * -200 / 32;
+        eagle.armor0 = 100 + eagle.level * -340 / 32;
+        eagle.armor1 = 100 + eagle.level * -340 / 32;
+        eagle.armor2 = 100 + eagle.level * -340 / 32;
+        /*
+                eagle.damage_type = .number_range(eagle.level/3, eagle.level/2);
+                eagle.damage_number = .number_range(eagle.level/3, eagle.level/2);
+                eagle.damroll = .number_range(eagle.level*20/100, eagle.level*80/100);
+                eagle.hitroll = .number_range(eagle.level, eagle.level*2);
+        */
+        return eagle;
+    };
+
+    debug = function(str) {
+        if(!.buildplot) return;
+        var ch;
+        ch = .get_char_world('zaleshanin');
+
+        if(ch==null)
+            ch = .get_char_world('miyamoto');
+        //
+        if(ch!=null) {
+            ch.act('debug[Orodruin]: %s',str);
+        }
+
+    };
+
+    catchMsg = function(e) {
+        var ch;
+        ch = .get_char_world('Zaleshanin');
+
+        if(ch==null)
+            ch = .get_char_world('Miyamoto');
+
+        if(ch!=null)
+            ch.ptc(e);
+        else
+            throw e;
+    };
+
+})

@@ -1,0 +1,665 @@
+.apply(function() {
+    if(.tmp.Orodruin==null).tmp.Orodruin=.Map();
+    if(.tmp.Orodruin.invader==null).tmp.Orodruin.invader=.Map();
+    this = .tmp.Orodruin.invader;
+
+    skill = .FeniaSkill("invader set");
+    skill.nameRus = "снаряжение Захватчика";
+
+    debug = function(str) {.tmp.Orodruin.debug(str);};
+
+    getInvaderEquipName=function(obj) {
+        this = .tmp.Orodruin.invader;
+        var eq_array, eq_wear_lock; eq_wear_lock=false;
+        var result;result = .Array();
+        if(obj.pIndexData==.tmp.epidemy.Necronomicon) {
+            result['name'] = obj.name;
+            result['short_descr'] = obj.short_descr;
+            result['long_descr'] = obj.long_descr;
+        } else {
+            eq_array = getInvaderEqipArray();
+            for(wear_flag in eq_array.keys) {
+                if(obj.wear_flags&.tables.wear_flags.values(wear_flag)) {
+                    eq_wear_lock=wear_flag; break;
+                }
+            }
+            if(eq_wear_lock==false) {
+                return result;
+            }
+
+            for(runame in eq_array[eq_wear_lock].keys){
+                if(obj.name.match(runame) || obj.name.match(eq_array[eq_wear_lock][runame]['name'])) {
+                    result = eq_array[eq_wear_lock][runame];
+                    result['name']=result['name']+' '+runame;
+                }
+            }
+            if(result==null) {
+                var runame;
+                runame = eq_array[eq_wear_lock].keys.random();
+
+                result = eq_array[eq_wear_lock][runame];
+                result['name'] = result['name']+' '+runame;
+            }
+
+            if(result['gender']=='m') {
+                result['short_descr']='черн|ый|ого|ому|ый|ым|ом '+result['short_descr'];
+            } else if(result['gender']=='f') {
+                result['short_descr']='черн|ая|ой|ой|ую|ой|ой '+result['short_descr'];
+            } else if(result['gender']=='n') {
+                result['short_descr']='черн|ое|ого|ому|ое|ым|ом '+result['short_descr'];
+            } else if(result['gender']=='p') {
+                result['short_descr']='черн|ые|ых|ым|ые|ым|ых '+result['short_descr'];
+            }
+
+            result['short_descr']=result['short_descr']+' Захватчика';
+        }
+        return result;
+
+    };
+
+    getInvaderEqipArray=function() {
+        var names; names=.Array();
+//		names['take']=.List().add();
+        names['wear_finger']=.Array();
+        names['wear_finger']['перстень']=.Array();
+        names['wear_finger']['перстень']['short_descr']='перст|ень|ня|ню|ень|нем|е';
+        names['wear_finger']['перстень']['name']='signet';
+        names['wear_finger']['перстень']['gender']='m';
+        names['wear_finger']['кольцо']=.Array();
+        names['wear_finger']['кольцо']['short_descr']='кольц|о|а|у|о|ом|е';
+        names['wear_finger']['кольцо']['name']='ring';
+        names['wear_finger']['кольцо']['gender']='n';
+        names['wear_finger']['печатка']=.Array();
+        names['wear_finger']['печатка']['short_descr']='печатк|а|и|е|у|ой|е';
+        names['wear_finger']['печатка']['name']='signet';
+        names['wear_finger']['печатка']['gender']='f';
+
+        names['wear_neck']=.Array();
+        names['wear_neck']['плащ']=.Array();
+        names['wear_neck']['плащ']['short_descr']='плащ||а|у||ом|е';
+        names['wear_neck']['плащ']['name']='cloak';
+        names['wear_neck']['плащ']['gender']='m';
+        names['wear_neck']['накидка']=.Array();
+        names['wear_neck']['накидка']['short_descr']='накидк|а|и|е|у|ой|е';
+        names['wear_neck']['накидка']['name']='cape';
+        names['wear_neck']['накидка']['gender']='f';
+        names['wear_neck']['торквес']=.Array();
+        names['wear_neck']['торквес']['short_descr']='торквес||а|у||ом|е';
+        names['wear_neck']['торквес']['name']='torc';
+        names['wear_neck']['торквес']['gender']='m';
+        names['wear_neck']['пектораль']=.Array();
+        names['wear_neck']['пектораль']['short_descr']='пекторал|ь|и|и|ь|ью|е';
+        names['wear_neck']['пектораль']['name']='pektoral';
+        names['wear_neck']['пектораль']['gender']='f';
+        names['wear_neck']['кулон']=.Array();
+        names['wear_neck']['кулон']['short_descr']='кулон||а|у||ом|е';
+        names['wear_neck']['кулон']['name']='pendant';
+        names['wear_neck']['кулон']['gender']='m';
+        names['wear_neck']['ожерелье']=.Array();
+        names['wear_neck']['ожерелье']['short_descr']='ожерель|е|Я|ю|е|ем|е';
+        names['wear_neck']['ожерелье']['name']='necklace';
+        names['wear_neck']['ожерелье']['gender']='n';
+        names['wear_neck']['руно']=.Array();
+        names['wear_neck']['руно']['short_descr']='рун|о|а|у|о|ом|е';
+        names['wear_neck']['руно']['name']='fleece';
+        names['wear_neck']['руно']['gender']='n';
+        names['wear_neck']['амулет']=.Array();
+        names['wear_neck']['амулет']['short_descr']='амуле|т|та|ту|т|том|те';
+        names['wear_neck']['амулет']['name']='amulet';
+        names['wear_neck']['амулет']['gender']='m';
+        names['wear_neck']['знак']=.Array();
+        names['wear_neck']['знак']['short_descr']='знак||а|у||ом|е';
+        names['wear_neck']['знак']['name']='mark';
+        names['wear_neck']['знак']['gender']='m';
+        names['wear_neck']['символ']=.Array();
+        names['wear_neck']['символ']['short_descr']='символ||а|у||ом|е';
+        names['wear_neck']['символ']['name']='symbol';
+        names['wear_neck']['символ']['gender']='m';
+        names['wear_neck']['талисман']=.Array();
+        names['wear_neck']['талисман']['short_descr']='талисман||а|у||ом|е';
+        names['wear_neck']['талисман']['name']='talisman';
+        names['wear_neck']['талисман']['gender']='m';
+        names['wear_neck']['брелок']=.Array();
+        names['wear_neck']['брелок']['short_descr']='брелок||а|у||ом|е';
+        names['wear_neck']['брелок']['name']='charm';
+        names['wear_neck']['брелок']['gender']='m';
+        names['wear_neck']['медальон']=.Array();
+        names['wear_neck']['медальон']['short_descr']='медальон||а|у||ом|е';
+        names['wear_neck']['медальон']['name']='medallion';
+        names['wear_neck']['медальон']['gender']='m';
+        names['wear_neck']['шарф']=.Array();
+        names['wear_neck']['шарф']['short_descr']='шарф||а|у||ом|е';
+        names['wear_neck']['шарф']['name']='scarf';
+        names['wear_neck']['шарф']['gender']='m';
+        names['wear_neck']['брошь']=.Array();
+        names['wear_neck']['брошь']['short_descr']='брош|ь|и|и|ь|ью|и';
+        names['wear_neck']['брошь']['name']='brooch';
+        names['wear_neck']['брошь']['gender']='f';
+        names['wear_neck']['цепочка']=.Array();
+        names['wear_neck']['цепочка']['short_descr']='брош|ь|и|и|ь|ью|и';
+        names['wear_neck']['цепочка']['name']='brooch';
+        names['wear_neck']['цепочка']['gender']='f';
+        names['wear_neck']['цепочка']=.Array();
+        names['wear_neck']['цепочка']['short_descr']='цепочк|а|и|е|у|ой|е';
+        names['wear_neck']['цепочка']['name']='neckchain chain';
+        names['wear_neck']['цепочка']['gender']='f';
+        names['wear_neck']['сутана']=.Array();
+        names['wear_neck']['сутана']['short_descr']='сутан|а|ы|е|у|ой|е';
+        names['wear_neck']['сутана']['name']='cowl';
+        names['wear_neck']['сутана']['gender']='f';
+        names['wear_neck']['сигил']=.Array();
+        names['wear_neck']['сигил']['short_descr']='сигил||а|у||ом|е';
+        names['wear_neck']['сигил']['name']='sigil';
+        names['wear_neck']['сигил']['gender']='m';
+        names['wear_neck']['горжет']=.Array();
+        names['wear_neck']['горжет']['short_descr']='горжет||а|у||ом|е';
+        names['wear_neck']['горжет']['name']='gorget';
+        names['wear_neck']['горжет']['gender']='m';
+        names['wear_neck']['воротник']=.Array();
+        names['wear_neck']['воротник']['short_descr']='воротник||а|у||ом|е';
+        names['wear_neck']['воротник']['name']='collar';
+        names['wear_neck']['воротник']['gender']='m';
+        names['wear_neck']['ошейник']=.Array();
+        names['wear_neck']['ошейник']['short_descr']='ошейник||а|у||ом|е';
+        names['wear_neck']['ошейник']['name']='dogcollar collar';
+        names['wear_neck']['ошейник']['gender']='m';
+
+        names['wear_body']=.Array();
+        names['wear_body']['жилет']=.Array();
+        names['wear_body']['жилет']['short_descr']='жиле|т|та|ту|т|том|те';
+        names['wear_body']['жилет']['name']='vest';
+        names['wear_body']['жилет']['gender']='m';
+        names['wear_body']['нагрудник']=.Array();
+        names['wear_body']['нагрудник']['short_descr']='нагрудник||а|у||ом|е';
+        names['wear_body']['нагрудник']['name']='breastplate chestplate plate';
+        names['wear_body']['нагрудник']['gender']='m';
+        names['wear_body']['куртка']=.Array();
+        names['wear_body']['куртка']['short_descr']='куртк|а|и|е|у|ой|е';
+        names['wear_body']['куртка']['name']='jacket';
+        names['wear_body']['куртка']['gender']='m';
+        names['wear_body']['доспех']=.Array();
+        names['wear_body']['доспех']['short_descr']='доспех||а|у||ом|е';
+        names['wear_body']['доспех']['name']='armor';
+        names['wear_body']['доспех']['gender']='m';
+        names['wear_body']['туника']=.Array();
+        names['wear_body']['туника']['short_descr']='туник|а|и|е|у|ой|е';
+        names['wear_body']['туника']['name']='tunic';
+        names['wear_body']['туника']['gender']='f';
+        names['wear_body']['мантия']=.Array();
+        names['wear_body']['мантия']['short_descr']='манти|я|и|и|ю|ей|и';
+        names['wear_body']['мантия']['name']='mantle';
+        names['wear_body']['мантия']['gender']='f';
+        names['wear_body']['мантия']=.Array();
+        names['wear_body']['мантия']['short_descr']='манти|я|и|и|ю|ей|и';
+        names['wear_body']['мантия']['name']='mantle';
+        names['wear_body']['мантия']['gender']='f';
+        names['wear_body']['балахон']=.Array();
+        names['wear_body']['балахон']['short_descr']='балахон||а|у||ом|е';
+        names['wear_body']['балахон']['name']='robe';
+        names['wear_body']['балахон']['gender']='m';
+        names['wear_body']['кольчуга']=.Array();
+        names['wear_body']['кольчуга']['short_descr']='кольчу|га|ги|ге|гу|гой|ге';
+        names['wear_body']['кольчуга']['name']='chainmail';
+        names['wear_body']['кольчуга']['gender']='f';
+        names['wear_body']['кираса']=.Array();
+        names['wear_body']['кираса']['short_descr']='кирас|а|ы|е|у|ой|е';
+        names['wear_body']['кираса']['name']='cuirass';
+        names['wear_body']['кираса']['gender']='f';
+        names['wear_body']['рубаха']=.Array();
+        names['wear_body']['рубаха']['short_descr']='рубах|а|и|е|у|ой|е';
+        names['wear_body']['рубаха']['name']='shirt';
+        names['wear_body']['рубаха']['gender']='f';
+        names['wear_body']['рубаха']=.Array();
+        names['wear_body']['рубаха']['short_descr']='рубах|а|и|е|у|ой|е';
+        names['wear_body']['рубаха']['name']='shirt';
+        names['wear_body']['рубаха']['gender']='f';
+        names['wear_body']['кимоно']=.Array();
+        names['wear_body']['кимоно']['short_descr']='кимоно';
+        names['wear_body']['кимоно']['name']='kimono';
+        names['wear_body']['кимоно']['gender']='n';
+        names['wear_body']['хауберк']=.Array();
+        names['wear_body']['хауберк']['short_descr']='хауберк||а|у||ом|е';
+        names['wear_body']['хауберк']['name']='hauberk';
+        names['wear_body']['хауберк']['gender']='m';
+        names['wear_body']['хауберк']=.Array();
+        names['wear_body']['хауберк']['short_descr']='хауберк||а|у||ом|е';
+        names['wear_body']['хауберк']['name']='hauberk';
+        names['wear_body']['хауберк']['gender']='m';
+        names['wear_body']['одеяние']=.Array();
+        names['wear_body']['одеяние']['short_descr']='одеяни|е|я|ю|е|ем|и';
+        names['wear_body']['одеяние']['name']='raiment';
+        names['wear_body']['одеяние']['gender']='n';
+        names['wear_body']['панцирь']=.Array();
+        names['wear_body']['панцирь']['short_descr']='панцир|ь|я|ю|ь|ем|е';
+        names['wear_body']['панцирь']['name']='shell';
+        names['wear_body']['панцирь']['gender']='m';
+        names['wear_body']['сюрко']=.Array();
+        names['wear_body']['сюрко']['short_descr']='сюрко';
+        names['wear_body']['сюрко']['name']='surcoat';
+        names['wear_body']['сюрко']['gender']='m';
+
+        names['wear_head']=.Array();
+        names['wear_head']['шлем']=.Array();
+        names['wear_head']['шлем']['short_descr']='шлем||а|у||ом|е';
+        names['wear_head']['шлем']['name']='helmet';
+        names['wear_head']['шлем']['gender']='m';
+        names['wear_head']['тиара']=.Array();
+        names['wear_head']['тиара']['short_descr']='тиар|а|ы|е|у|ой|е';
+        names['wear_head']['тиара']['name']='tiara';
+        names['wear_head']['тиара']['gender']='f';
+        names['wear_head']['обруч']=.Array();
+        names['wear_head']['обруч']['short_descr']='обруч||а|у||ом|е';
+        names['wear_head']['обруч']['name']='circlet';
+        names['wear_head']['обруч']['gender']='f';
+        names['wear_head']['корона']=.Array();
+        names['wear_head']['корона']['short_descr']='корон|а|ы|е|у|ой|е';
+        names['wear_head']['корона']['name']='crown';
+        names['wear_head']['корона']['gender']='f';
+        names['wear_head']['шляпа']=.Array();
+        names['wear_head']['шляпа']['short_descr']='шляп|а|ы|е|у|ой|е';
+        names['wear_head']['шляпа']['name']='hat';
+        names['wear_head']['шляпа']['gender']='f';
+        names['wear_head']['шапка']=.Array();
+        names['wear_head']['шапка']['short_descr']='шапк|а|и|е|у|ой|е';
+        names['wear_head']['шапка']['name']='cap';
+        names['wear_head']['шапка']['gender']='f';
+        names['wear_head']['шапочка']=.Array();
+        names['wear_head']['шапочка']['short_descr']='шапочк|а|и|е|у|ой|е';
+        names['wear_head']['шапочка']['name']='coif';
+        names['wear_head']['шапочка']['gender']='f';
+        names['wear_head']['капюшон']=.Array();
+        names['wear_head']['капюшон']['short_descr']='капюшон||а|у||ом|е';
+        names['wear_head']['капюшон']['name']='hood';
+        names['wear_head']['капюшон']['gender']='m';
+        names['wear_head']['тюрбан']=.Array();
+        names['wear_head']['тюрбан']['short_descr']='тюрба|н|на|ну|н|ном|не';
+        names['wear_head']['тюрбан']['name']='turban';
+        names['wear_head']['тюрбан']['gender']='m';
+        names['wear_head']['феска']=.Array();
+        names['wear_head']['феска']['short_descr']='феск|а|и|е|у|ой|е';
+        names['wear_head']['феска']['name']='fez';
+        names['wear_head']['феска']['gender']='f';
+        names['wear_head']['сомбреро']=.Array();
+        names['wear_head']['сомбреро']['short_descr']='сомбреро';
+        names['wear_head']['сомбреро']['name']='sombrero';
+        names['wear_head']['сомбреро']['gender']='n';
+        names['wear_head']['знак']=.Array();
+        names['wear_head']['знак']['short_descr']='знак||а|у||ом|е';
+        names['wear_head']['знак']['name']='mark';
+        names['wear_head']['знак']['gender']='m';
+        names['wear_head']['символ']=.Array();
+        names['wear_head']['символ']['short_descr']='символ||а|у||ом|е';
+        names['wear_head']['символ']['name']='symbol';
+        names['wear_head']['символ']['gender']='m';
+        names['wear_head']['повязка']=.Array();
+        names['wear_head']['повязка']['short_descr']='повязк|а|и|е|у|ой|е';
+        names['wear_head']['повязка']['name']='headband';
+        names['wear_head']['повязка']['gender']='f';
+        names['wear_head']['венок']=.Array();
+        names['wear_head']['венок']['short_descr']='вен|ок|ка|ку|ок|ком|ке';
+        names['wear_head']['венок']['name']='wreath';
+        names['wear_head']['венок']['gender']='m';
+        names['wear_head']['бандана']=.Array();
+        names['wear_head']['бандана']['short_descr']='бандан|а|ы|е|у|ой|е';
+        names['wear_head']['бандана']['name']='bandana';
+        names['wear_head']['бандана']['gender']='f';
+
+        names['wear_legs']=.Array();
+        names['wear_legs']['поножи']=.Array();
+        names['wear_legs']['поножи']['short_descr']='понож|и||ам|и|ами|ах';
+        names['wear_legs']['поножи']['name']='leggings';
+        names['wear_legs']['поножи']['gender']='p';
+        names['wear_legs']['наголенники']=.Array();
+        names['wear_legs']['наголенники']['short_descr']='наголенник|и||ам|и|ами|ах';
+        names['wear_legs']['наголенники']['name']='greaves';
+        names['wear_legs']['наголенники']['gender']='p';
+        names['wear_legs']['набедренники']=.Array();
+        names['wear_legs']['набедренники']['short_descr']='набедренник|и||ам|и|ами|ах';
+        names['wear_legs']['набедренники']['name']='cuisses';
+        names['wear_legs']['набедренники']['gender']='p';
+        names['wear_legs']['наколенники']=.Array();
+        names['wear_legs']['наколенники']['short_descr']='наколенник|и||ам|и|ами|ах';
+        names['wear_legs']['наколенники']['name']='poleyn';
+        names['wear_legs']['наколенники']['gender']='p';
+        names['wear_legs']['штаны']=.Array();
+        names['wear_legs']['штаны']['short_descr']='штан|ы|ов|ам|ы|ами|ах';
+        names['wear_legs']['штаны']['name']='pants';
+        names['wear_legs']['штаны']['gender']='p';
+
+        names['wear_feet']=.Array();
+        names['wear_feet']['шпоры']=.Array();
+        names['wear_feet']['шпоры']['short_descr']='шпор|ы||ам|ы|ами|ах';
+        names['wear_feet']['шпоры']['name']='spurs';
+        names['wear_feet']['шпоры']['gender']='p';
+        names['wear_feet']['ботинки']=.Array();
+        names['wear_feet']['ботинки']['short_descr']='ботин|ки|ок|кам|ки|ками|ках';
+        names['wear_feet']['ботинки']['name']='boots';
+        names['wear_feet']['ботинки']['gender']='p';
+        names['wear_feet']['сапоги']=.Array();
+        names['wear_feet']['сапоги']['short_descr']='сапог|и||ам|и|ами|ах';
+        names['wear_feet']['сапоги']['name']='boots';
+        names['wear_feet']['сапоги']['gender']='p';
+        names['wear_feet']['сандали']=.Array();
+        names['wear_feet']['сандали']['short_descr']='сандал|и|ей|ям|и|ями|ях';
+        names['wear_feet']['сандали']['name']='sandals';
+        names['wear_feet']['сандали']['gender']='p';
+        names['wear_feet']['ботфорты']=.Array();
+        names['wear_feet']['ботфорты']['short_descr']='ботфорт|ы|ов|ам|ы|ами|ах';
+        names['wear_feet']['ботфорты']['name']='jackboot';
+        names['wear_feet']['ботфорты']['gender']='p';
+        names['wear_feet']['туфли']=.Array();
+        names['wear_feet']['туфли']['short_descr']='туфл|и|ей|ям|и|ями|ях';
+        names['wear_feet']['туфли']['name']='shoes';
+        names['wear_feet']['туфли']['gender']='p';
+        names['wear_feet']['солереты']=.Array();
+        names['wear_feet']['солереты']['short_descr']='солерет|ы||ам|ы|ами|ах';
+        names['wear_feet']['солереты']['name']='sollerets';
+        names['wear_feet']['солереты']['gender']='p';
+        names['wear_feet']['сабатоны']=.Array();
+        names['wear_feet']['сабатоны']['short_descr']='сабатон|ы||ам|ы|ами|ах';
+        names['wear_feet']['сабатоны']['name']='sabatons';
+        names['wear_feet']['сабатоны']['gender']='p';
+
+        names['wear_hands']=.Array();
+        names['wear_hands']['руковицы']=.Array();
+        names['wear_hands']['руковицы']['short_descr']='рукавиц|ы||ам|ы|ами|ах';
+        names['wear_hands']['руковицы']['name']='gauntlets';
+        names['wear_hands']['руковицы']['gender']='p';
+        names['wear_hands']['перчатки']=.Array();
+        names['wear_hands']['перчатки']['short_descr']='перчат|ки|ок|кам|ки|ками|ках';
+        names['wear_hands']['перчатки']['name']='gloves';
+        names['wear_hands']['перчатки']['gender']='p';
+        names['wear_hands']['когти']=.Array();
+        names['wear_hands']['когти']['short_descr']='когт|и|ей|ям|и|ями|ях';
+        names['wear_hands']['когти']['name']='talons claws';
+        names['wear_hands']['когти']['gender']='p';
+
+        names['wear_arms']=.Array();
+        names['wear_arms']['рукава']=.Array();
+        names['wear_arms']['рукава']['short_descr']='рукав|а|ов|ам|а|ами|ах';
+        names['wear_arms']['рукава']['name']='sleeves';
+        names['wear_arms']['рукава']['gender']='p';
+        names['wear_arms']['наплечник']=.Array();
+        names['wear_arms']['наплечник']['short_descr']='наплечник|и|ов|ам|и|ами|ах';
+        names['wear_arms']['наплечник']['name']='spaulders';
+        names['wear_arms']['наплечник']['gender']='p';
+        names['wear_arms']['полдроны']=.Array();
+        names['wear_arms']['полдроны']['short_descr']='полдрон|ы|ов|ам|ы|ами|ах';
+        names['wear_arms']['полдроны']['name']='pauldrons';
+        names['wear_arms']['полдроны']['gender']='p';
+        names['wear_arms']['сполдеры']=.Array();
+        names['wear_arms']['сполдеры']['short_descr']='сполдер|ы|ов|ам|ы|ами|ах';
+        names['wear_arms']['сполдеры']['name']='spaulders';
+        names['wear_arms']['сполдеры']['gender']='p';
+        names['wear_arms']['вамбрейсы']=.Array();
+        names['wear_arms']['вамбрейсы']['short_descr']='сполдер|ы|ов|ам|ы|ами|ах';
+        names['wear_arms']['вамбрейсы']['name']='spaulders';
+        names['wear_arms']['вамбрейсы']['gender']='p';
+        names['wear_arms']['нарукавники']=.Array();
+        names['wear_arms']['нарукавники']['short_descr']='нарукавник|и|ов|ам|и|ами|ах';
+        names['wear_arms']['нарукавники']['name']='armguards armbands armplates';
+        names['wear_arms']['нарукавники']['gender']='p';
+        names['wear_arms']['крылья']=.Array();
+        names['wear_arms']['крылья']['short_descr']='крыль|я|ев|ям|я|ями|ях';
+        names['wear_arms']['крылья']['name']='wings';
+        names['wear_arms']['крылья']['gender']='p';
+
+        names['wear_shield']=.Array();
+        names['wear_shield']['баклер']=.Array();
+        names['wear_shield']['баклер']['short_descr']='баклер||а|у||ом|е';
+        names['wear_shield']['баклер']['name']='buckler';
+        names['wear_shield']['баклер']['gender']='m';
+        names['wear_shield']['аспис']=.Array();
+        names['wear_shield']['аспис']['short_descr']='аспис||а|у||ом|е';
+        names['wear_shield']['аспис']['name']='aspis';
+        names['wear_shield']['аспис']['gender']='m';
+        names['wear_shield']['гоплон']=.Array();
+        names['wear_shield']['гоплон']['short_descr']='гоплон||а|у||ом|е';
+        names['wear_shield']['гоплон']['name']='oplon';
+        names['wear_shield']['гоплон']['gender']='m';
+        names['wear_shield']['скутум']=.Array();
+        names['wear_shield']['скутум']['short_descr']='скутум||а|у||ом|е';
+        names['wear_shield']['скутум']['name']='scutum';
+        names['wear_shield']['скутум']['gender']='m';
+        names['wear_shield']['рондаш']=.Array();
+        names['wear_shield']['рондаш']['short_descr']='рондаш||а|у||ом|е';
+        names['wear_shield']['рондаш']['name']='rondache';
+        names['wear_shield']['рондаш']['gender']='m';
+        names['wear_shield']['павеза']=.Array();
+        names['wear_shield']['павеза']['short_descr']='павез|а|ы|е|у|ой|е';
+        names['wear_shield']['павеза']['name']='pavise';
+        names['wear_shield']['павеза']['gender']='f';
+        names['wear_shield']['пельта']=.Array();
+        names['wear_shield']['пельта']['short_descr']='пельт|а|ы|е|у|ой|е';
+        names['wear_shield']['пельта']['name']='pelta';
+        names['wear_shield']['пельта']['gender']='f';
+        names['wear_shield']['калкан']=.Array();
+        names['wear_shield']['калкан']['short_descr']='калкан||а|у||ом|е';
+        names['wear_shield']['калкан']['name']='kalkan';
+        names['wear_shield']['калкан']['gender']='m';
+        names['wear_shield']['тарджет']=.Array();
+        names['wear_shield']['тарджет']['short_descr']='тарджет||а|у||ом|е';
+        names['wear_shield']['тарджет']['name']='targe';
+        names['wear_shield']['тарджет']['gender']='m';
+        names['wear_shield']['щит']=.Array();
+        names['wear_shield']['щит']['short_descr']='щит||а|у||ом|е';
+        names['wear_shield']['щит']['name']='shield';
+        names['wear_shield']['щит']['gender']='m';
+        names['wear_shield']['веер']=.Array();
+        names['wear_shield']['веер']['short_descr']='веер||а|у||ом|е';
+        names['wear_shield']['веер']['name']='fan';
+        names['wear_shield']['веер']['gender']='m';
+        names['wear_shield']['экю']=.Array();
+        names['wear_shield']['экю']['short_descr']='экю';
+        names['wear_shield']['экю']['name']='heater shield';
+        names['wear_shield']['экю']['gender']='m';
+        names['wear_shield']['каплевидный щит']=.Array();
+        names['wear_shield']['каплевидный щит']['short_descr']='каплевидн|ый|ого|ому|ый|ым|ом щит||а|у||ом|е';
+        names['wear_shield']['каплевидный щит']['name']='kite shield';
+        names['wear_shield']['каплевидный щит']['gender']='m';
+
+        names['wear_about']=.Array();
+        names['wear_about']['плащ']=.Array();
+        names['wear_about']['плащ']['short_descr']='плащ||а|у||ом|е';
+        names['wear_about']['плащ']['name']='cloak';
+        names['wear_about']['плащ']['gender']='m';
+        names['wear_about']['накидка']=.Array();
+        names['wear_about']['накидка']['short_descr']='накидк|а|и|е|у|ой|е';
+        names['wear_about']['накидка']['name']='cape';
+        names['wear_about']['накидка']['gender']='f';
+        names['wear_about']['сюрко']=.Array();
+        names['wear_about']['сюрко']['short_descr']='сюрко';
+        names['wear_about']['сюрко']['name']='surcoat';
+        names['wear_about']['сюрко']['gender']='m';
+        names['wear_about']['балахон']=.Array();
+        names['wear_about']['балахон']['short_descr']='балахон||а|у||ом|е';
+        names['wear_about']['балахон']['name']='robe';
+        names['wear_about']['балахон']['gender']='m';
+        names['wear_about']['сутана']=.Array();
+        names['wear_about']['сутана']['short_descr']='сутан|а|ы|е|у|ой|е';
+        names['wear_about']['сутана']['name']='cowl';
+        names['wear_about']['сутана']['gender']='f';
+        names['wear_about']['пончо']=.Array();
+        names['wear_about']['пончо']['short_descr']='пончо';
+        names['wear_about']['пончо']['name']='poncho';
+        names['wear_about']['пончо']['gender']='n';
+
+        names['wear_waist']=.Array();
+        names['wear_waist']['ремень']=.Array();
+        names['wear_waist']['ремень']['short_descr']='рем|ень|ня|ню|ень|нём|не';
+        names['wear_waist']['ремень']['name']='belt';
+        names['wear_waist']['ремень']['gender']='m';
+        names['wear_waist']['пояс']=.Array();
+        names['wear_waist']['пояс']['short_descr']='пояс||а|у||ом|е';
+        names['wear_waist']['пояс']['name']='girth';
+        names['wear_waist']['пояс']['gender']='m';
+        names['wear_waist']['кушак']=.Array();
+        names['wear_waist']['кушак']['short_descr']='кушак||а|у||ом|е';
+        names['wear_waist']['кушак']['name']='sash';
+        names['wear_waist']['кушак']['gender']='m';
+
+        names['wear_wrist']=.Array();
+        names['wear_wrist']['браслет']=.Array();
+        names['wear_wrist']['браслет']['short_descr']='браслет||а|у||ом|е';
+        names['wear_wrist']['браслет']['name']='bracelet';
+        names['wear_wrist']['браслет']['gender']='m';
+        names['wear_wrist']['наруч']=.Array();
+        names['wear_wrist']['наруч']['short_descr']='наруч||а|у||ом|е';
+        names['wear_wrist']['наруч']['name']='bracer';
+        names['wear_wrist']['наруч']['gender']='m';
+
+        names['wear_face']=.Array();
+        names['wear_face']['маска']=.Array();
+        names['wear_face']['маска']['short_descr']='маск|а|и|е|у|ой|е';
+        names['wear_face']['маска']['name']='mask';
+        names['wear_face']['маска']['gender']='f';
+        names['wear_face']['очки']=.Array();
+        names['wear_face']['очки']['short_descr']='очк|и|ов|ам|и|ами|ах';
+        names['wear_face']['очки']['name']='spectacles';
+        names['wear_face']['очки']['gender']='p';
+
+
+        names['wear_ears']=.Array();
+        names['wear_ears']['серьга']=.Array();
+        names['wear_ears']['серьга']['short_descr']='серьг|а|и|е|у|ой|е';
+        names['wear_ears']['серьга']['name']='earring';
+        names['wear_ears']['серьга']['gender']='f';
+
+        names['wear_horse']=.Array();
+        names['wear_horse']['седло']=.Array();
+        names['wear_horse']['седло']['short_descr']='седл|о|а|у|о|ом|е';
+        names['wear_horse']['седло']['name']='saddle';
+        names['wear_horse']['седло']['gender']='n';
+        names['wear_horse']['попона']=.Array();
+        names['wear_horse']['попона']['short_descr']='попон|а|ы|е|у|ой|е';
+        names['wear_horse']['попона']['name']='horsecloth';
+        names['wear_horse']['попона']['gender']='f';
+
+        names['wear_hooves']=.Array();
+        names['wear_hooves']['подковы']=.Array();
+        names['wear_hooves']['подковы']['short_descr']='подков|а|ы|е|у|ой|е';
+        names['wear_hooves']['подковы']['name']='horseshoes';
+        names['wear_hooves']['подковы']['gender']='p';
+
+        names['wear_float']=.Array();
+        names['wear_float']['унобтаний']=.Array();
+        names['wear_float']['унобтаний']['short_descr']='эолит||а|у||ом|е унобтания'; //крупн|ый|ого|ому|ый|ым|ом
+        names['wear_float']['унобтаний']['name']='unobtainium';
+        names['wear_float']['унобтаний']['gender']='p';
+
+        names['hold']=.Array();
+        names['hold']['скипетр']=.Array();
+        names['hold']['скипетр']['short_descr']='скипетр||а|у||ом|е';
+        names['hold']['скипетр']['name']='sceptre';
+        names['hold']['скипетр']['gender']='m';
+        names['hold']['жезл']=.Array();
+        names['hold']['жезл']['short_descr']='жезл||а|у||ом|е';
+        names['hold']['жезл']['name']='wand';
+        names['hold']['жезл']['gender']='m';
+        names['hold']['посох']=.Array();
+        names['hold']['посох']['short_descr']='посох||а|у||ом|е';
+        names['hold']['посох']['name']='staff';
+        names['hold']['посох']['gender']='m';
+        names['hold']['сфера']=.Array();
+        names['hold']['сфера']['short_descr']='сфер|а|и|е|у|ой|е';
+        names['hold']['сфера']['name']='sphere';
+        names['hold']['сфера']['gender']='m';
+
+
+
+        //names['hold']=.List().add(); //некрономикон!!! улучшить
+
+        /*
+                names['wield']=.Array();
+                names['wield']['axe']=.Array();
+                names['wear_tattoo']=.List().add();
+                names['wield']=.List().add();
+        */
+
+        return names;
+    };
+
+    makeInviderEquip = function(obj, aNames) {
+        obj.name = aNames['name'];
+        obj.short_descr = aNames['short_descr'];
+        obj.long_descr = aNames['long_descr'];
+
+        //obj.enchanted=true;
+
+        obj.onEquip = function(ch) {
+            if(.tmp.Orodruin.invader.onEquip) {
+                .tmp.Orodruin.invader.onEquip(obj,ch);
+            }
+        };
+        obj.onRemove = function(ch) {
+            if(.tmp.Orodruin.invader.onRemove) {
+                .tmp.Orodruin.invader.onRemove(obj,ch);
+            }
+
+        };
+    };
+
+    onEquip = function(obj,ch) {
+        this = .tmp.Orodruin.invader;
+        if(ch.clan.name!='invader') return;
+
+        if(ch.invader_set==null) ch.invader_set = 0;
+        if(ch.invader_set<7)
+            ch.invader_set = ch.invader_set + 1;
+
+        if(ch.invader_set>=1 && ch.invader_set<=7) {
+            if(ch.invader_set%2==1)
+                ch.act('{DТвои знания об умениях Захватчиков увеличиваются.{x');
+            else
+                ch.act('{DТы осознаешь как эффективнее использовать умения Захватчиков.{x');
+        }
+        setInvaderSetAffect(ch);
+
+
+    };
+    onRemove = function(obj,ch) {
+        this = .tmp.Orodruin.invader;
+
+        if(ch.invader_set!=null && ch.invader_set>0) {
+            ch.invader_set = ch.invader_set - 1;
+        }
+
+        if(ch.clan.name!='invader') return;
+
+        if(ch.invader_set>=0 && ch.invader_set<7) {
+            if(ch.invader_set%2==0)
+                ch.act('{DТвои знания об умениях Захватчиков уменьшаются.{x');
+            else
+                ch.act('{DЭффективность использовать умения Захватчиков уменьшается.{x');
+        }
+        setInvaderSetAffect(ch);
+        if(ch.invader_set==0) ch.invader_set = null;
+    };
+
+    setInvaderSetAffect = function(ch) {
+        if(ch.isAffected(skill.name)) {
+            ch.affectStrip(skill.name);
+        }
+        if(ch.invader_set==null) throw 'Orodruin->setInvaderSetAffect():ch.invader_set==null';
+        if(ch.invader_set==0) return;
+
+        var af;
+        af = .Affect();
+        af.type = skill.name;
+        af.where = .tables.affwhere_flags.skill_groups;
+        af.global = "clan";
+        af.duration = -1;
+
+        af.location = .tables.apply_flags.learned;    // разученность
+        af.modifier = ((1+ch.invader_set)/2)*10;
+        ch.affectAdd(af);
+
+        if(ch.invader_set > 1) {
+            af.location = .tables.apply_flags.level; // уровень скила
+            af.modifier = ch.invader_set/2;
+            ch.affectAdd(af);
+        }
+    };
+
+
+})

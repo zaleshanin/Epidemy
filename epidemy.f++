@@ -86,6 +86,11 @@
                 return;
             }
 
+            if(ch==null)
+                debug(.fmt('heal(%O1, null)',mob,ch),null);
+            else
+                debug(.fmt('heal(%O1, %O1)',mob,ch),null);
+
             mob.affectStrip(epidemy_affect.type);
 
             if(mob.epidemy.status!=null && mob.epidemy.status=='sick')
@@ -577,6 +582,8 @@
 
     triggers.infectedPostSpec = function(mob){
         this = .tmp.epidemy;
+        fido_walker=null;
+        debug(.fmt('infectedPostSpec(%C1)',mob),null);
         try{
         for(mob in infectedList) {
 
@@ -765,15 +772,21 @@
             * 2 - ты в куче, ждем остальных
             * 3 - я последний - вызываем "КРАКЕНА"
             */
-            if(mob.epidemy.plan==1 && .chance(50)) {
+/*
+            if(fido_walker==null)
+                fido_walker=.Array();
+            //fido_walker[mob.in_room.areaname]==null
+*/
+            if(mob.epidemy.plan==1 && fido_walker==null) { // .chance(50)
                 debug('sickEngine 10: собака-гуляка',mob);
                 if(!(mob.position&.tables.position_table.stand)){
                     mob.interpret('stand');
                     return;
                 }
 
-                if(mob.epidemy.plan_room==null)
+                if(mob.epidemy.plan_room==null){
                     throw('собака-гуляка '+mob.name+':plan_room==null;in_room:'+mob.in_room.name+'('+mob.in_room.vnum+')\n');
+                }
 
                 if(mob.epidemy.plan_way==null) {
                     debug('sickEngine 10.1: no plan_way',mob);
@@ -786,13 +799,18 @@
                         //ищем путь
                         debug('sickEngine 10.1.2: try to find way',mob);
                         mob.interpret('ponder');
+                        fido_walker=mob;
                         mob.epidemy.plan_way = find_way(mob,mob.epidemy.plan_room);
                         if(mob.epidemy.plan_way.size()>0){
                             debug('sickEngine 10.1.3: way size:'+mob.epidemy.plan_way.size(),mob);
                             mob.epidemy.plan_waypoint = mob.in_room;
                             return;
                         } else {
-                            debug('sickEngine 10.1.4: беда! пустой маршрут',mob);
+                            //debug('sickEngine 10.1.4: беда! пустой маршрут',mob);
+                            debug(.fmt('sickEngine 10.1.4: беда! пустой маршрут: %C1 %d->%d ',mob,mob.in_room.vnum,mob.epidemy.plan_room.vnum),null);
+                            mob.act('Ты не находишь выхода!!! Твоя голова раздувается и лопается!!!');
+                            mob.recho('Голова {1%C2{2 раздувается и взрявается, забрызгивая ошмётками мозгов всё вокруг.',mob);
+                            mob.raw_kill(-1);
                             // беда! пустой маршрут
                         }
                     }

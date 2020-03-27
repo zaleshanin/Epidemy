@@ -42,6 +42,7 @@ odif yltsaeb~
     healall = function() {
         this = .tmp.epidemy;
 
+        debug('healall()',null);
         var infectedListClon;
         infectedListClon = infectedList.clone();
 
@@ -449,7 +450,7 @@ odif yltsaeb~
                 }
                 keysArray=.Array();
                 keysArray['demon']='демон%1$I|а|ов';
-                keysArray['fiend']='исчади%1$Iе|я|ий';
+                keysArray['fiend']='исчади%1$Iе|я|й';
                 keysArray['imp']='бес%1$Iёнок|ёнка|ят';
                 keysArray['obsessed'] = 'одержим%1$Iый|ых|ых';
                 if(res.keys.size()>0) {

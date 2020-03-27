@@ -56,7 +56,8 @@
         //выпиливаемся из списка
         impsList.sub(mob);
         if(mob.postSpec!=null && .tmp.epidemy.impsList.size()>0)
-            impsList.random().postSpec = function(){.tmp.epidemy.triggers.infectedPostSpec(this);};
+            impsList.random().postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
+        check_stop();
     };
     triggers.impPostSpec = function (imp) {
         this = .tmp.epidemy;
@@ -292,12 +293,13 @@
         //заполняем тригера
         mob.onHit = .tmp.epidemy.triggers.impOnHit;
         mob.onImmune = .tmp.epidemy.triggers.impOnImmune;
-        mob.postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
+        if(impsList.size()==1)
+            mob.postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
         //подходят тригеры от фидошек:
         mob.onDeath = function(ch){.tmp.epidemy.triggers.impOnDeath(this,ch);};
         mob.onExtract = function(count){.tmp.epidemy.triggers.impOnExtract(this,count);};
         mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
-        mob.onEntry = function(ch){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
+        mob.onEntry = function(){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
         mob.onGreet = function(ch){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
         mob.onAttack = function(ch,vict) {.tmp.epidemy.triggers.impOnAttack(this,ch,vict);};
 

@@ -11,7 +11,10 @@
     };
 
     if(triggers==null) triggers = .Map();
-    triggers.invertedOnExtract = function(mob,count) {.tmp.epidemy.invertedList.sub(mob);};
+    triggers.invertedOnExtract = function(mob,count) {
+        .tmp.epidemy.invertedList.sub(mob);
+        .tmp.epidemy.check_stop();
+    };
 //    triggers.invertedPostSpeech = function() {};
 
     for(mob in invertedList) {

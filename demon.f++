@@ -516,6 +516,7 @@
                         //выворачиваем на изнанку
                         //evert(demon.epidemy.victim);
                         embitter(demon.epidemy.victim);
+                        debug(.fmt('%C1 -> %C1 (%s) embitted',demon,demon.epidemy.victim,demon.epidemy.victim.in_room.areaname),null);
 
                         demon.epidemy.victim.epidemy.invader = demon.epidemy.invader;
                         invertedList.push_back(demon.epidemy.victim);
