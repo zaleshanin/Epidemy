@@ -52,13 +52,18 @@
             if(i.leader != null && i.leader.pet == i) continue;
             //если у моба уже есть бумажка
             if(i.epidemy!=null){
-                debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> has epidemy',count,i));
-                continue;
+                if(i.get_obj_carry_vnum(.tmp.epidemy.Piece.vnum)==null) {
+                    debug(.fmt('lorem.get_evil_mage(%d): %C1 -> has epidemy, have no piece -> clear()',count,i),null);
+                    i.clear();
+                } else {
+                    debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> has epidemy',count,i),null);
+                    continue;
+                }
             }
             //пусть ходят по разным зонам
             if(areas.has(i.in_room.areaname)){
                 continue;
-                debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> have mob from %s',count,i,i.in_room.areaname));
+                debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> have mob from %s',count,i,i.in_room.areaname),null);
             }
             //проверяем на алигн, уровень, количество
             if(i.alignment>-350 || i.level >= ch_lvl || i.pIndexData.instances.size() > 1) continue;
@@ -82,7 +87,7 @@
         debug('lorem.get_evil_mage('+count+')->'+l.size(),null);
         for( i=0 ; i<count ; i=i+1 ) {
             r = l.random();
-            debug('  '+i+': '+r);
+            debug('  '+i+': '+r,null);
             result.add(.get_mob_index(r).instances.back());
             l.sub(r);
         }
