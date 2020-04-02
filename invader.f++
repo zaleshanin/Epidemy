@@ -698,12 +698,12 @@
 
         //тригера на одевание/снятие для setInvaderSetAffect
         obj.onEquip = function(ch) {
-            if(.tmp.Orodruin.invader.onEquip) {
+            if(.tmp.Orodruin.invader.onEquip!=null) {
                 .tmp.Orodruin.invader.onEquip(obj,ch);
             }
         };
         obj.onRemove = function(ch) {
-            if(.tmp.Orodruin.invader.onRemove) {
+            if(.tmp.Orodruin.invader.onRemove!=null) {
                 .tmp.Orodruin.invader.onRemove(obj,ch);
             }
         };

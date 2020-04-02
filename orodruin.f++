@@ -561,7 +561,6 @@
                     item.obj_to_room(.get_room_index(9));
                 } else {
                     item.extract(true);
-
                 }
             }
         } catch (e) {
