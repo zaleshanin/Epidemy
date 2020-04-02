@@ -18,7 +18,7 @@
             result['description'] = obj.description;
             result['extradesc'] = '';
         }
-        else {
+        else if(obj.item_type==.tables.item_table.armor){
             eq_array = getInvaderEqipArray();
             for(wear_flag in eq_array.keys) {
                 if(obj.wear_flags&.tables.wear_flags.values(wear_flag)) {
@@ -696,6 +696,7 @@
         obj.value2 = .max(obj.value2,value);
         obj.value3 = .max(obj.value3,value);
 
+        obj.condition = 100;
         //тригера на одевание/снятие для setInvaderSetAffect
         obj.onEquip = function(ch) {
             if(.tmp.Orodruin.invader.onEquip!=null) {
@@ -707,6 +708,7 @@
                 .tmp.Orodruin.invader.onRemove(obj,ch);
             }
         };
+
 
         return obj;
     };
