@@ -640,7 +640,7 @@
             obj.affectAdd(aff);
         }
         var measure;
-        measure = (ch.getModifyLevel()/10) + 2;
+        measure = (ch.getModifyLevel()/10);
         if(measure==0) measure=1;
         var new_hr,new_dr;new_hr=measure;new_dr=measure;
         if(ch.alignment>=350) {
@@ -714,27 +714,38 @@
     };
 
     onEquip = function(obj,ch) {
-/*
         this = .tmp.Orodruin.invader;
         if(ch.clan.name!='invader') return;
 
         if(ch.invader_set==null) ch.invader_set = 0;
-        if(ch.invader_set<7)
-            ch.invader_set = ch.invader_set + 1;
+        ch.invader_set = ch.invader_set + 1;
 
-        if(ch.invader_set>=1 && ch.invader_set<=7) {
-            if(ch.invader_set%2==1)
-                ch.act('{DТвои знания об умениях Захватчиков увеличиваются.{x');
-            else
-                ch.act('{DТы осознаешь как эффективнее использовать умения Захватчиков.{x');
+        if(ch.invader_set==1) {
+            ch.act('{DТвои знания об умениях Захватчиков увеличиваются.{x');
+        }
+        if(ch.invader_set==2) {
+            ch.act('{DТы осознаешь как эффективнее использовать умения Захватчиков.{x');
+        }
+        if(ch.invader_set==3) {
+            ch.act('{DТвои жизненые силы увеличиваются.{x');
+        }
+        if(ch.invader_set==4) {
+            ch.act('{DТы становишься опаснее.{x');
+        }
+        if(ch.invader_set==5) {
+            ch.act('{DТы становишься ещё опаснее.{x');
+        }
+        if(ch.invader_set==6) {
+            ch.act('{DТы становишься очень опасным.{x');
+        }
+        if(ch.invader_set==7) {
+            ch.act('{DТы становишься похожим на настоящего Захватчика.{x');
         }
         setInvaderSetAffect(ch);
-*/
-
 
     };
     onRemove = function(obj,ch) {
-/*
+
         this = .tmp.Orodruin.invader;
 
         if(ch.invader_set!=null && ch.invader_set>0) {
@@ -743,18 +754,18 @@
 
         if(ch.clan.name!='invader') return;
 
-        if(ch.invader_set>=0 && ch.invader_set<7) {
-            if(ch.invader_set%2==0)
-                ch.act('{DТвои знания об умениях Захватчиков уменьшаются.{x');
-            else
-                ch.act('{DЭффективность использовать умения Захватчиков уменьшается.{x');
+        if(ch.invader_set==0) {
+            ch.act('{DТёмные силы больше не оказывают на тебя влияния.{x');
+        } else {
+            ch.act('{DСилы, приданые тебее тёмной стороной, уменьшаются.{x');
         }
         setInvaderSetAffect(ch);
         if(ch.invader_set==0) ch.invader_set = null;
-*/
+
     };
 
     setInvaderSetAffect = function(ch) {
+        var measure;
         if(ch.isAffected(skill.name)) {
             ch.affectStrip(skill.name);
         }
@@ -768,14 +779,46 @@
         af.global = "clan";
         af.duration = -1;
 
-        af.location = .tables.apply_flags.learned;    // разученность
-        af.modifier = ((1+ch.invader_set)/2)*10;
-        ch.affectAdd(af);
-
-        if(ch.invader_set > 1) {
-            af.location = .tables.apply_flags.level; // уровень скила
-            af.modifier = ch.invader_set/2;
+        if(ch.invader_set>=1){
+            af.location = .tables.apply_flags.learned;    // разученность
+            af.modifier = 40;
             ch.affectAdd(af);
+        }
+        if(ch.invader_set>=2 && ch.invader_set<=4) {
+            af.location = .tables.apply_flags.level; // уровень скила
+            af.modifier = ch.invader_set-1;
+            ch.affectAdd(af);
+        }
+
+        if(ch.invader_set>=3 && ch.invader_set<=7) {
+            measure = (ch.getModifyLevel() * 25)/10;
+            measure = measure - (7-ch.invader_set)*50;
+
+            af.where = .tables.affwhere_flags.affects;
+            //hit(points)
+            af.location=.tables.apply_flags.hit;
+            af.modifier = measure;
+            ch.affectAdd(aff);
+
+            //mana
+            af.location=.tables.apply_flags.mana;
+            af.modifier = measure;
+            ch.affectAdd(aff);
+        }
+        if(ch.invader_set>=4 && ch.invader_set<=7) {
+            measure = (ch.getModifyLevel()*20/100);
+            measure = measure - (7-ch.invader_set)*5;
+
+            af.where = .tables.affwhere_flags.affects;
+            //hitroll
+            af.location=.tables.apply_flags.hitroll;
+            af.modifier = measure;
+            ch.affectAdd(aff);
+
+            //damroll
+            af.location=.tables.apply_flags.damroll;
+            af.modifier = measure;
+            ch.affectAdd(aff);
         }
     };
 
