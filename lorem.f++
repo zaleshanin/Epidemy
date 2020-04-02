@@ -211,34 +211,56 @@
 
 
     };
+    extractLoremPiece = function(piece) {
+        this = .tmp.epidemy;
+
+        debug(.fmt('extractLoremPiece(%O1)',piece),null);
+
+        if(piece.epidemy!=null && piece.epidemy.ownerName!=null) {
+            //чистим варлока/некроманта если необходимо:
+            var carrier;
+            carrier = piece.getCarrier();
+            if(carrier!=null) {
+                if(carrier.epidemy!=null && carrier.epidemy.pieces!=null) {
+                    carrier.epidemy.pieces[piece.epidemy.ownerName]=null;
+                    if(carrier.epidemy.pieces.keys.size()==0) {
+                        debug(.fmt('    ->carrier:%C1.clear()',carrier),null);
+                        carrier.clear();
+                    }
+                }
+            } else {
+                debug('    ->no carrier',null);
+            }
+        } else {
+            debug('    ->no epidemy or ownerName',null);
+        }
+
+        piece.extract(true);
+    };
     triggers.LoremOnExtract = function(piece, count) {
         this = .tmp.epidemy;
+        debug(.fmt('LoremOnExtract(%O1,%d)',piece,count),null);
         if(count==false) return;
 
-        if(piece.epidemy==null) return;
-        if(piece.epidemy.status!='lorem piece') return;
+        if(piece.epidemy==null) {
+            debug('    ->extracted: no epidemy',null);
+            return;
+        }
+        if(piece.epidemy.status!='lorem piece') {
+            debug('    ->extracted: status != lorem piece',null);
+            return;
+        }
         if(piece.epidemy.ownerName==null|| piece.epidemy.spellIndexMin==null
             || piece.epidemy.spellIndexMax==null
             || piece.epidemy.spellName==null) {
-            debug(.fmt('LoremOnExtract(%O1)->extracted: incorrect piece',piece),null);
+            debug('    ->extracted: incorrect piece',null);
             return;
         }
         if(.tmp.epidemy.booksList[piece.epidemy.ownerName]!=null
         && .tmp.epidemy.booksList[piece.epidemy.ownerName].online!=true) {
             //уничтожение по таймеру, при выходе с книгой из мира
-            debug(.fmt('LoremOnExtract(%O1)->extracted: book is offline',piece),null);
+            debug('    ->extracted: book is offline',null);
             return;
-        }
-
-        //чистим варлока/некроманта если необходимо:
-        var carrier; carrier=piece.getCarrier();
-        if(carrier!=null) {
-            if(carrier.epidemy!=null && carrier.epidemy.pieces!=null) {
-                carrier.epidemy.pieces[piece.epidemy.ownerName]=null;
-                if(pcarrier.epidemy.pieces.keys.size()==0) {
-                    piece.getCarrier().clear();
-                }
-            }
         }
 
         if(booksList[piece.epidemy.ownerName]==null || booksList[piece.epidemy.ownerName].online==false) return;
@@ -260,7 +282,7 @@
     };
     triggers.LoremOnQuit = function (piece,ch,count) {
         this = .tmp.epidemy;
-        if(piece.epidemy==null||piece.epidemy.ownerName==null) {piece.extract(true);}
+        if(piece.epidemy==null||piece.epidemy.ownerName==null) {extractLoremPiece(piece);}
         else if(piece.epidemy.ownerName!=ch.name) {
             piece.getCarrier().act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', piece);
             var owner;

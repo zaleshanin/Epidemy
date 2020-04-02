@@ -725,7 +725,7 @@
             for(piece in .tmp.epidemy.Piece.instances) {
                 if(piece.epidemy!=null && piece.epidemy.ownerName!=null
                     && piece.epidemy.ownerName==book.epidemy.ownerName) {
-                    piece.extract(true);
+                    extractLoremPiece(piece);
                 }
             }
         }
@@ -895,7 +895,7 @@
             for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1){
                 if(book.epidemy.loremPieces[i]!=null && book.epidemy.loremPieces[i]!=piece) {
                     piece.clear();
-                    piece.extract(true);
+                    extractLoremPiece(piece);
                 } else {
                     book.epidemy.loremPieces[i]=piece;
                 }
