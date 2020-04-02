@@ -11,12 +11,14 @@
     getInvaderEquipName=function(obj) {
         this = .tmp.Orodruin.invader;
         var eq_array, eq_wear_lock; eq_wear_lock=false;
-        var result;result = .Array();
+        var result; result = .Array();
         if(obj.pIndexData==.tmp.epidemy.Necronomicon) {
             result['name'] = obj.name;
             result['short_descr'] = obj.short_descr;
-            result['long_descr'] = obj.long_descr;
-        } else {
+            result['description'] = obj.description;
+            result['extradesc'] = '';
+        }
+        else {
             eq_array = getInvaderEqipArray();
             for(wear_flag in eq_array.keys) {
                 if(obj.wear_flags&.tables.wear_flags.values(wear_flag)) {
@@ -33,7 +35,7 @@
                     result['name']=result['name']+' '+runame;
                 }
             }
-            if(result==null) {
+            if(result.size()==0) {
                 var runame;
                 runame = eq_array[eq_wear_lock].keys.random();
 
@@ -41,20 +43,34 @@
                 result['name'] = result['name']+' '+runame;
             }
 
+            var sCreated,sLeaved,sLay;
             if(result['gender']=='m') {
+                sCreated = 'созданный';
+                sLeaved = 'оставленный';
+                sLay = 'лежит';
                 result['short_descr']='черн|ый|ого|ому|ый|ым|ом '+result['short_descr'];
             } else if(result['gender']=='f') {
+                sCreated = 'созданная';
+                sLeaved = 'оставленная';
+                sLay = 'лежит';
                 result['short_descr']='черн|ая|ой|ой|ую|ой|ой '+result['short_descr'];
             } else if(result['gender']=='n') {
+                sCreated = 'созданное';
+                sLeaved = 'оставленное';
+                sLay = 'лежит';
                 result['short_descr']='черн|ое|ого|ому|ое|ым|ом '+result['short_descr'];
             } else if(result['gender']=='p') {
+                sCreated = 'созданные';
+                sLeaved = 'оставленные';
+                sLay = 'лежат';
                 result['short_descr']='черн|ые|ых|ым|ые|ым|ых '+result['short_descr'];
             }
+            result['short_descr'] = '{D' + result['short_descr'] + ' Захватчика{x';
 
-            result['short_descr']=result['short_descr']+' Захватчика';
+            result['extradesc'] = .fmt('{1%1$^N1{2, %2$s в горниле Ородруина.',result['short_descr'],sCreated);
+            result['description'] = .fmt('{1%1$^N1{2, %2$s кем-то, %3$s у твоих ног.',result['short_descr'],sLeaved,sLay);
         }
         return result;
-
     };
 
     getInvaderEqipArray=function() {
@@ -563,7 +579,7 @@
         names['hold']['сфера']=.Array();
         names['hold']['сфера']['short_descr']='сфер|а|и|е|у|ой|е';
         names['hold']['сфера']['name']='sphere';
-        names['hold']['сфера']['gender']='m';
+        names['hold']['сфера']['gender']='f';
 
 
 
@@ -579,13 +595,108 @@
         return names;
     };
 
-    makeInviderEquip = function(obj, aNames) {
+    makeInviderEquip = function(obj, ch, aNames) {
+        debug('makeInviderEquip()');
+
         obj.name = aNames['name'];
         obj.short_descr = aNames['short_descr'];
-        obj.long_descr = aNames['long_descr'];
+        obj.description = aNames['description'];
+        if(aNames['extradesc']!='') {
+            obj.set_extra_descr(obj.name, aNames['extradesc']);
+        }
+        obj.extra_flags = .unset_bit(obj.extra_flags, .tables.extra_flags.bless);
+        obj.extra_flags = .unset_bit(obj.extra_flags, .tables.extra_flags.anti_evil);
+        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.evil);
+        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.dark);
+        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.anti_good);
+        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.anti_neutral);
+        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.nopurge);
+        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.nosac);
+        obj.level = ch.getModifyLevel();
 
-        //obj.enchanted=true;
+        var objAffects; objAffects = .List();
+        var hr,dr,ac,saving_spell,hit,mana;hr=0;dr=0;ac=0;saving_spell=0;hit=0;mana=0;
+        for(aff in obj.affected) {
+            debug('aff.modifier: '+.tables.apply_flags.name(aff.modifier));
+            if(aff.location == .tables.apply_flags.hitroll) {
+                hr=.max(hr,aff.modifier);
+            } else if(aff.location == .tables.apply_flags.damroll) {
+                dr=.max(dr,aff.modifier);
+            } else if(aff.location == .tables.apply_flags.hit) {
+                hit=.max(hit,aff.modifier);
+            } else if(aff.location == .tables.apply_flags.mana) {
+                mana=.max(mana,aff.modifier);
+            } else if(aff.location == .tables.apply_flags.ac) {
+                ac=.min(ac,aff.modifier);
+            } else if(aff.location == .tables.apply_flags.saving_spell) {
+                saving_spell=.min(saving_spell,aff.modifier);
+            } else {
+                objAffects.push_back(aff);
+            }
+        }
+        obj.enchanted=true;
+        obj.affectStripAll();
+        for(aff in objAffects) {
+            obj.affectAdd(aff);
+        }
+        var measure;
+        measure = (ch.getModifyLevel()/10) + 2;
+        if(measure==0) measure=1;
+        var new_hr,new_dr;new_hr=measure;new_dr=measure;
+        if(ch.alignment>=350) {
+            new_hr = new_hr + (measure*10/40);
+            new_dr = new_dr - (measure*10/40);
+        } else if (ch.alignment<=-350) {
+            new_hr = new_hr - (measure*10/40);
+            new_dr = new_dr + (measure*10/40);
+        }
+        var aff;
+        aff=.Affect();
+        aff.duration = -1;
+        aff.where = .tables.affwhere_flags.object;
+        aff.level = obj.level;
 
+        //hitroll
+        aff.location=.tables.apply_flags.hitroll;
+        aff.modifier = .max(hr,new_hr);
+        obj.affectAdd(aff);
+
+        //damroll
+        aff.location=.tables.apply_flags.damroll;
+        aff.modifier = .max(dr,new_dr);
+        obj.affectAdd(aff);
+
+        //hit(points)
+        aff.location=.tables.apply_flags.hit;
+        aff.modifier = .max(hit,measure*2);
+        obj.affectAdd(aff);
+
+        //mana
+        aff.location=.tables.apply_flags.mana;
+        aff.modifier = .max(mana,measure*2);
+        obj.affectAdd(aff);
+
+        //ac
+        aff.location=.tables.apply_flags.ac;
+        aff.modifier = .min(ac,((ch.getModifyLevel()/5)*-1));
+        obj.affectAdd(aff);
+
+        //saving_spell
+/*
+        aff.type = 'bless';
+        aff.bitvector = .tables.extra_flags.bless;
+*/
+        aff.location=.tables.apply_flags.saves;
+        aff.modifier = .min(saving_spell,((ch.getModifyLevel()/25+1)*-1));
+        obj.affectAdd(aff);
+
+        var value; value = ch.getModifyLevel()/3 + .number_range(0,ch.getModifyLevel()/10);
+        obj.value0 = .max(obj.value0,value);
+        obj.value1 = .max(obj.value1,value);
+        obj.value2 = .max(obj.value2,value);
+        obj.value3 = .max(obj.value3,value);
+
+        //тригера на одевание/снятие для setInvaderSetAffect
         obj.onEquip = function(ch) {
             if(.tmp.Orodruin.invader.onEquip) {
                 .tmp.Orodruin.invader.onEquip(obj,ch);
@@ -595,11 +706,13 @@
             if(.tmp.Orodruin.invader.onRemove) {
                 .tmp.Orodruin.invader.onRemove(obj,ch);
             }
-
         };
+
+        return obj;
     };
 
     onEquip = function(obj,ch) {
+/*
         this = .tmp.Orodruin.invader;
         if(ch.clan.name!='invader') return;
 
@@ -614,10 +727,12 @@
                 ch.act('{DТы осознаешь как эффективнее использовать умения Захватчиков.{x');
         }
         setInvaderSetAffect(ch);
+*/
 
 
     };
     onRemove = function(obj,ch) {
+/*
         this = .tmp.Orodruin.invader;
 
         if(ch.invader_set!=null && ch.invader_set>0) {
@@ -634,6 +749,7 @@
         }
         setInvaderSetAffect(ch);
         if(ch.invader_set==0) ch.invader_set = null;
+*/
     };
 
     setInvaderSetAffect = function(ch) {

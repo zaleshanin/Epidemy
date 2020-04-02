@@ -42,7 +42,7 @@
     };
 
     //находим количество злых неагрессивных мобов-магов/некров
-    get_evil_mage = function(count) {
+    get_evil_mage = function(count,ch_lvl) {
         var i, r;
         var l, result, areas;
         l = .List(); result = .List(); areas = .List();
@@ -52,13 +52,16 @@
             if(i.leader != null && i.leader.pet == i) continue;
             //если у моба уже есть бумажка
             if(i.epidemy!=null){
+                debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> has epidemy',count,i));
                 continue;
             }
             //пусть ходят по разным зонам
-            if(areas.has(i.in_room.areaname))
+            if(areas.has(i.in_room.areaname)){
                 continue;
+                debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> have mob from %s',count,i,i.in_room.areaname));
+            }
             //проверяем на алигн, уровень, количество
-            if(i.alignment>-350 || i.level <= 35 || i.pIndexData.instances.size() > 1) continue;
+            if(i.alignment>-350 || i.level >= ch_lvl || i.pIndexData.instances.size() > 1) continue;
             if(!(i.act&.tables.act_flags.mage)
                 && !(i.act&.tables.act_flags.necromancer)) continue;
             //проверяем зону на квестовость и моба на агрессивность
@@ -76,9 +79,10 @@
         }
         l.sort();
         l.unique();
-
+        debug('lorem.get_evil_mage('+count+')->'+l.size(),null);
         for( i=0 ; i<count ; i=i+1 ) {
             r = l.random();
+            debug('  '+i+': '+r);
             result.add(.get_mob_index(r).instances.back());
             l.sub(r);
         }
@@ -92,10 +96,14 @@
         try {
             var i,wlkList,wlk;
             var onePiece;
-            if(book.epidemy==null)
-                book.epidemy=.Map();
+            if(book.epidemy==null) throw(.fmt('%O1: has no epidemy field!!!',book));
+            if(book.epidemy.ownerName==null) throw(.fmt('%O1: has no ownerName field!!!',book));
 
-            wlkList = get_evil_mage(loremArray.size());
+            var owner;
+            owner = .get_char_world(book.epidemy.ownerName);
+            if(owner==null) throw(.fmt('%O1: %s not found',book,book.epidemy.ownerName));
+
+            wlkList = get_evil_mage(loremArray.size(),owner.getModifyLevel());
 
             var c, cList; cList = loremArray.keys.clone();
             for(i=0 ; i<loremArray.size() ; i=i+1){
@@ -202,34 +210,19 @@
         this = .tmp.epidemy;
         if(count==false) return;
 
-        //уничтожение по таймеру, при выходе с книгой из мира
-        if(piece.epidemy!=null && piece.epidemy.ownerName!=null){
-            if(.tmp.epidemy.booksList[piece.epidemy.ownerName].online!=true) {
-                debug(.fmt('LoremOnExtract(%O1)->extracted: book is offline',piece),null);
-                return;
-            }
+        if(piece.epidemy==null) return;
+        if(piece.epidemy.status!='lorem piece') return;
+        if(piece.epidemy.ownerName==null|| piece.epidemy.spellIndexMin==null
+            || piece.epidemy.spellIndexMax==null
+            || piece.epidemy.spellName==null) {
+            debug(.fmt('LoremOnExtract(%O1)->extracted: incorrect piece',piece),null);
+            return;
         }
-
-        if(piece.epidemy.ownerName==null || piece.epidemy.spellIndexMin==null
-            || piece.epidemy.spellIndexMax==null || piece.epidemy.spellName==null
-            || piece.epidemy.ownerName==null) {
-            var ad,str; ad = piece.getCarrier();
-            if(ad!=null) str = ad.name;
-            else {ad = piece.getRoom();str = ad.name+'['+ad.vnum+']';}
-            throw(.fmt('epidemy.LoremOnExtract: incorrect lorem piece %O1 (%s)',piece,str));
-        }
-
-        if(booksList[piece.epidemy.ownerName]==null || booksList[piece.epidemy.ownerName].online==false) return;
-        //новы[й|e] кус[ок|ки] вместо уничтожаемого:
-        var i;
-        for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
-            piece_to_warlock(
-                LoremPiece(i,
-                    i,
-                    loremPieceNamesArray[i],
-                    piece.epidemy.ownerName),
-                warlockInit(get_evil_mage(1).back())
-            );
+        if(.tmp.epidemy.booksList[piece.epidemy.ownerName]!=null
+        && .tmp.epidemy.booksList[piece.epidemy.ownerName].online!=true) {
+            //уничтожение по таймеру, при выходе с книгой из мира
+            debug(.fmt('LoremOnExtract(%O1)->extracted: book is offline',piece),null);
+            return;
         }
 
         //чистим варлока/некроманта если необходимо:
@@ -242,12 +235,36 @@
                 }
             }
         }
+
+        if(booksList[piece.epidemy.ownerName]==null || booksList[piece.epidemy.ownerName].online==false) return;
+        var owner;
+        owner = .get_char_world(piece.epidemy.ownerName);
+        if(owner==null) return;
+        //новы[й|e] кус[ок|ки] вместо уничтожаемого:
+        var i;
+        for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
+            piece_to_warlock(
+                LoremPiece(i,
+                    i,
+                    loremPieceNamesArray[i],
+                    piece.epidemy.ownerName),
+                warlockInit(get_evil_mage(1, owner.getModifyLevel()).back())
+            );
+        }
+
     };
     triggers.LoremOnQuit = function (piece,ch,count) {
         this = .tmp.epidemy;
-        if(piece.epidemy.ownerName!=ch.name) {
+        if(piece.epidemy==null||piece.epidemy.ownerName==null) {piece.extract(true);}
+        else if(piece.epidemy.ownerName!=ch.name) {
             piece.getCarrier().act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', piece);
-            piece_to_warlock(piece,warlockInit(get_evil_mage(1).back()));
+            var owner;
+            owner = .get_char_world(piece.epidemy.ownerName);
+            if(owner!=null) {
+                piece_to_warlock(piece,warlockInit(get_evil_mage(1,owner.getModifyLevel()).back()));
+            } else {
+                piece.extract(true);
+            }
         }
     };
     triggers.LoremOnDrop = function(piece,ch) {

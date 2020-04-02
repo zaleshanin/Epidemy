@@ -77,40 +77,5 @@
         .tmp.epidemy.warlocksList.sub(mage);
     };
 
-    for(wk in warlocksList) {
-        if(wk.dead) {
-            warlocksList.sub(wk);
-            continue;
-        }
-        if(wk.epidemy==null || wk.epidemy.pieces==null){
-            wk.clear();
-            warlocksList.sub(wk);
-            continue;
-        }
-        for(name in wk.epidemy.pieces.keys) {
-            if(wk.epidemy.pieces[name].dead) {
-                wk.epidemy.pieces[name]==null;
-            } else if(!wk.epidemy.pieces[name].online && !wk.online) {
-                piece_to_warlock(
-                    LoremPiece(wk.epidemy.pieces[name].epidemy.spellIndexMin,
-                        wk.epidemy.pieces[name].epidemy.spellIndexMax,
-                        wk.epidemy.pieces[name].epidemy.spellName,
-                        wk.epidemy.pieces[name].epidemy.ownerName),
-                    warlockInit(get_evil_mage(1).back())
-                );
-                wk.epidemy.pieces[name].clear();
-                wk.epidemy.pieces[name]==null;
-            }
-        }
-        if(wk.epidemy.pieces.size()==0) {
-            wk.clear();
-            warlocksList.sub(wk);
-            continue;
-        }
-
-        if(wk.epidemy.version==null || wk.epidemy.version!=warlock_version)
-            warlockInit(wk);
-    }
-
 
 })

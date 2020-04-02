@@ -7,7 +7,7 @@
         //вешаем тригера на лечение и на вылупление импа в случае убийства (имп заразный)
         mob.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
         mob.onExtract = function(count) {.tmp.epidemy.triggers.invertedOnExtract(this,count);};
-        mob.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
+        /*mob.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};*/
     };
 
     if(triggers==null) triggers = .Map();

@@ -584,7 +584,8 @@ odif yltsaeb~
                 }else{
                     count = 0;
                 }
-            } else if(qp_rewards[type]['minus']!=null
+            }
+            else if(qp_rewards[type]['minus']!=null
                 && statistic[qp_rewards[type]['minus']]!=null
                 && statistic[qp_rewards[type]['minus']][chname]!=null) {
                 if(statistic[type][chname] - statistic[qp_rewards[type]['minus']][chname] > 0){
@@ -593,7 +594,8 @@ odif yltsaeb~
                 }else{
                     count = 0;
                 }
-            } else {
+            }
+            else {
                 count = statistic[type][chname];
             }
 
@@ -675,6 +677,7 @@ odif yltsaeb~
         var reward_rank; reward_rank=.Array();
         var reward_count; reward_count = .Array();
         var total, count; total=0;
+        reward_points['necronomicon'] = 30;
         reward_points['demon_slay'] = 10;
         reward_points['fiend_slay'] = 5;
         reward_points['imp_slay'] = 2;
@@ -803,7 +806,7 @@ odif yltsaeb~
     qp_rewards['demon']['evil']=true;
 
     qp_rewards['fiend_kill']=.Array();
-    qp_rewards['fiend_kill']['message']='террор соворённый исчадиями';
+    qp_rewards['fiend_kill']['message']='террор сотворённый исчадиями';
     qp_rewards['fiend_kill']['count']=10;
     qp_rewards['fiend_kill']['qp']=1;
     qp_rewards['fiend_kill']['evil']=true;
@@ -833,6 +836,12 @@ odif yltsaeb~
     qp_rewards['demon_slay']['count']=1;
     qp_rewards['demon_slay']['qp']=10;
     qp_rewards['demon_slay']['evil']=false;
+
+    qp_rewards['necronomicon']=.Array();
+    qp_rewards['necronomicon']['message']='уничтожение {DНекрономикона{x';
+    qp_rewards['necronomicon']['count']=1;
+    qp_rewards['necronomicon']['qp']=50;
+    qp_rewards['necronomicon']['evil']=false;
 
     qp_rewards['fiend_slay']=.Array();
     qp_rewards['fiend_slay']['message']='убийство исчадий';

@@ -21,6 +21,10 @@
         var result, ritual, tstr, page, wnum;
         var cwk, aWk;
         result = '';
+        if(book.epidemy==null) {
+            debug('empty epidemy on necronomicon!!!');
+            return result;
+        }
 
         debug(.fmt('before page: %s',str),null);
         if(str.match("[a-zа-я]+([0-9]+)")) {
@@ -453,6 +457,9 @@
         //onPut(ch,obj,cont) - ch кладет obj в контейнер cont.
         // Триггер вызывается для всех троих.
         //начинает вибрировать если в нее положить бумажку
+        if(book!=cont || book.epidemy==null || obj.epidemy==null) {
+            return;
+        }
         if(!(book.extra_flags&.tables.extra_flags.hum)) {
             book.extra_flags = .set_bit(book.extra_flags, .tables.extra_flags.hum);
             ch.in_room.ppl.call.act('%1$^O1 начинает вибрировать.',book);
@@ -706,31 +713,21 @@
     };
     //бывает и такая фигня, надо удалить из списка
     Necronomicon.onExtract = function(book, jopa) {
+        if(book.epidemy==null||book.epidemy.isLorem==null||book.epidemy.ownerName==null)
+            return;
         this = .tmp.epidemy;
         debug(.fmt('necronomicon.onExtract(%s)',book.epidemy.ownerName),null);
         if(jopa) {
-            //оказалось, еще и клочки нужно уничтожить...
-            var piecesList;
-            piecesList = .List();
-            if(!book.epidemy.isLorem) {
-                for(piece in .tmp.epidemy.Piece.instances) {
-                    if(piece.epidemy!=null && piece.epidemy.ownerName!=null
-                        && piece.epidemy.ownerName==book.epidemy.ownerName) {
-                        piecesList.push_back(piece);
-                    }
-                }
-            }
-
+            //удаляем книгу из списка (при уничтожении клочков, не должны создаваться новые)
             .tmp.epidemy.booksList[book.epidemy.ownerName] = null;
 
-            var i; var c;
-            c = piecesList.size();
-            for(i=0;i<c;i=i+1) {
-                l = piecesList.back();
-                piecesList.pop_back();
-                l.extract(true);
+            //оказалось, еще и клочки нужно уничтожить...
+            for(piece in .tmp.epidemy.Piece.instances) {
+                if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+                    && piece.epidemy.ownerName==book.epidemy.ownerName) {
+                    piece.extract(true);
+                }
             }
-
         }
 
     };
@@ -949,6 +946,46 @@
         epidemy.loremPieces = .Array();
 
         return this;
+    };
+    preDestroyNecronomicon = function(book, ch) {
+        this = .tmp.epidemy;
+        var chMaster;
+        chMaster = getChMaster(ch);
+        if(chMaster!=null) {
+            regChar(chMaster);
+            regStat(chMaster.name, 'necronomicon');
+            check_reward(chMaster.name, 'necronomicon');
+        }
+        for(one_list in .List().add(Demon.instances,Fiend.instances,impsList)) {
+            for(fiend in one_list) {
+                if(fiend.dead) {continue;}
+                if(fiend.epidemy!=null && book.epidemy!=null
+                    && fiend.epidemy.invader==book.epidemy.ownerName) {
+                    fiend.recho('Внезапно %1$C1 теряет связь с источником своей жизненой силы.',fiend);
+                    fiend.act('{DНекнономикон{x, служивший для тебя источником жизненой силы, уничтожен!');
+                    fiend.raw_kill(-1,ch);
+                }
+            }
+        }
+        for(infected in infectedList) {
+            if(infected.dead) {continue;}
+            if(infected.epidemy!=null && book.epidemy!=null
+                && infected.epidemy.invader==book.epidemy.ownerName) {
+                infected.recho('Внезапно {Dтёмные силы{x внутри %1$C2 изчезают.',infected);
+                infected.act('{DНекнономикон{x, послуживший источником "{Dтёмных сил{x" внутри тебя, уничтожен!');
+                heal(infected,ch);
+            }
+        }
+        for(inverted in invertedList) {
+            if(inverted.dead) {continue;}
+            if(inverted.epidemy!=null && book.epidemy!=null
+                && inverted.epidemy.invader==book.epidemy.ownerName) {
+                inverted.recho('{DТёмные силы{x теряют власть над %1$C5.',inverted);
+                inverted.act('{DТёмные силы{x теряют над тобой власть!');
+                heal(inverted,ch);
+            }
+        }
+
     };
 
     count_wk = function(chname) {
