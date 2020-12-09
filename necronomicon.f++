@@ -31,7 +31,7 @@
             page = str.matchGroups("[a-zа-я]+([0-9]+)").at(0);
             str = str.replace(page,'');
             page = 0+page;
-            debug(.fmt('page: %s page:%d wnum:%d',str,page,wnum),null);
+            debug(.fmt('page: %s page:%d',str,page),null);
         } else {
             page = 1;
             debug('page: default - 1',null);
