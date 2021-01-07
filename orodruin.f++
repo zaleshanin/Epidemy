@@ -1,6 +1,5 @@
 .apply(function() {
 /*change list
-2.016 - burn it all
 2.015 - nopurge chagned to personal
 2.014 - each eagle personal
 2.013 - one eagle not an army
@@ -441,7 +440,20 @@
 				item.extract(true);
 				crackFlash();
 								
-			/*} else if(item.personal!=null) {//item.extra_flags&.tables.extra_flags.nopurge
+			} else if(.tmp.epidemy!=null && .tmp.epidemy.Necronomicon!=null
+			        && .tmp.epidemy.preDestroyNecronomicon!=null
+			        && item.pIndexData == .tmp.epidemy.Necronomicon) {
+				debug('destroy_item: Necronomicon!!!');
+				.tmp.epidemy.preDestroyNecronomicon(item, ch);
+				item.getRoom().echo('%^O1 вспыхива%1$nет|ют и исчеза%1$nет|ют.',item);
+
+				eruption = true;
+				eruptionTimer = eruptionTime;
+
+				item.extract(true);
+				crackFlash();
+
+			} else if(item.personal!=null) {//item.extra_flags&.tables.extra_flags.nopurge
 				item.is_hot = null;
 				if(item.item_type==.tables.item_table.pc_corpse) {
 					item.in_obj.getRoom().echo('%^O1 вспыхива%1$nет|ют и исчеза%1$nет|ют.',item);
@@ -453,7 +465,7 @@
 					}
 					item.obj_to_obj(crackOfDoom);
 					debug(.fmt('destroy_item[personal]: %O1->no extract',item));
-				}*/
+				}
 			} else if(item.pIndexData.vnum==.tmp.epidemy.ashVnum){
 				//debug(.fmt('destroy_item[ash]: %O1->no extract',item));
 				

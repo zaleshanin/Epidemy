@@ -16,33 +16,50 @@
             if(ch.is_npc())
                 return;
 
-            var book;
 
-            if((booksList[ch.name]!=null && !booksList[ch.name].dead)
-                || ch.clan.name!='invader')
-                return;
+			if(ch.clan.name!='invader') return;
 
-            .tmp.quest.sleep(1, mob, ch);
-            ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи добыли древний гримуар самого Абдула аль-Хазреда.{x'",mob,ch);
+			if(booksList[ch.name]==null || booksList[ch.name].dead || !booksList[ch.name].online) {
+			    if(ch.remort_count==0 && ch.level<50)
+			        return;
+				//выдаём книгу если не выдавалась или пролюблена
+                var book;
 
-            .tmp.quest.sleep(1, mob, ch);
-            ch.act("%1$^C1 говорит тебе '{GЯ подготовил%1$Gо||а для тебя копию. Думаю, ты разберешься что с ним делать.{x'",mob,ch);
+                .tmp.quest.sleep(1, mob, ch);
+                ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи добыли древний гримуар самого Абдула аль-Хазреда.{x'",mob,ch);
 
-            .tmp.quest.sleep(1, mob, ch);
-            book = NecronomiconInit(ch);
+                .tmp.quest.sleep(1, mob, ch);
+                ch.act("%1$^C1 говорит тебе '{GЯ подготовил%1$Gо||а для тебя копию. Думаю, ты разберешься что с ним делать.{x'",mob,ch);
 
-            book.obj_to_char(ch);
-            ch.act("%1$^C1 даёт тебе %2$O4.", mob, book);
+                .tmp.quest.sleep(1, mob, ch);
+                book = NecronomiconInit(ch);
 
-            //выданные на руки книжки заносим в картотеку, чтоб по две не брали.
-            booksList[ch.name] = book;
+                book.obj_to_char(ch);
+                ch.act("%1$^C1 даёт тебе %2$O4.", mob, book);
 
-            if(loadLoremPieces!=null) {
-                //генерим 5 колочков заклинания
-                loadLoremPieces(book,loremPieceNamesArray);
-            } else {
-                throw('Bookkeeper: loadLoremPieces not found!');
-            }
+                //выданные на руки книжки заносим в картотеку, чтоб по две не брали.
+                booksList[ch.name] = book;
+
+                if(loadLoremPieces!=null) {
+                    //генерим 5 колочков заклинания
+                    loadLoremPieces(book,loremPieceNamesArray);
+                } else {
+                    throw('Bookkeeper: loadLoremPieces not found!');
+                }
+			} else if (booksList[ch.name].getCarrier()!=ch) {
+				.tmp.quest.sleep(1, mob, ch);
+				ch.act("%1$^C1 говорит тебе '{G%2$^C1, мне кажется ты лишился своей копии гримуара Абдула аль-Хазреда.{x'",mob,ch);
+
+				.tmp.quest.sleep(1, mob, ch);
+				if(booksList[ch.name].getCarrier()!=null) {
+					ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи выяснили, что Некрономикон находится в руках %3$^С2.{x'",mob,ch,booksList[ch.name].getCarrier());
+				} else if(booksList[ch.name].getRoom()!=null) {
+					ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи выяснили, что Некрономикон находится в месте под названием %3$s.{x'",mob,ch,booksList[ch.name].getRoom().name);
+				} else {
+					debug(.fmt('Bookkeeper.postGreet(%C1) -> cant find room or carrier.',ch),null);
+					ch.act("%1$^C1 говорит тебе '{G%2$^C1, к сожалению, наши соглядатаи не смогли выяснить где сейчас находится Некрономикон.{x'",mob,ch);
+				}
+			}
 
         } catch (e) {.tmp.epidemy.catchMsg(e);}
     };

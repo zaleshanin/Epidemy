@@ -12,7 +12,11 @@
         //onExtraDescr(ch,str) - возвращает строку, которую надо показать чару ch,
         // при взгляде на экстра-дескр str. Если вернуть пустую строку, продолжится
         // поиск другого экстра-деска, иначе -- покажет то что мы вернули, и оборвет поиск.
-        this = .tmp.epidemy;
+         if(book.epidemy==null) {
+             debug('empty epidemy on necronomicon!!!', null);
+             return result;
+         }
+       this = .tmp.epidemy;
         debug(.fmt('onExtra(ch:%C1,srt:%s)',ch,str),null);
 
         if(book.epidemy.isLorem==null)
@@ -21,10 +25,6 @@
         var result, ritual, tstr, page, wnum;
         var cwk, aWk;
         result = '';
-        if(book.epidemy==null) {
-            debug('empty epidemy on necronomicon!!!');
-            return result;
-        }
 
         debug(.fmt('before page: %s',str),null);
         if(str.match("[a-zа-я]+([0-9]+)")) {
@@ -107,7 +107,7 @@
                     '   символами, ты можешь разобрать всего несколько пунктов:\n' +
                     '       - Ритуал вызова Демонов "{DL{ror{De{rm ip{Dsu{rm dol{Dor {rsi{Dt {Ra{Dme{rt{x" ({D{hc{lrсм ритуал{lelook ritual{x)\n' +
                     '       - Прочие заклятия ({D{hc{lrсм заклятия{lelook spells{x)\n' +
-                    '       - История Захвата Мира Захватчиками ({D{hс{lrсм история{lelook history{x)\n' +
+					'       - История Захвата Мира Захватчиками ({D{hc{lrсм история{lelook history{x)\n' +
                     '       - Занимательная статистика ({D{hc{lrсм статистика{lelook statistic{x) Захвата Мира Захватчиками\n' +
                     '       - Заметки {DТемного Властелина{x ({D{hc{lrсм заметки{lelook notes{x)\n' +
                     '\n' +
@@ -457,9 +457,12 @@
         //onPut(ch,obj,cont) - ch кладет obj в контейнер cont.
         // Триггер вызывается для всех троих.
         //начинает вибрировать если в нее положить бумажку
-        if(book!=cont || book.epidemy==null || obj.epidemy==null) {
+		this = .tmp.epidemy;
+		if(book==obj && book.epidemy!=null && book.epidemy.ownerName!=ch.name) {
+			necronomiconNotOwnerCheck(book,ch);
             return;
         }
+		if(book!=cont) return;
         if(!(book.extra_flags&.tables.extra_flags.hum)) {
             book.extra_flags = .set_bit(book.extra_flags, .tables.extra_flags.hum);
             ch.in_room.ppl.call.act('%1$^O1 начинает вибрировать.',book);
@@ -713,25 +716,45 @@
     };
     //бывает и такая фигня, надо удалить из списка
     Necronomicon.onExtract = function(book, jopa) {
-        if(book.epidemy==null||book.epidemy.isLorem==null||book.epidemy.ownerName==null)
-            return;
+        if(book.epidemy==null) return;
         this = .tmp.epidemy;
         debug(.fmt('necronomicon.onExtract(%s)',book.epidemy.ownerName),null);
-        if(jopa) {
-            //удаляем книгу из списка (при уничтожении клочков, не должны создаваться новые)
-            .tmp.epidemy.booksList[book.epidemy.ownerName] = null;
+		if(jopa) {
+			//удаляем книгу из списка (при уничтожении клочков, не должны создаваться новые)
+			.tmp.epidemy.booksList[book.epidemy.ownerName] = null;
 
-            //оказалось, еще и клочки нужно уничтожить...
-            for(piece in .tmp.epidemy.Piece.instances) {
-                if(piece.epidemy!=null && piece.epidemy.ownerName!=null
-                    && piece.epidemy.ownerName==book.epidemy.ownerName) {
-                    extractLoremPiece(piece);
-                }
-            }
-        }
+			//оказалось, еще и клочки нужно уничтожить...
+			var piecesList;
+			piecesList = .List();
+			if(!book.epidemy.isLorem) {
+				for(piece in .tmp.epidemy.Piece.instances) {
+					if(piece.epidemy!=null && piece.epidemy.ownerName!=null
+						&& piece.epidemy.ownerName==book.epidemy.ownerName) {
+						piecesList.push_back(piece);
+					}
+				}
+			}
+
+			if(.tmp.epidemy.booksList[book.epidemy.ownerName]==book) .tmp.epidemy.booksList[book.epidemy.ownerName] = null;
+
+			var i; var c;
+			c = piecesList.size();
+			for(i=0;i<c;i=i+1) {
+				l = piecesList.back();
+				piecesList.pop_back();
+				if(extractLoremPiece!=null) {
+					extractLoremPiece(l);
+				} else {
+					debug('    ->necronomicon.onExtract->extract['+l.name+']',null);
+					l.extract(true);
+				}
+			}
+
+		}
 
     };
     Necronomicon.onQuit = function(book, ch, count) {
+        if(book.epidemy==null) return;
         this = .tmp.epidemy;
         debug(.fmt('necronomicon.onQuit(%C1)',ch),null);
         book.epidemy.restock = null;
@@ -744,24 +767,19 @@
                     book.epidemy.loremPieces[piece_key].clear();
                     book.epidemy.loremPieces[piece_key]=null;
                 }
-                else book.epidemy.loremPieces[piece_key].timer=15;
+				else if (book.epidemy.loremPieces[piece_key].epidemy!=null
+					&& book.epidemy.loremPieces[piece_key].epidemy.ownerName!=null
+					&& book.epidemy.loremPieces[piece_key].epidemy.ownerName!=book.epidemy.loremPieces[piece_key].getCarrier().name) {
+						book.epidemy.loremPieces[piece_key].timer=15;
+				}
             }
         }
-/*
-        //убираем бумажки у магов
-        for(wlk in warlocksList) {
-            if(wlk.dead) {
-                warlocksLists.sub(wlk);
-                continue;
-            }
-            for(name in wlk.epidemy.pieces.keys) {
-                if(book.epidemy!=null&&book.epidemy.ownerName!=null
-                    &&book.epidemy.ownerName==name){
-                    extractLorePiece(wlk,name);
-                }
-            }
-        }
-*/
+		if(book.epidemy.ownerName!=ch.name) {
+			ch.act('Ты не можешь забрать из мира %O1 не принадлежащий тебе!',book);
+			ch.act('%^O1 выпадает у тебя из рук.',book);
+			ch.recho('%^O1 выпадает из рук %^C2.',book,ch);
+			book.obj_to_room(ch.in_room);
+		}
     };
     Necronomicon.onUse = function(book, ch, str) {
         if(ch.clan.name!='invader' || str=='') return false;
@@ -844,10 +862,85 @@
         }
 
     };
+	Necronomicon.onGet = function(book, ch) {
+		this = .tmp.epidemy;
+		if(book.epidemy==null) return;
+		if(book.epidemy.ownerName==null) {return;}
 
+		if(.tmp.epidemy.booksList[book.epidemy.ownerName]!=book && book.timer==0) {
+			//book.clear();
+			book.timer=150;
+			return;
+		}
+
+		if(book.epidemy.ownerName!=ch.name) {
+			if(ch.onCantMove!=null) {
+				ch.act('По какой-то причине ты не можешь владеть %1$O5 и ты роняешь %1$Gего|его|её.', book);
+				ch.recho('%^C1 не может владеть роняет %O4.',ch,book);
+				book.obj_to_room(ch.in_room);
+				return;
+			}
+
+			if(ch.not_mine_necronomicon==null) ch.not_mine_necronomicon = .List();
+			ch.not_mine_necromomicon.add(book);
+			ch.onCantMove = function(to_room, movetype) {
+				if(not_mine_necronomicon==null) {onCantMove=null;return false;}
+
+				tmpList = not_mine_necronomicon.clone();
+				lSize = tmpList.size();
+
+				for(i=0;i<lSize;i=i+1) {
+					tBook = tmpList.back();
+					tmpList.pop_back();
+					if(!tBook.online || tBook.dead || tBook.getCarrier()!=this)
+						not_mine_necronomicon.sub(tBook);
+				}
+
+				if(.tmp.epidemy.notMineNecronomiconCheck(ch)) {
+					return false;
+				}
+
+				if(to_room.room_flags&.tables.room_flags.mansion || to_room.room_flags&.tables.room_flags.safe) {
+					ch.act('Ты не можешь пройти туда с чужим %O5.', book);
+					return true;
+				}
+
+				return false;
+			};
+		}
+	};
+	Necronomicon.onDrop = function(book, ch) {
+		this = .tmp.epidemy;
+		necronomiconNotOwnerCheck(book,ch);
+	};
+	Necronomicon.onGive = function(book, ch, vict) {
+		this = .tmp.epidemy;
+		necronomiconNotOwnerCheck(book,ch);
+
+	};
+
+
+	necronomiconNotOwnerCheck = function(book,ch) {
+		if(book.epidemy!=null && book.epidemy.ownerName!=null && book.epidemy.ownerName!=ch.name) {
+			if(ch.not_mine_necronomicon!=null) {
+				if(book.getCarrier()!=ch)
+					ch.not_mine_necronomicon.sub(book);
+				notMineNecronomiconCheck(ch);
+			}
+		}
+	};
+	notMineNecronomiconCheck = function(ch) {
+		if(ch.not_mine_necronomicon.size()==0) {
+			not_mine_necronomicon=null;
+			onCantMove=null;
+			return true;
+		}
+
+		return false;
+	};
     restockLoremPieces = function(book) {
         this = .tmp.epidemy;
-        debug(.fmt('restockLoremPieces(%s)',book.epidemy.ownerName),null);
+		debug(.fmt('necronomicon.restockLoremPieces(%s)',book.epidemy.ownerName),null);
         if(book.epidemy.isLorem)
             return;
         if(book.epidemy.loremPieces==null) {
@@ -855,6 +948,7 @@
         }
 
         //debug('check book.epidemy.loremPieces[]',null);
+		//убираем в книге из спика фрагментов "умершие" куски
         for(spellIndex in book.epidemy.loremPieces.keys) {
             if(book.epidemy.loremPieces[spellIndex].dead) {
                 book.epidemy.loremPieces[spellIndex]=null;
@@ -862,79 +956,45 @@
             }
             else if(book.epidemy.loremPieces[spellIndex].timer>=0) {
                 book.epidemy.loremPieces[spellIndex].timer=-1;
-
-/*
-                if(book.epidemy.loremPieces[spellIndex].epidemy==null){
-                    debug(.fmt('  %d %O1 [epidemy==null] -> %C1[%d]',
-                        spellIndex,
-                        book.epidemy.loremPieces[spellIndex],
-                        book.epidemy.loremPieces[spellIndex].getCarrier(),
-                        book.epidemy.loremPieces[spellIndex].getCarrier().pIndexData.vnum),null);
-                }
-                else {
-                    debug(.fmt('  %d %O1 [%s] -> %C1[%d] %d %d',
-                        spellIndex,
-                        book.epidemy.loremPieces[spellIndex],
-                        book.epidemy.loremPieces[spellIndex].epidemy.ownerName,
-                        book.epidemy.loremPieces[spellIndex].getCarrier(),
-                        book.epidemy.loremPieces[spellIndex].getCarrier().pIndexData.vnum,
-                        book.epidemy.loremPieces[spellIndex].epidemy.spellIndexMin,
-                        book.epidemy.loremPieces[spellIndex].epidemy.spellIndexMax),null);
-                }
-*/
             }
         }
 
         //debug('check Piece.instances',null);
+		//проверяем все сущестувующие куски "холста"
+		//выбираем из них куски "lorem piece" принадлежащие book.epidemy.ownerName
         for(piece in Piece.instances) {
-            debug(.fmt('  %O1',piece),null);
+			//пропускаем: не "lorem piece"
             if(piece.epidemy==null || piece.epidemy.status==null || piece.epidemy.status!='lorem piece') continue;
+			//пропускаем: не наш
             if(piece.epidemy.ownerName!=book.epidemy.ownerName) continue;
+			debug(.fmt('  %O1 -> %d-%d',piece,piece.epidemy.spellIndexMin,piece.epidemy.spellIndexMax),null);
             var i;
-            //debug(.fmt('    [%d-%d]',piece.epidemy.spellIndexMin,piece.epidemy.spellIndexMax),null);
+			//у куска spellIndexMin и spellIndexMax равны, у куска соединенного из двух или более - разные
             for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1){
                 if(book.epidemy.loremPieces[i]!=null && book.epidemy.loremPieces[i]!=piece) {
+					//в книге с таким spellIndex уже записан ДРУГОЙ кусок (не мертвый - проверено ранее)
+					//чистим, экстрактим
                     piece.clear();
-                    extractLoremPiece(piece);
+					piece.extract(true);
                 } else {
+					//записываем кусок по spellIndex в книгу
                     book.epidemy.loremPieces[i]=piece;
                 }
             }
         }
 
         var loremPieces;  loremPieces = .Array();
+		//проходимся по списку всех необходимых фрагментов,
+		//в случаее отсутствия - создаём новый кусок.
         for(key in loremPieceNamesArray.keys) {
             if(book.epidemy.loremPieces[key]==null) {
                 loremPieces[key]=loremPieceNamesArray[key];
             }
         }
+		//все вновь созданные фрагменты, загружаются в магов.
         loadLoremPieces(book,loremPieces);
     };
     Necronomicon.onEntry = null;
-
-/*
-    extractLorePiece = function(wlk,chName) {
-        var piece;
-
-        try{
-            if(wlk.dead) {
-                throw('wlk dead');
-            }
-            if(wlk.epidemy==null || wlk.epidemy.pieces==null || wlk.epidemy.pieces[chName]==null) {
-                throw('wlk.epidemy incorrect');
-            }
-            piece=wlk.epidemy.pieces[chName];
-            piece.clear();
-            piece.extract(true);
-            wlk.epidemy.pieces[chName]=null;
-            if(wlk.epidemy.pieces.size()==0) {
-                wlk.clear();
-            .tmp.epidemy.warlocksList.sub(wlk);
-            }
-        } catch(e) {.tmp.epidemy.catchMsg(.fmt('extractLorePiece: wlk[%C1] %s',wlk,e));}
-    };
-*/
-    extractLorePiece = null;
 
     NecronomiconInit = function(ch) {
         this = .tmp.epidemy.Necronomicon.create();
