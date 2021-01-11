@@ -1,58 +1,58 @@
 .apply(function() {
 //bookKeeperInit = function() {
-    if(.tmp.epidemy==null)
-        .tmp.epidemy = .Map();
-    if(.tmp.epidemy.booksList==null)
-        .tmp.epidemy.booksList=.Array();
+	if(.tmp.epidemy==null)
+		.tmp.epidemy = .Map();
+	if(.tmp.epidemy.booksList==null)
+		.tmp.epidemy.booksList=.Array();
 
-    this = .tmp.epidemy;
+	this = .tmp.epidemy;
 
-    if(Bookkeeper == null)
-        Bookkeeper = .get_mob_index(761);
+	if(Bookkeeper == null)
+		Bookkeeper = .get_mob_index(761);
 
-    Bookkeeper.postGreet = function(mob, ch) {
-        this = .tmp.epidemy;
-        try {
-            if(ch.is_npc())
-                return;
+	Bookkeeper.postGreet = function(mob, ch) {
+		this = .tmp.epidemy;
+		try {
+			if(ch.is_npc())
+				return;
 
 
 			if(ch.clan.name!='invader') return;
 
 			if(booksList[ch.name]==null || booksList[ch.name].dead || !booksList[ch.name].online) {
-			    if(ch.remort_count==0 && ch.level<50)
-			        return;
+				if(ch.remort_count==0 && ch.level<50)
+					return;
 				//выдаём книгу если не выдавалась или пролюблена
-                var book;
+				var book;
 
-                .tmp.quest.sleep(1, mob, ch);
-                ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи добыли древний гримуар самого Абдула аль-Хазреда.{x'",mob,ch);
+				.tmp.quest.sleep(1, mob, ch);
+				ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи добыли древний гримуар самого Абдула аль-Хазреда.{x'",mob,ch);
 
-                .tmp.quest.sleep(1, mob, ch);
-                ch.act("%1$^C1 говорит тебе '{GЯ подготовил%1$Gо||а для тебя копию. Думаю, ты разберешься что с ним делать.{x'",mob,ch);
+				.tmp.quest.sleep(1, mob, ch);
+				ch.act("%1$^C1 говорит тебе '{GЯ подготовил%1$Gо||а для тебя копию. Думаю, ты разберешься что с ним делать.{x'",mob,ch);
 
-                .tmp.quest.sleep(1, mob, ch);
-                book = NecronomiconInit(ch);
+				.tmp.quest.sleep(1, mob, ch);
+				book = NecronomiconInit(ch);
 
-                book.obj_to_char(ch);
-                ch.act("%1$^C1 даёт тебе %2$O4.", mob, book);
+				book.obj_to_char(ch);
+				ch.act("%1$^C1 даёт тебе %2$O4.", mob, book);
 
-                //выданные на руки книжки заносим в картотеку, чтоб по две не брали.
-                booksList[ch.name] = book;
+				//выданные на руки книжки заносим в картотеку, чтоб по две не брали.
+				booksList[ch.name] = book;
 
-                if(loadLoremPieces!=null) {
-                    //генерим 5 колочков заклинания
-                    loadLoremPieces(book,loremPieceNamesArray);
-                } else {
-                    throw('Bookkeeper: loadLoremPieces not found!');
-                }
+				if(loadLoremPieces!=null) {
+					//генерим 5 колочков заклинания
+					loadLoremPieces(book,loremPieceNamesArray);
+				} else {
+					throw('Bookkeeper: loadLoremPieces not found!');
+				}
 			} else if (booksList[ch.name].getCarrier()!=ch) {
 				.tmp.quest.sleep(1, mob, ch);
 				ch.act("%1$^C1 говорит тебе '{G%2$^C1, мне кажется ты лишился своей копии гримуара Абдула аль-Хазреда.{x'",mob,ch);
 
 				.tmp.quest.sleep(1, mob, ch);
 				if(booksList[ch.name].getCarrier()!=null) {
-					ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи выяснили, что Некрономикон находится в руках %3$^С2.{x'",mob,ch,booksList[ch.name].getCarrier());
+					ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи выяснили, что Некрономикон сейчас в руках %3$C2, %3$Gкоторое|который|которая находится в месте под названием %4$s.{x'",mob,ch,booksList[ch.name].getCarrier(),booksList[ch.name].getCarrier().in_room.name);
 				} else if(booksList[ch.name].getRoom()!=null) {
 					ch.act("%1$^C1 говорит тебе '{G%2$^C1, наши соглядатаи выяснили, что Некрономикон находится в месте под названием %3$s.{x'",mob,ch,booksList[ch.name].getRoom().name);
 				} else {
@@ -61,7 +61,7 @@
 				}
 			}
 
-        } catch (e) {.tmp.epidemy.catchMsg(e);}
-    };
+		} catch (e) {.tmp.epidemy.catchMsg(e);}
+	};
 
 })
