@@ -790,35 +790,43 @@
             ch.affectAdd(af);
         }
 
-        if(ch.invader_set>=3 && ch.invader_set<=7) {
-            measure = (ch.getModifyLevel() * 25)/10;
-            measure = measure - (7-ch.invader_set)*50;
+         af = .Affect();
+         af.type = skill.name;
+         af.level = ch.level;
+         //af.where = .tables.affwhere_flags.affects;
+         af.duration = -1;
 
-            af.where = .tables.affwhere_flags.affects;
+       if(ch.invader_set>=3 && ch.invader_set<=7) {
+            measure = (ch.getModifyLevel() * 25)/10;
+            measure = measure - (7-ch.invader_set)*20;
+            measure = .max(10, measure);
+
+            //af.where = .tables.affwhere_flags.affects;
             //hit(points)
             af.location=.tables.apply_flags.hit;
             af.modifier = measure;
-            ch.affectAdd(aff);
+            ch.affectAdd(af);
 
             //mana
             af.location=.tables.apply_flags.mana;
             af.modifier = measure;
-            ch.affectAdd(aff);
+            ch.affectAdd(af);
         }
         if(ch.invader_set>=4 && ch.invader_set<=7) {
             measure = (ch.getModifyLevel()*20/100);
-            measure = measure - (7-ch.invader_set)*5;
+            measure = measure - (7-ch.invader_set)*2;
+            measure = .max(1,measure);
 
-            af.where = .tables.affwhere_flags.affects;
+            //af.where = .tables.affwhere_flags.affects;
             //hitroll
             af.location=.tables.apply_flags.hitroll;
             af.modifier = measure;
-            ch.affectAdd(aff);
+            ch.affectAdd(af);
 
             //damroll
             af.location=.tables.apply_flags.damroll;
             af.modifier = measure;
-            ch.affectAdd(aff);
+            ch.affectAdd(af);
         }
     };
 

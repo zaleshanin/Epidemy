@@ -96,7 +96,7 @@
         }
 
         if(isRitual || isWarlock) {
-            if(isInvader) {
+            if(isInvader && ch.name==book.epidemy.ownerName) {
                 restockLoremPieces(book);
             }
         }
@@ -453,12 +453,23 @@
             }
         }
     };
+    Necronomicon.onPutMsg = function(book, ch, obj, container){
+        if(book==obj) {
+            if(book.epidemy!=null && book.epidemy.ownerName!=ch.name) {
+                //в onPut не даём положить книгу в контейнер, если не твоя книга
+                return true;
+            }
+        }
+
+    };
     Necronomicon.onPut = function(book, ch, obj, cont) {
         //onPut(ch,obj,cont) - ch кладет obj в контейнер cont.
         // Триггер вызывается для всех троих.
         //начинает вибрировать если в нее положить бумажку
 		this = .tmp.epidemy;
 		if(book==obj && book.epidemy!=null && book.epidemy.ownerName!=ch.name) {
+		    book.obj_to_char(ch);
+		    ch.act("Ты не можешь хранить %O4 в %O6.",book,cont);
 			necronomiconNotOwnerCheck(book,ch);
             return;
         }
@@ -779,6 +790,10 @@
 			ch.act('%^O1 выпадает у тебя из рук.',book);
 			ch.recho('%^O1 выпадает из рук %^C2.',book,ch);
 			book.obj_to_room(ch.in_room);
+			if(ch.not_mine_necronomicon!=null) {
+			    ch.not_mine_necronomicon.sub(book);
+			}
+			notMineNecronomiconCheck(ch);
 		}
     };
     Necronomicon.onUse = function(book, ch, str) {
@@ -882,26 +897,21 @@
 			}
 
 			if(ch.not_mine_necronomicon==null) ch.not_mine_necronomicon = .List();
-			ch.not_mine_necromomicon.add(book);
+			ch.not_mine_necronomicon.add(book);
 			ch.onCantMove = function(to_room, movetype) {
 				if(not_mine_necronomicon==null) {onCantMove=null;return false;}
 
-				tmpList = not_mine_necronomicon.clone();
-				lSize = tmpList.size();
-
-				for(i=0;i<lSize;i=i+1) {
-					tBook = tmpList.back();
-					tmpList.pop_back();
+				for(tBook in not_mine_necronomicon) {
 					if(!tBook.online || tBook.dead || tBook.getCarrier()!=this)
 						not_mine_necronomicon.sub(tBook);
 				}
 
-				if(.tmp.epidemy.notMineNecronomiconCheck(ch)) {
+				if(.tmp.epidemy.notMineNecronomiconCheck(this)) {
 					return false;
 				}
 
 				if(to_room.room_flags&.tables.room_flags.mansion || to_room.room_flags&.tables.room_flags.safe) {
-					ch.act('Ты не можешь пройти туда с чужим %O5.', book);
+					act('Ты не можешь пройти туда с %1$Gчужим|чужим|чужой %1$O5.', not_mine_necronomicon.at(0));
 					return true;
 				}
 
@@ -925,14 +935,14 @@
 			if(ch.not_mine_necronomicon!=null) {
 				if(book.getCarrier()!=ch)
 					ch.not_mine_necronomicon.sub(book);
-				notMineNecronomiconCheck(ch);
+				.tmp.epidemy.notMineNecronomiconCheck(ch);
 			}
 		}
 	};
 	notMineNecronomiconCheck = function(ch) {
 		if(ch.not_mine_necronomicon.size()==0) {
-			not_mine_necronomicon=null;
-			onCantMove=null;
+			ch.not_mine_necronomicon=null;
+			ch.onCantMove=null;
 			return true;
 		}
 

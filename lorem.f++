@@ -47,30 +47,37 @@
         var l, result, areas;
         l = .List(); result = .List(); areas = .List();
 
+		if(count==0) return result; //не нужны, возвращаем пустой список
+
         for (i = .char_list; i != null; i = i.next) {
             if (!i.is_npc()) continue;
             if(i.leader != null && i.leader.pet == i) continue;
             //если у моба уже есть бумажка
             if(i.epidemy!=null){
                 if(i.get_obj_carry_vnum(.tmp.epidemy.Piece.vnum)==null) {
-                    debug(.fmt('lorem.get_evil_mage(%d): %C1 -> has epidemy, have no piece -> clear()',count,i),null);
+					debug(.fmt('lorem.get_evil_mage(count: %d,lvl: %d+10): %C1 -> has epidemy, have no piece -> clear()',count,ch_lvl,i),null);
                     i.clear();
                 } else {
-                    debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> has epidemy',count,i),null);
+					debug(.fmt('lorem.get_evil_mage(count: %d,lvl: %d+10): [skip] %C1 -> has epidemy',count,ch_lvl,i),null);
                     continue;
                 }
             }
             //пусть ходят по разным зонам
             if(areas.has(i.in_room.areaname)){
+				//debug(.fmt('lorem.get_evil_mage(count: %d,lvl: %d+10): [skip] %C1 -> have mob from %s',count,ch_lvl,i,i.in_room.areaname),null);
                 continue;
-                debug(.fmt('lorem.get_evil_mage(%d): no %C1 -> have mob from %s',count,i,i.in_room.areaname),null);
             }
             //проверяем на алигн, уровень, количество
-            if(i.alignment>-350 || i.level >= ch_lvl || i.pIndexData.instances.size() > 1) continue;
-            if(!(i.act&.tables.act_flags.mage)
-                && !(i.act&.tables.act_flags.necromancer)) continue;
+			if(i.alignment>-350 || i.level > ch_lvl+10 || i.pIndexData.instances.size() > 1) {
+				//debug(.fmt('lorem.get_evil_mage(count: %d,lvl: %d+10): [skip] %C1 -> align:%d, lvl:%d, count:%d',count,ch_lvl,i,i.alignment,i.level,i.pIndexData.instances.size()),null);
+				continue;
+			}
+			if(!(i.act&.tables.act_flags.mage)	&& !(i.act&.tables.act_flags.necromancer)) {
+				continue;
+			}
             //проверяем зону на квестовость и моба на агрессивность
             if(i.in_room.area.area_flag&.tables.area_flags.noquest
+			|| i.in_room.area.area_flag&.tables.area_flags.system
             || i.in_room.area.area_flag&.tables.area_flags.hidden
             || i.affected_by&.tables.affect_flags.bloodthirst
             || i.act&.tables.act_flags.aggressive)
@@ -234,12 +241,16 @@
         } else {
             debug('    ->no epidemy or ownerName',null);
         }
-
+		piece.clear();
         piece.extract(true);
     };
     triggers.LoremOnExtract = function(piece, count) {
         this = .tmp.epidemy;
-        debug(.fmt('LoremOnExtract(%O1,%d)',piece,count),null);
+        if(piece.epidemy!=null && piece.epidemy.ownerName!=null){
+            debug(.fmt('LoremOnExtract(%O1(%s),%d)',piece,piece.epidemy.ownerName,count),null);
+        } else {
+            debug(.fmt('LoremOnExtract(%O1(epidemy==null),%d)',piece,count),null);
+        }
         if(count==false) return;
 
         if(piece.epidemy==null) {
@@ -268,6 +279,7 @@
         owner = .get_char_world(piece.epidemy.ownerName);
         if(owner==null) return;
         //новы[й|e] кус[ок|ки] вместо уничтожаемого:
+		debug('    ->extracted: new piece ['+piece.epidemy.ownerName+'/'+piece.name+']',null);
         var i;
         for(i=piece.epidemy.spellIndexMin;i<=piece.epidemy.spellIndexMax;i=i+1) {
             piece_to_warlock(
@@ -282,15 +294,21 @@
     };
     triggers.LoremOnQuit = function (piece,ch,count) {
         this = .tmp.epidemy;
-        if(piece.epidemy==null||piece.epidemy.ownerName==null) {extractLoremPiece(piece);}
+		debug('Lorem.LoremOnQuit: ['+piece.epidemy.spellName+"("+piece.epidemy.ownerName+")"+']',null);
+		if(piece.epidemy==null||piece.epidemy.ownerName==null) {
+			debug('    ->extractLoremPiece() (piece.epidemy empty)',null);
+			extractLoremPiece(piece);
+		}
         else if(piece.epidemy.ownerName!=ch.name) {
             piece.getCarrier().act('Вспыхнув фиолетовым пламенем, %1$O1 изчезает.', piece);
             var owner;
             owner = .get_char_world(piece.epidemy.ownerName);
             if(owner!=null) {
+				debug('    ->to warlock ('+piece.epidemy.ownerName+' online)',null);
                 piece_to_warlock(piece,warlockInit(get_evil_mage(1,owner.getModifyLevel()).back()));
             } else {
-                piece.extract(true);
+				debug('    ->extractLoremPiece() ('+piece.epidemy.ownerName+' offline',null);
+				extractLoremPiece(piece);
             }
         }
     };
