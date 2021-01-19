@@ -319,6 +319,7 @@
 		mob.epidemy.plan_way = null;
 	};
 	plan_check = function(mob) {
+	//TODO
 		try{
 			/*
 			* 0 - ты не последний зараженный
@@ -329,15 +330,16 @@
 			this = .tmp.epidemy;
 
 			debug('pl_chk 0:start',mob);
+			if(buildplot) debug('pl_chk 0:start',null);
 
 			var result;
 			var total, city, plan_room;
 			var i,mlist,m,fidovnum;
 			var planG, planD; //собираемся, превращаемся в демона
-			var actualCityInfectedList;
 			planG = true; planD = true;
-			city = mob.in_room.areaname;
+			var actualCityInfectedList;
 			actualCityInfectedList = .List();
+			city = mob.in_room.areaname;
 			result = 3;
 
 			if(mob.epidemy.plan_room==null) {
@@ -349,25 +351,25 @@
 
 			//пересчёт зараженных в городе
 			for( m in epidemyList) {
-				if(!m.online) continue;
-
 				if(m.dead) {
 					epidemyList.sub(m);
 					continue;
 				}
+				if(!m.online || m.epidemy==null || m.epidemy.status!=null ) continue;
+
 				if (m.leader != null && m.leader.pet == m) continue;
 
 				//тварь в нашем городе
 				if (m.in_room.areaname == city){
-					if(m.epidemy.status!='sick') {
-						planG = false; planD = false;
+					if(m.epidemy.status!='sick' || m.epidemy.status!='imp') {
+						//planG = false; planD = false;
 						debug('pl_chk 0.2: '+m.name+'('+m.in_room.vnum+')'+' status:'+m.epidemy.status+'->planG=false;planD=false;',mob);
 					}
 					if(m.in_room != mob.in_room) {
 						if(m.epidemy.plan==1 && m.epidemy.plan_room==plan_room) {
 							if(m.epidemy.plan_way!=null && m.epidemy.plan_way.size()==0){
 								//тварь больная, но добраться не может
-								debug(.fmt('pl_chk 0.4: %C1 from %s(%d) cant go to %s(d)',m,m.in_room.name,m.in_room.vnum,plan_room.name,plan_room.vnum),mob);
+								debug(.fmt('pl_chk 0.4: %C1 from %s(%d) cant go to %s(d)',m,m.in_room.name,m.in_room.vnum,plan_room.name,plan_room.vnum),null);
 								continue;
 							}
 						}
@@ -385,6 +387,7 @@
 					*/
 				}
 			}
+			//TODO объединить epidemyList с impList
 			for(imp in impsList) {
 				if(imp.dead) {
 					impsList.sub(m);
@@ -394,7 +397,7 @@
 					if(imp.epidemy.plan==1 && imp.epidemy.plan_room==plan_room) {
 						if(imp.epidemy.plan_way!=null && imp.epidemy.plan_way.size()==0){
 							//imp добраться не может
-							debug(.fmt('pl_chk 0.5: %C1 from %s(%d) cant go to %s(d)',imp,imp.in_room.name,imp.in_room.vnum,plan_room.name,plan_room.vnum),mob);
+							debug(.fmt('pl_chk 0.5: %C1 from %s(%d) cant go to %s(d)',imp,imp.in_room.name,imp.in_room.vnum,plan_room.name,plan_room.vnum),null);
 							continue;
 						}
 					}
@@ -405,7 +408,7 @@
 				}
 			}
 
-			debug('pl_chk 1: infected:'+actualCityInfectedList.size()+' planG:'+planG+' planD:'+planD,mob);
+			debug('pl_chk 1: demon mobs:'+actualCityInfectedList.size()+' planG:'+planG+' planD:'+planD,mob);
 
 			if(actualCityInfectedList.size()<13) {
 				planG = false; planD = false; result = 0;
