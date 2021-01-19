@@ -1,21 +1,12 @@
 .apply(function() {
-//impInit = function() {
-    if(.tmp.epidemy==null)
-.tmp.epidemy = .Map();
+    if(.tmp.epidemy==null) .tmp.epidemy = .Map();
 
-    if(.tmp.epidemy.impsList==null)
-.tmp.epidemy.impsList = .List();
+    if(.tmp.epidemy.epidemyList==null) .tmp.epidemy.epidemyList = .List();
 
     this=.tmp.epidemy;
 
     if(triggers == null)
         triggers = .Map();
-
-    if(emoteImpArray == null)
-        emoteImpArray = .Array();
-
-    if(emoteImpTargArray == null)
-        emoteImpTargArray = .Array();
 
     triggers.impOnHit = function(demon_slayer, dam, damType, wield) {
         if(wield==null){
@@ -51,44 +42,19 @@
 
         return 0;
     };
-    triggers.impOnExtract = function(mob,count) {
-        this = .tmp.epidemy;
-        //выпиливаемся из списка
-        impsList.sub(mob);
-        if(mob.postSpec!=null && .tmp.epidemy.impsList.size()>0)
-            impsList.random().postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
-        check_stop();
-    };
-    triggers.impPostSpec = function (imp) {
-        this = .tmp.epidemy;
-        for(imp in impsList) {
-
-            if(imp.dead) {
-                impsList.sub(imp);
-                continue;
-            }
-
-            if(imp.epidemy==null) {
-                imp.clear();
-                impsList.sub(imp);
-                continue;
-            }
-
-            triggers.impEngine(imp);
-        }
-    };
-    triggers.impEngine = function (imp) {
+    impEngine = function (imp) {
         this = .tmp.epidemy;
 
         try {
 //            debug(imp,'impPostSpec.');
             if(imp.dead) {
-                impsList.sub(imp);
-                return;}
+                epidemyList.sub(imp);
+                return;
+            }
 
             if(imp.epidemy==null) {
                 imp.clear();
-                impsList.sub(imp);
+                epidemyList.sub(imp);
                 throw(.fmt('imp(%C[%d]):NO epidemy Map\n',imp,imp.in_room.vnum));
             }
 
@@ -285,19 +251,19 @@
         mob.epidemy.fearList = .List();
         mob.epidemy.status = 'imp';
 
-        if(impsList==null)
-            impsList=.List();
-
-        impsList.push_back(mob);
+        epidemyList.push_back(mob);
 
         //заполняем тригера
         mob.onHit = .tmp.epidemy.triggers.impOnHit;
         mob.onImmune = .tmp.epidemy.triggers.impOnImmune;
-        if(impsList.size()==1)
-            mob.postSpec = function(){.tmp.epidemy.triggers.impPostSpec(this);};
+
+		if(epidemyOperator==null || epidemyOperator.dead) {
+			setOperator();
+        }
+
         //подходят тригеры от фидошек:
         mob.onDeath = function(ch){.tmp.epidemy.triggers.impOnDeath(this,ch);};
-        mob.onExtract = function(count){.tmp.epidemy.triggers.impOnExtract(this,count);};
+        mob.onExtract = function(count){.tmp.epidemy.triggers.infectedOnExtract(this,count);};
         mob.onLeave = function(ch, from_room, movetype){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
         mob.onEntry = function(){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
         mob.onGreet = function(ch){.tmp.epidemy.triggers.impOnLeaveEntryGreet(this);};
@@ -331,10 +297,9 @@
         //([skill[,level,duration,location,mod,where,bits]])
         fear = .Affect("fear",              //skill
             ch.getModifyLevel(),            //level
-            .number_range(0, 2),            //duration
-            0, 0,                           //location,mod
-    .tables.affwhere_flags.detects, //where
-    .tables.detect_flags.fear);     //bits
+			.number_range(0, 2));            //duration
+		fear.where = .tables.affwhere_flags.detects;
+		fear.bitvector = .tables.detect_flags.fear;
 
         if (ch.isAffected(fear.type))
             return;

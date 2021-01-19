@@ -320,7 +320,6 @@
 		mob.epidemy.plan_way = null;
 	};
 	plan_check = function(mob) {
-	//TODO
 		try{
 			/*
 			* 0 - ты не последний зараженный
@@ -642,6 +641,8 @@
 				    if(mob.epidemy.plan==0) mob.epidemy.plan=null;
                 } else if(mob.epidemy.status=='infected') {
                     infectedEngine(mob);
+                } else if(mob.epidemy.status=='imp') {
+                    impEngine(mob);
                 }
 			}
 		}catch(e){catchMsg('infectedPostSpec():'+e);}
@@ -1003,7 +1004,7 @@
 		mob.epidemy.helper = null;
 
 	};
-	triggers.sickOnDeath = function(mob, ch) {
+	triggers.epidemyOnDeath = function(mob, ch) {
 		//onDeath(ch) - ch убил нас. если вернуть true, мы не умрем и останемся стоять
 		this=.tmp.epidemy;
 		//выпиливаемся из списка
@@ -1017,24 +1018,26 @@
 		}
 
 		//вылупляем импа
-		if(ch!=null && imp_list!=null && imp_list.size()>0
-			&& initImp!=null && !imp_list.has(pIndexData)) {
-			var imp;
-			imp = imp_list.random().create();
-			initImp(imp);
-			imp.epidemy.invader=mob.epidemy.invader;
-			imp.char_to_room(ch.in_room);
-			regStat(mob.epidemy.invader,'imp');
-			if(ch!=null) {
-				var chMaster;
-				chMaster = getChMaster(ch);
-				if(chMaster!=null){
-					regChar(chMaster);
-					regStat(chMaster.name, 'imp_create');
-				}
-			}
-			imp.epidemy.fearList.push_back(ch);
-			ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',mob,imp);
+		if(mob.epidemy.status=='sick' || mob.epidemy.status=='inverted'){
+            if(ch!=null && imp_list!=null && imp_list.size()>0
+                && initImp!=null && !imp_list.has(pIndexData)) {
+                var imp;
+                imp = imp_list.random().create();
+                initImp(imp);
+                imp.epidemy.invader=mob.epidemy.invader;
+                imp.char_to_room(ch.in_room);
+                regStat(mob.epidemy.invader,'imp');
+                if(ch!=null) {
+                    var chMaster;
+                    chMaster = getChMaster(ch);
+                    if(chMaster!=null){
+                        regChar(chMaster);
+                        regStat(chMaster.name, 'imp_create');
+                    }
+                }
+                imp.epidemy.fearList.push_back(ch);
+                ch.in_room.echo('Из останков %1$C1, весь в кишках и ошметках, вылезает %2$C1.',mob,imp);
+            }
 		}
 	};
 
@@ -1059,7 +1062,7 @@
 			mob.onEntry = function(){.tmp.epidemy.triggers.sickOnLeaveEntryGreet(this);};
 			mob.onGreet = function(ch){.tmp.epidemy.triggers.sickOnLeaveEntryGreet(this);};
 
-			mob.onDeath = function(ch){.tmp.epidemy.triggers.sickOnDeath(this,ch);};
+			mob.onDeath = function(ch){.tmp.epidemy.triggers.epidemyOnDeath(this,ch);};
 			mob.onExtract = function(count){.tmp.epidemy.triggers.infectedOnExtract(this,count);};
 
 			return mob;
