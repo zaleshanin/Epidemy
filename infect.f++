@@ -85,30 +85,29 @@
 
 			if(mob.dead || mob.epidemy==null) {return;}
 
-			mob.affectStrip(epidemy_affect.type);
+            mob.affectStrip(epidemy_affect.type);
 
-			if(mob.epidemy.status!=null && mob.epidemy.status=='sick')
-				plan_cancel(mob);
+            if(mob.epidemy.status!=null && mob.epidemy.status=='sick') plan_cancel(mob);
 
-			//будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
-			if(mob.epidemy.name!=null) {
-				mob.name = mob.epidemy.name;
-				mob.short_descr = mob.epidemy.short_descr;
-				mob.long_descr = mob.epidemy.long_descr;
-				mob.description = mob.epidemy.description;
-				mob.alignment = mob.epidemy.alignment;
-				mob.off_flags = .unset_bit(mob.off_flags,.tables.off_flags.assist_align);
-				mob.off_flags = .set_bit(mob.off_flags,mob.epidemy.off_flags);
-			}
+             //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
+             if(mob.epidemy.name!=null) {
+                 mob.name = mob.epidemy.name;
+                 mob.short_descr = mob.epidemy.short_descr;
+                 mob.long_descr = mob.epidemy.long_descr;
+                 mob.description = mob.epidemy.description;
+                 mob.alignment = mob.epidemy.alignment;
+                 mob.off_flags = .unset_bit(mob.off_flags,.tables.off_flags.assist_align);
+                 mob.off_flags = .set_bit(mob.off_flags,mob.epidemy.off_flags);
+             }
 
-			mob.postSpec = null;
-			mob.onGreet = null;
-			mob.onEntry = null;
-			mob.onLeave = null;
-			mob.onSpell = null;
-			mob.onDeath = null;
-			mob.onExtract = null;
-			mob.epidemy = null;
+             mob.postSpec = null;
+             mob.onGreet = null;
+             mob.onEntry = null;
+             mob.onLeave = null;
+             mob.onSpell = null;
+             mob.onDeath = null;
+             mob.onExtract = null;
+             mob.epidemy = null;
 
 			mob.recho("%1$^C1 выглядит здоров%1$Gым|ым|ой!", mob);
 			var chMaster;
@@ -149,8 +148,8 @@
                 throw(" -> mob.epidemy[.invader]==null");
             }
 
-		mob.epidemy.status = 'infected';
-		//mob.epidemy.infected = true;
+            mob.epidemy.status = 'infected';
+            //mob.epidemy.infected = true;
 
             //всё равно заболеет, заносим в список
 		if(!epidemyList.has(mob)) {
@@ -160,13 +159,13 @@
 			setOperator();
         }
 
-		mob = setInfectedTriggers(mob);
-		mob.affectAdd(epidemy_affect);
-		mob.act('{DТьма{x разливается по твоим венам.',mob);
-		mob.recho('{DТьма{x разливается по венам %1$C2.',mob);
+            mob = setInfectedTriggers(mob);
+            mob.affectAdd(epidemy_affect);
+            mob.act('{DТьма{x разливается по твоим венам.',mob);
+            mob.recho('{DТьма{x разливается по венам %1$C2.',mob);
 
-		if(running==null)
-			start();
+            if(running==null)
+                start();
         }catch(e) {
 		    catchMsg(.fmt("epidemy.infect(%C1)",mob)+e);
         }
@@ -320,6 +319,7 @@
 		mob.epidemy.plan_way = null;
 	};
 	plan_check = function(mob) {
+	//TODO
 		try{
 			/*
 			* 0 - ты не последний зараженный
@@ -484,7 +484,6 @@
 			for(mob in room.ppl) {
 				if(mob.dead) {
 					epidemyList.sub(mob);
-					impsList.sub(mob);
 				} else {
 					if(!mob.is_npc() || mob.epidemy==null)
 						continue;
@@ -585,7 +584,7 @@
 	};
 
 	/** назначаем нового инициатора действий для зараженных/одержимых
-	 ** работает через infectedEngine/sickEngine 
+	 ** работает через infectedEngine/sickEngine
 	 **/
 	setOperator = function() {
 	    this = .tmp.epidemy;
@@ -618,6 +617,7 @@
     //общий для зараженных и одержимых postSpec
 	triggers.infectedPostSpec = function(oper){
 		this = .tmp.epidemy;
+
 		if(infectedPatientList.size()==0)
 		    infectedPatientList = epidemyList.clone();
 
@@ -779,7 +779,8 @@
 			}
 
 			//собака-кусака!
-			if(mob.dead) return; if(mob.epidemy!=null && mob.epidemy.victim!=null && mob.epidemy.victim.dead) mob.epidemy.victim=null;
+			if(mob.dead) return;
+			if(mob.epidemy!=null && mob.epidemy.victim!=null && mob.epidemy.victim.dead) mob.epidemy.victim=null;
 			if(mob.epidemy.victims!=null && mob.epidemy.victims.size() && .chance(10)) {
 				debug('sick Engine 9: собака-кусака',mob);
 				bite(mob);
