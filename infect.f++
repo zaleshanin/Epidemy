@@ -179,7 +179,8 @@
 			mob = setSickTriggers(mob);
 			mob.epidemy.status = 'sick';
 			mob.epidemy.victims = null;
-			clearPlan(mob);
+			plan_check(mob);
+			setOperator(mob);
 		}catch(e) {
 			throw('->transform:'+e);
 		}
@@ -314,13 +315,15 @@
 	};
 	clearGPS = function(mob){
 		mob.epidemy.plan_room = null;
+		if(planArray[mob.in_room.areaname]!=null)
+			mob.epidemy.plan_room = planArray[mob.in_room.areaname];
 		mob.epidemy.plan_waypoint = null;
 		mob.epidemy.plan_nextroom = null;
 		mob.epidemy.plan_way = null;
 	};
 	plan_check = function(mob) {
 	    this = .tmp.epidemy;
-        if(plan==null) plan=.Array();
+        if(planArray==null) planArray=.Array();
 	//TODO
 	/*вызывается для свежеодержимого(sick) (или для моба с plan==null
 	* - проверяем количество в городе, если >=13 - выбираем комнату, plan=1
@@ -349,30 +352,40 @@
             if(suitableList.size()<13) {
                 // 0 - мало зараженных
                 result = 0;
-                plan[areaname]=null;
+                planArray[areaname]=null;
             } else {
-                if(plan[areaName]==null) {
-                    plan[areaName] = mob.in_room;
+                if(planArray[areaName]==null) {
+                    planArray[areaName] = mob.in_room;
                 }
             }
             //прописываем план пациентам
             for(patient in suitableList) {
                 //если никуда не идём или идём не туда - чистимся
-                if(result==0 || plan[areaName]==null || plan[areaName]!=mob.epidemy.plan_room) {
+                if(result==0 || planArray[areaName]==null || planArray[areaName]!=mob.epidemy.plan_room) {
                     clearGPS(patient);
                 }
                 //есть решили где будем собираться - прописываем всем
-                if(plan[areaName]!=null) {
-                    patient.epidemy.plan_room=plan[areaName];
+                if(planArray[areaName]!=null) {
+                    patient.epidemy.plan_room=planArray[areaName];
                 }
                 patient.epidemy.plan = result;
-                if(result==1 && patient.epidemy.plan_room==plan[areaName]) {
+                if(result==1 && patient.epidemy.plan_room==planArray[areaName]) {
                     patient.epidemy.plan = 2; // 2 - пришел куда надо, ждем остальных
                 }
             }
+            if(bildplot) debug(.fmt('plan_check(%C1[%s %s])->(%d) = %d',mob, mob.in_room.vnum, areaName, suitableList.size(), result),null);
 	    } catch(e) {
 	    .tmp.epidemy.catchMsg(e);
 	    };
+	};
+	check_in_room_count = function(mob) {
+		var result;
+		result=0;
+		for(m in mob.in_room.ppl) {
+			if(m.epidemy==null) continue;
+			if(m.epidemy.status=='sick' || m.epidemy.status=="imp") result=result+1;
+		}
+		return result>=13;
 	};
 	explode_in_room = function(room) {
 		this = .tmp.epidemy;
@@ -394,11 +407,7 @@
 						room.echo('Частица {DТьмы{x вырывается из %1C1 наружу.',mob);
 						heal(mob,null);
 					} else {
-						if(mob.epidemy.status=='imp') {
-							impsList.sub(mob);
-						} else {
-							epidemyList.sub(mob);
-						}
+						//epidemyList.sub(mob);
 						ash = .get_obj_index(.tmp.epidemy.ashVnum).create();
 						ash.obj_to_room(room);
 						ash.timer = 5;
@@ -406,10 +415,8 @@
 
 						mob.extract(true);
 					}
-
 				}
 			}
-
 		} catch(e) {
 			catchMsg("epidemy.explode_in_room: " + e);
 		}
@@ -419,7 +426,10 @@
 	    this = .tmp.epidemy;
 	    try{
             for(mob in epidemyList) {
-                if(mob.in_room.areaname==areaname) heal(mob);
+                if(mob.in_room.areaname==areaname) {
+                	if(mob.epidemy==null) continue;
+                	if(mob.epidemy.status="sick" || mob.epidemy.status="infected") heal(mob);
+				}
             }
 	    }catch(e){
 	        catchMsg("healArea("+areaname+"): "+e);
@@ -536,7 +546,7 @@
 				debug(.fmt('infectedPostSpec:%C1',mob),mob);
 				if(mob.epidemy.status=='sick') {
 				    sickEngine(mob);
-				    if(mob.epidemy.plan==0) mob.epidemy.plan=null;
+				    //if(mob.epidemy.plan==0) mob.epidemy.plan=null;
                 } else if(mob.epidemy.status=='infected') {
                     infectedEngine(mob);
                 } else if(mob.epidemy.status=='imp') {
@@ -590,12 +600,13 @@
 		this = .tmp.epidemy;
 
 		try {
+			if(mob.epidemy==null) throw('NO epidemy Map\n');
+
 			if(mob.epidemy.plan!=null)
 				debug('sick Engine 0: start. plan:'+mob.epidemy.plan,mob);
 			else
 				debug('sick Engine 0: start. plan:null',mob);
 
-			if(mob.epidemy==null) throw('NO epidemy Map\n');
 
 			if(mob.epidemy.victims==null) {
 				getVictims(mob);
@@ -604,6 +615,7 @@
 				debug('-> getVictims: healers:'+mob.epidemy.healers.size(),mob);
 			}
 
+			/*Заставляем Гиерофанта лечить, а остальных к нему направлять*/
 			if(mob.epidemy.healers!=null && mob.epidemy.healers.size()>0) {
 				debug('sick Engine: healer',mob);
 				if(mob.epidemy.status='sick') {
@@ -631,7 +643,7 @@
 
 			/*
 			* 0 - мало зараженных
-			* 1 - все заражены - собираемся до кучи
+			* 1 - нужное количество заражено - собираемся до кучи
 			* 2 - ты в куче, ждем остальных
 			* 3 - я последний - вызываем "КРАКЕНА"
 			*/
@@ -641,7 +653,7 @@
 			}
 
 			if(mob.epidemy.plan == null) {
-				mob.epidemy.plan = plan_check(mob);
+				plan_check(mob);
 				debug('sick Engine 3: after plan_check: plan:'+mob.epidemy.plan,mob);
 			}
 
@@ -650,19 +662,13 @@
 				mob.epidemy.plan = 1;
 			}
 			if(mob.epidemy.plan == 1 && mob.epidemy.plan_room==mob.in_room) {
-				mob.epidemy.plan = null;
-				debug('sick Engine 5: in plan_room: plan=null',mob);
+				mob.epidemy.plan = 2;
+				debug('sick Engine 5: in plan_room: plan=2',mob);
 			}
 
 			if(mob.epidemy.plan == 3) {
-//                    debug('sick Engine 6: plan:'+mob.epidemy.plan+'. check plan...',mob);
 				//бывает что какая-то зверюга убегает в последний момент
-				mob.epidemy.plan = plan_check(mob);
-//                    debug('sick Engine 7: after plan_check plan:'+mob.epidemy.plan,mob);
-				//и если план без изменений
-				if(mob.epidemy.plan == 3) {
-//                        debug('sick Engine 8: demon time.',mob);
-
+				if(check_in_room_count(mob)) {
 					var demon_room,invader;
 
 					demon_room = mob.in_room;
@@ -736,6 +742,7 @@
 				}
 
 				if(mob.epidemy.plan_room==null){
+					mob.epidemy.plan==null;
 					throw('собака-гуляка '+mob.name+':plan_room==null;in_room:'+mob.in_room.name+'('+mob.in_room.vnum+')\n');
 				}
 
@@ -745,7 +752,9 @@
 						debug('sick Engine 10.1.1: plan_room isCommon',mob);
 						mob.epidemy.plan = null;
 						mob.epidemy.plan_room = null;
-						//return;
+						planArray[mob.in_room.areaname]=null;
+						plan_check(mob);
+						return;
 					} else {
 						//ищем путь
 						debug('sick Engine 10.1.2: try to find way',mob);
@@ -759,7 +768,7 @@
 							debug('sick Engine 10.1.4: беда! пустой маршрут',mob);
 							mob.act('Ты не находишь выхода!!! Твоя голова раздувается и лопается!!!');
 							mob.recho('Голова {1%С2{2 раздувается и взрывается, забрызгивая ошмётками мозгов всё вокруг.',mob);
-							//TODO не взрывается же!!!! WTF???
+							mob.raw_kill();
 							// беда! пустой маршрут
 						}
 					}
@@ -890,12 +899,8 @@
 		//.tmp.epidemy.epidemyList.sub(mob);
 		.tmp.epidemy.epidemyList.sub(mob);
 		//если был оператором - назначем нового.
-		if(.tmp.epidemy.epidemyOperator!=null && .tmp.epidemy.epidemyOperator==mob) {
-		    .tmp.epidemy.epidemyOperator=null;
-    		.tmp.epidemy.setOperator();
-		}
+		.tmp.epidemy.checkOperator(mob);
         .tmp.epidemy.check_stop();
-
 	};
 	triggers.sickOnLeaveEntryGreet = function(mob) {
 		//onLeave(ch, from_room, movetype) - ch только что вышел из нашей комнаты

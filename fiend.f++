@@ -348,19 +348,22 @@
         }
 
         if(mob.epidemy.plan_way == null) {
-//            debug('make_your_move [bug]: нет маршрута',mob);
+            debug(.fmt('make_your_move(%C1[%d]) [bug]: нет маршрута',mob,mob.in_room.vnum),null);
             //не должно сюда попадать
 
             //[ВНЕЗАПНО!] нет маршрута... Бедааааа!
 
-            mob.epidemy.plan = null;
+            //mob.epidemy.plan = null;
+            return;
         } else {
 //            debug(mob,'make_your_move 1: plan_way:'+mob.epidemy.plan_way.size());
             //Сверимся с маршрутом
             if(mob.epidemy.plan_waypoint==null){
+                debug(.fmt('make_your_move(%C1[%d]) [bug]: нет вэйпоинта',mob,mob.in_room.vnum),null);
 //                debug('make_your_move 1.1: нет вэйпоинта',mob);
                 //ГДЕ Я???
-                clearPlan(mob);//.epidemy.plan = null;
+                //clearPlan(mob);//.epidemy.plan = null;
+                return;
             } else if(mob.epidemy.plan_waypoint != mob.in_room) {
 //                debug('make_your_move 1.2: ушел с маршрута, пытаюсь вернуться ',mob);
                 //cбился с пути, пытаюсь вернуться на маршрут
@@ -370,7 +373,7 @@
                 } else {
 //                    debug('make_your_move 1.2.2: потерялося я',mob);
                     //(чистим всё) Поретялося я! Нужен новый маршрут!!
-                    clearPlan(mob);
+                    clearGPS(mob);
                 }
             } else {
 //                debug('make_your_move 1.3: мы в вейпоинте',mob);
@@ -385,12 +388,10 @@
                                 //Снова на маршруте
                             } else {
                                 //(чистим всё) Поретялася я! Нужен новый маршрут!!
-                                clearPlan(mob);
+                                clearGPS(mob);
                             }
                         } else {
                             //Маршрут закончился, прибыли на место. Мы в последней комнате маршрута.
-
-
                             if(mob.epidemy.victim!=null) {
                                 //исчадие, преследует жертву
                                 mob.epidemy.plan_room = where_is_victim(mob);
@@ -410,7 +411,16 @@
                                     }
                                 }
                             } else {
-                                mob.epidemy.plan = null;
+                                if(mob.epidemy.status=="sick" || mob.epidemy.status=="imp") {
+                                    if (mob.epidemy.plan == 1) {
+                                        if (check_in_room_count(mob))
+                                            mob.epidemy.plan = 3;
+                                        else
+                                            mob.epidemy.plan = 2;
+                                    }
+                                } else {
+                                    mob.epidemy.plan = null;
+                                }
                             }
                         }
                     } else {
@@ -427,7 +437,7 @@
                     var door;
                     door = mob.in_room.doorTo(mob.epidemy.plan_nextroom);
                     if(door < 0) {
-//                        debug('make_your_move 1.3.2.0: похоже тупик. чистим план.',mob);
+                        debug(.fmt('make_your_move 1.3.2.0: похоже тупик. чистим план.(%C1 [%d])',mob,mob.in_room.vnum),null);
                         //сюда тоже не должно попадать, но вдруг...
                         //(чистим всё) В нужную комнату от сюда не попасть
                         clearPlan(mob);//.epidemy.plan = null;
@@ -456,6 +466,36 @@
 //                                    debug('make_your_move 1.3.2.2.2: я на месте',mob);
                                     //mob.epidemy.plan=null;
                                     //Похоже я на месте! Что дальше?
+                                    if(mob.epidemy.victim!=null) {
+                                        //исчадие, преследует жертву
+                                        mob.epidemy.plan_room = where_is_victim(mob);
+
+                                        if(mob.epidemy.plan_room==null) {
+                                            //(чистим всё) цель, возможно, переместилась
+                                            clearPlan(mob);
+                                        } else {
+                                            //цель найдена! преследуем!
+                                            mob.epidemy.plan_nextroom = mob.epidemy.plan_room;
+                                            mob.epidemy.plan_waypoint = mob.in_room;
+                                            if(mob.epidemy.snd!=null
+                                                && mob.epidemy.snd.in_room==mob.in_room
+                                                && mob.epidemy.snd.victim==mob.epidemy.victim) {
+                                                mob.epidemy.snd.plan_nextroom = mob.epidemy.plan_nextroom;
+                                                mob.epidemy.snd.plan_waypoint = mob.epidemy.plan_waypoint;
+                                            }
+                                        }
+                                    } else {
+                                        if(mob.epidemy.status=="sick" || mob.epidemy.status=="imp") {
+                                            if (mob.epidemy.plan == 1) {
+                                                if (check_in_room_count(mob))
+                                                    mob.epidemy.plan = 3;
+                                                else
+                                                    mob.epidemy.plan = 2;
+                                            }
+                                        } else {
+                                            mob.epidemy.plan = null;
+                                        }
+                                    }
                                 }
                             } else {
                                 //[ВНЕЗАПНО!!!] Беда однако. Не могу пройти
