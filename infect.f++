@@ -319,170 +319,60 @@
 		mob.epidemy.plan_way = null;
 	};
 	plan_check = function(mob) {
+	    this = .tmp.epidemy;
+        if(plan==null) plan=.Array();
 	//TODO
 	/*вызывается для свежеодержимого(sick) (или для моба с plan==null
 	* - проверяем количество в городе, если >=13 - выбираем комнату, plan=1
 	*   прописываем комнату в переменную, всем новым сразу её выдаём
-	* - в случае гибели или исцеления сбрасываем всем в зоне всем план, перепроверяем
-	*   количество.
-	* - дошел в комнату - план 2. проверяем количество в комнате, если >=13 - всем
-	*   план =3, кро в комнате сгорает, остальные выздоравливают (взрываются)
-	* */
-		try{
-			/*
-			* 0 - мало зараженных
-			* 1 - все заражены - собираемся до кучи
-			* 2 - ты в куче, ждем остальных
-			* 3 - я последний - вызываем "КРАКЕНА"
-			*/
-			this = .tmp.epidemy;
+	* - дошел в комнату - план 2.
+	* ****************************************************************
+	* коды планов:
+    * 0 - мало зараженных
+    * 1 - сколько требуется заражены - собираемся до кучи
+    * 2 - моб на месте, ждет остальных
+    * 3 - я последний - вызываем "КРАКЕНА"
+    */
 
-			debug('pl_chk 0:start',mob);
-			if(buildplot) debug('pl_chk 0:start',null);
-
-			var result;
-			var total, city, plan_room;
-			var i,mlist,m,fidovnum;
-			var planG, planD; //собираемся, превращаемся в демона
-			planG = true; planD = true;
-			var actualCityInfectedList;
-			actualCityInfectedList = .List();
-			city = mob.in_room.areaname;
-			result = 3;
-
-			if(mob.epidemy.plan_room==null) {
-				plan_room = mob.in_room;
-			} else {
-				plan_room = mob.epidemy.plan_room;
-			}
-			debug('pl_chk 0.1: plan_room:'+plan_room.vnum, mob);
-
-			//пересчёт зараженных в городе
-			for( m in epidemyList) {
-				if(m.dead) {
-					epidemyList.sub(m);
-					continue;
-				}
-				if(!m.online || m.epidemy==null || m.epidemy.status!=null ) continue;
-
-				if (m.leader != null && m.leader.pet == m) continue;
-
-				//тварь в нашем городе
-				if (m.in_room.areaname == city){
-					if(m.epidemy.status!='sick' || m.epidemy.status!='imp') {
-						//planG = false; planD = false;
-						debug('pl_chk 0.2: '+m.name+'('+m.in_room.vnum+')'+' status:'+m.epidemy.status+'->planG=false;planD=false;',mob);
-					}
-					if(m.in_room != mob.in_room) {
-						if(m.epidemy.plan==1 && m.epidemy.plan_room==plan_room) {
-							if(m.epidemy.plan_way!=null && m.epidemy.plan_way.size()==0){
-								//тварь больная, но добраться не может
-								debug(.fmt('pl_chk 0.4: %C1 from %s(%d) cant go to %s(d)',m,m.in_room.name,m.in_room.vnum,plan_room.name,plan_room.vnum),null);
-								continue;
-							}
-						}
-						planD = false;
-						debug('pl_chk 0.3: '+m.name+'('+m.in_room.vnum+')'+' not in '+plan_room.vnum+'->planD=null',mob);
-
-					}
-					actualCityInfectedList.push_back(m);
-
-					/*
-					//фидо-лайк-тварь (ихбудем проверять)
-					if(m.pIndexData.spec_fun == 'spec_fido') {
-						fidovnum = m.pIndexData.vnum;
-					}
-					*/
-				}
-			}
-			//TODO объединить epidemyList с impList
-			for(imp in impsList) {
-				if(imp.dead) {
-					impsList.sub(m);
-					continue;
-				}
-				if (imp.in_room.areaname == city){
-					if(imp.epidemy.plan==1 && imp.epidemy.plan_room==plan_room) {
-						if(imp.epidemy.plan_way!=null && imp.epidemy.plan_way.size()==0){
-							//imp добраться не может
-							debug(.fmt('pl_chk 0.5: %C1 from %s(%d) cant go to %s(d)',imp,imp.in_room.name,imp.in_room.vnum,plan_room.name,plan_room.vnum),null);
-							continue;
-						}
-					}
-					if(imp.in_room != mob.in_room) {
-						planD = false;
-					}
-					actualCityInfectedList.push_back(imp);
-				}
-			}
-
-			debug('pl_chk 1: demon mobs:'+actualCityInfectedList.size()+' planG:'+planG+' planD:'+planD,mob);
-
-			if(actualCityInfectedList.size()<13) {
-				planG = false; planD = false; result = 0;
-				debug('pl_chk 2.1: planD=false; planG=false; result='+result,mob);
-			} else {
-				//должны быть заражены все fido-like
-/*
-				var allFidoInfected; allFidoInfected = true;
-				if(fidovnum!=null) {
-					debug(mob,'pl_chk 2.2: fidovnum:'+fidovnum);
-					for( m in .get_mob_index(fidovnum).instances) {
-						//тварь в нашем городе, но не инфицирована
-						if(m.in_room.areaname==city && (m.epidemy==null || m.epidemy.status==null || m.epidemy.status!='sick')){
-							allFidoInfected = false;
-							planG = false; planD = false; result = 0;
-							debug(mob,'pl_chk 2.3: planD=false; planG=false; result='+result);
-							break;
-						}
-					}
-				}
-*/
-			}
-
-			if(!planD) {
-				if(planG){
-					if(mob.in_room!=plan_room)
-						result=1;
-					else
-						result=2;
-				} else {
-					result=0;
-				}
-				debug('pl_chk 4: no PlanD; result:'+result,mob);
-
-				if(mob.epidemy.plan==null && mob.epidemy.plan_room==null) {
-					for (m in actualCityInfectedList) {
-						clearGPS(m);
-						if(planG) {
-							//если планГ утвержден, прописываем всем в городе
-							if(m.in_room==plan_room) {
-								m.epidemy.plan = 2;
-							} else {
-								m.epidemy.plan = 1;
-							}
-							m.epidemy.plan_room = plan_room;
-						} else {
-							//ни у кого нет плана
-							m.epidemy.plan = 0;
-						}
-					}
-				}
-			} else {
-				result = 3;
-			}
-
-			debug('pl_chk 11: end. result: '+result+' plan_room:'+plan_room.vnum,mob);
-			if(mob.epidemy.plan==null) {
-				debug('pl_chk 11.1: end. mob.plan:null',mob);
-			}
-			if(mob.epidemy.plan_room==null) {
-				debug('pl_chk 11.2: end. mob.plan_room:null',mob);
-			}
-			return result;
-		}catch(e){
-		.tmp.epidemy.catchMsg(e);
-		}
+	    try {
+	        var result; //сюда пишем результат, который пропишем пациентам
+	        //получаем имя зоны, для которой выполняется проверка
+            var areaName;
+            areaName =  mob.in_room.areaname;
+            //составляем список подходящих пупсиков
+            var suitableList;
+            suitableList = .List();
+            for(candidate in .tmp.epidemy.epidemyList) {
+                if(candidate.dead || candidate.epidemy==null || candidate.in_room.areaname!=areaName){continue;}
+                if(candidate.epidemy.status=='sick' || candidate.epidemy.status=='imp') {suitableList.add(candidate);}
+            }
+            if(suitableList.size()<13) {
+                // 0 - мало зараженных
+                result = 0;
+                plan[areaname]=null;
+            } else {
+                if(plan[areaName]==null) {
+                    plan[areaName] = mob.in_room;
+                }
+            }
+            //прописываем план пациентам
+            for(patient in suitableList) {
+                //если никуда не идём или идём не туда - чистимся
+                if(result==0 || plan[areaName]==null || plan[areaName]!=mob.epidemy.plan_room) {
+                    clearGPS(patient);
+                }
+                //есть решили где будем собираться - прописываем всем
+                if(plan[areaName]!=null) {
+                    patient.epidemy.plan_room=plan[areaName];
+                }
+                patient.epidemy.plan = result;
+                if(result==1 && patient.epidemy.plan_room==plan[areaName]) {
+                    patient.epidemy.plan = 2; // 2 - пришел куда надо, ждем остальных
+                }
+            }
+	    } catch(e) {
+	    .tmp.epidemy.catchMsg(e);
+	    };
 	};
 	explode_in_room = function(room) {
 		this = .tmp.epidemy;
@@ -598,13 +488,13 @@
 	    this = .tmp.epidemy;
 	    debug("epidemy->setingOperator()",null);
 	    if(epidemyOperator==null || epidemyOperator.dead) {
-            for(candidat in epidemyList) {
-                if(candidat.dead || candidat.epidemy==null) {
-                    epidemyList.sub(candidat);
+            for(candidate in epidemyList) {
+                if(candidate.dead || candidate.epidemy==null) {
+                    epidemyList.sub(candidate);
                     continue;
                 } else {
-                    candidat.postSpec = function(){.tmp.epidemy.triggers.infectedPostSpec(this);};
-                    epidemyOperator=candidat;
+                    candidate.postSpec = function(){.tmp.epidemy.triggers.infectedPostSpec(this);};
+                    epidemyOperator=candidate;
 	                debug(.fmt("epidemy->newOperator->%C1",epidemyOperator),null);
                     return;
                 }
