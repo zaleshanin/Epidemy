@@ -87,7 +87,11 @@
 
             mob.affectStrip(epidemy_affect.type);
 
-            if(mob.epidemy.status!=null && mob.epidemy.status=='sick') plan_cancel(mob);
+            //TODO что что нужно менять!
+            if(mob.epidemy.status!=null && mob.epidemy.status=='sick') {
+                if(mob.epidemy.plan!=null && mob.epidemy.plan>0)
+                    plan_cancel(mob);
+            }
 
              //будем сохранять и востанавливать, ибо мало ли кто во что был рестрингнут.
              if(mob.epidemy.name!=null) {
@@ -541,6 +545,7 @@
 
 				if(mob.dead || mob.epidemy==null || mob.epidemy.status==null) {
 					epidemyList.sub(mob);
+					checkOperator(mob);
 					continue;
 				}
 				debug(.fmt('infectedPostSpec:%C1',mob),mob);
@@ -613,6 +618,9 @@
 				debug('-> getVictims: victims:'+mob.epidemy.victims.size(),mob);
 				debug('-> getVictims: helpers:'+mob.epidemy.helpers.size(),mob);
 				debug('-> getVictims: healers:'+mob.epidemy.healers.size(),mob);
+			}
+			if(mob.epidemy.status="imp" && imp.epidemy.cowards==null) {
+                imp.epidemy.cowards = getCowards(imp);
 			}
 
 			/*Заставляем Гиерофанта лечить, а остальных к нему направлять*/
@@ -920,7 +928,7 @@
 		} else {
 			epidemyList.sub(mob);
 			//отменяем план
-			if(mob.epidemy.plan!=null)
+			if(mob.epidemy.plan!=null && mob.epidemy.plan>0)
 				plan_cancel(mob);
 		}
 

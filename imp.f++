@@ -46,24 +46,16 @@
         this = .tmp.epidemy;
 
         try {
-//            debug(imp,'impPostSpec.');
-            if(imp.dead) {
-                epidemyList.sub(imp);
-                return;
-            }
-
-            if(imp.epidemy==null) {
-                imp.clear();
-                epidemyList.sub(imp);
-                throw(.fmt('imp(%C[%d]):NO epidemy Map\n',imp,imp.in_room.vnum));
-            }
-
+/*
             if(imp.epidemy.victims==null) {
                 getVictims(imp);
             }
+*/
+/*
             if(imp.epidemy.cowards==null) {
                 imp.epidemy.cowards = getCowards(imp);
             }
+*/
 
             if(imp.epidemy.plan != null && imp.epidemy.plan >= 1 && imp.epidemy.plan_room==null) {
                 imp.epidemy.plan = null;
