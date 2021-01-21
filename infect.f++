@@ -421,7 +421,6 @@
 		} catch(e) {
 			catchMsg("epidemy.explode_in_room: " + e);
 		}
-		healArea(room.areaname);
 	};
 	healArea = function(areaname) {
 	    this = .tmp.epidemy;
@@ -429,7 +428,7 @@
             for(mob in epidemyList) {
                 if(mob.in_room.areaname==areaname) {
                 	if(mob.epidemy==null) continue;
-                	if(mob.epidemy.status="sick" || mob.epidemy.status="infected") heal(mob);
+                	if(mob.epidemy.status=="sick" || mob.epidemy.status=="infected") heal(mob, null);
 				}
             }
 	    }catch(e){
@@ -500,12 +499,11 @@
 	    debug("epidemy->setingOperator()",null);
 	    if(epidemyOperator==null || epidemyOperator.dead) {
             for(candidate in epidemyList) {
-                if(candidate.dead || candidate.epidemy==null) {
+                if(candidate.dead || candidate.epidemy==null || candidate.epidemy.status==null) {
                     epidemyList.sub(candidate);
                     continue;
                 } else {
                     candidate.postSpec = function(){.tmp.epidemy.triggers.infectedPostSpec(this);};
-                    candidate.interpret("sey bebebe");
                     epidemyOperator=candidate;
 	                debug(.fmt("epidemy->newOperator->%C1",epidemyOperator),null);
                     return;
@@ -541,7 +539,7 @@
                 mob = enginePatientList.back();
                 enginePatientList.pop_back();
 
-				if(mob.dead || mob.epidemy==null) {
+				if(mob.dead || mob.epidemy==null || mob.epidemy.status==null) {
 					epidemyList.sub(mob);
 					continue;
 				}
@@ -571,7 +569,7 @@
 
 			if(mob.epidemy.healers!=null && mob.epidemy.healers.size()>0) {
 				debug('infectedPostSpec: healer',mob);
-				if(mob.epidemy.status='infected') {
+				if(mob.epidemy.status=='infected') {
 					debug('infectedPostSpec: healer meet infected',mob);
 					var healer;
 					healer = mob.epidemy.healers.random();
@@ -620,11 +618,11 @@
 			/*Заставляем Гиерофанта лечить, а остальных к нему направлять*/
 			if(mob.epidemy.healers!=null && mob.epidemy.healers.size()>0) {
 				debug('sick Engine: healer',mob);
-				if(mob.epidemy.status='sick') {
+				if(mob.epidemy.status=='sick' || mob.epidemy.status=='infected') {
 					debug('sick Engine: healer meet sick',mob);
 					var healer;
 					healer = mob.epidemy.healers.random();
-					//todo почему только 8901?
+					//Гиерофант(8901)!
 					if(healer.pIndexData.vnum==8901 && healer.epidemy==null) {
 						healer.epidemy = true;
 						healer.rvecho(mob, '%1$^C1 внимательно осматривает %2$C4.',healer,mob);
@@ -656,6 +654,7 @@
 
 			if(mob.epidemy.plan == null) {
 				plan_check(mob);
+				if(mob.epidemy.plan == null) throw(.fmt('%C1(%d) still plan==null after plan_check()',mob,mob.in_room.vnum));
 				debug('sick Engine 3: after plan_check: plan:'+mob.epidemy.plan,mob);
 			}
 
@@ -675,10 +674,12 @@
 
 					demon_room = mob.in_room;
 					invader = mob.epidemy.invader;
-					//вызывать демона
-					get_one_demon(demon_room,invader);
 					//взорвать всех зверюг в комнате
 					explode_in_room(demon_room);
+					//вызывать демона
+					get_one_demon(demon_room,invader);
+		            //полечим все остальных
+		            healArea(demon_room.areaname);
 
 					return;
 				}
@@ -958,9 +959,6 @@
 	};
 	setSickTriggers = function(mob) {
 		try{
-            if(.tmp.epidemy.epidemyOperator==null || .tmp.epidemy.epidemyOperator.dead) {
-                .tmp.epidemy.setOperator();
-            }
 			//mob.postSpec = function(){.tmp.epidemy.triggers.sickPostSpec(this);};
 			mob.onSpell = function(ch,spell,before){if(.tmp.epidemy.triggers.sickOnSpell(this,ch,spell,before)) return true;};
 
