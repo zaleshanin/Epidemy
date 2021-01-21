@@ -336,7 +336,7 @@
     * 2 - моб на месте, ждет остальных
     * 3 - я последний - вызываем "КРАКЕНА"
     */
-
+        if(.buildplot) debug(.fmt('plan_check(%C1[%d %s])',mob, mob.in_room.vnum, mob.in_room.areaname),null);
 	    try {
 	        var result; //сюда пишем результат, который пропишем пациентам
 	        //получаем имя зоны, для которой выполняется проверка
@@ -352,8 +352,9 @@
             if(suitableList.size()<13) {
                 // 0 - мало зараженных
                 result = 0;
-                planArray[areaname]=null;
+                planArray[areaName]=null;
             } else {
+                result = 1;
                 if(planArray[areaName]==null) {
                     planArray[areaName] = mob.in_room;
                 }
@@ -373,7 +374,7 @@
                     patient.epidemy.plan = 2; // 2 - пришел куда надо, ждем остальных
                 }
             }
-            if(.buildplot) debug(.fmt('plan_check(%C1[%s %s])->(%d) = %d',mob, mob.in_room.vnum, areaName, suitableList.size(), result),null);
+            if(.buildplot) debug(.fmt('plan_check(%C1[%d %s])(finished)->(%d) = %d',mob, mob.in_room.vnum, areaName, suitableList.size(), result),null);
 	    } catch(e) {
 	    .tmp.epidemy.catchMsg(e);
 	    };
