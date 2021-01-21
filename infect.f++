@@ -137,7 +137,7 @@
 		}
 		vict.epidemy.invader = invaderName;
 		vict.epidemy.status = 'inited';
-		vict.postSpec = function(){if(.chance(10)) {.tmp.epidemy.infect(this);postSpec=null;}};
+		vict.postSpec = function(){if(.chance(10)) {postSpec=null;.tmp.epidemy.infect(this);}};
 		regStat(invaderName,'infect');
 	};
 	infect = function(mob) {
@@ -159,13 +159,13 @@
 			setOperator();
         }
 
-            mob = setInfectedTriggers(mob);
-            mob.affectAdd(epidemy_affect);
-            mob.act('{DТьма{x разливается по твоим венам.',mob);
-            mob.recho('{DТьма{x разливается по венам %1$C2.',mob);
+		mob = setInfectedTriggers(mob);
+		mob.affectAdd(epidemy_affect);
+		mob.act('{DТьма{x разливается по твоим венам.',mob);
+		mob.recho('{DТьма{x разливается по венам %1$C2.',mob);
 
-            if(running==null)
-                start();
+		if(running==null)
+			start();
         }catch(e) {
 		    catchMsg(.fmt("epidemy.infect(%C1)",mob)+e);
         }
@@ -373,7 +373,7 @@
                     patient.epidemy.plan = 2; // 2 - пришел куда надо, ждем остальных
                 }
             }
-            if(bildplot) debug(.fmt('plan_check(%C1[%s %s])->(%d) = %d',mob, mob.in_room.vnum, areaName, suitableList.size(), result),null);
+            if(.buildplot) debug(.fmt('plan_check(%C1[%s %s])->(%d) = %d',mob, mob.in_room.vnum, areaName, suitableList.size(), result),null);
 	    } catch(e) {
 	    .tmp.epidemy.catchMsg(e);
 	    };
@@ -504,6 +504,7 @@
                     continue;
                 } else {
                     candidate.postSpec = function(){.tmp.epidemy.triggers.infectedPostSpec(this);};
+                    candidate.interpret("sey bebebe");
                     epidemyOperator=candidate;
 	                debug(.fmt("epidemy->newOperator->%C1",epidemyOperator),null);
                     return;
