@@ -215,11 +215,11 @@
     };
     get_mobs_vnums = function(demon) {
     .tmp.epidemy.debug('demon->get_mobs_vnums(): 1 start',demon);
-        var resultList, city, i;
+		var resultList, city;
         resultList = demon.epidemy.victimsVnums.clone();//.List();
         city = demon.in_room.areaname;
 
-        for (i = .room_list; i != null; i = i.rnext) {
+		for (i in .rooms) {
             if(i.areaname != city
                 || !i.isCommon()
                 || i.resetMobiles.size() == 0) {
