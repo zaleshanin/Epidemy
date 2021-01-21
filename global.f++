@@ -58,7 +58,7 @@ odif yltsaeb~
             }
         }
         //остальных убиваем
-        for(mob in .List().add(epidemyList.filter(filter_status(s),'imp'), Demon.instances, Fiend.instances)) {
+        for(mob in .List().add(epidemyList.filter(function(){return (epidemy!=null && epidemy.status!=null && epidemy.status=='imp');}), Demon.instances, Fiend.instances)) {
             one_explode(mob);
         }
     };
@@ -335,11 +335,6 @@ odif yltsaeb~
             else charNames[ch.name] = ch.russianName;
         }
     };
-    /*функция для фильтра пациентов по epidemy.status*/
-    filter_status = function(status) {
-        if(epidemy==null || epidemy.status==null || epidemy.status!=status) return false;
-        return true;
-    };
     /*запуск глобального квеста gq*/
     start = function()    {
         .tmp.epidemy.running=true;
@@ -434,10 +429,10 @@ odif yltsaeb~
                 var lists; lists=.Array();
                 lists['demon']=.List().add(.tmp.epidemy.Demon.instances);
                 lists['fiend']=.List().add(.tmp.epidemy.Fiend.instances);
-                lists['imp']=.List().add(.tmp.epidemy.epidemyList.filter(.tmp.epidemy.filter_status(s),'imp')); //.impsList
+                lists['imp']=.List().add(.tmp.epidemy.epidemyList.filter(function(){return (epidemy!=null && epidemy.status!=null && epidemy.status=='imp');})); //.impsList
                 lists['obsessed']=.List().add(
-                    .tmp.epidemy.epidemyList.filter(.tmp.epidemy.filter_status(s),'infected'),
-                    .tmp.epidemy.epidemyList.filter(.tmp.epidemy.filter_status(s),'sick'),
+                    .tmp.epidemy.epidemyList.filter(function() {return (epidemy!=null && epidemy.status!=null && epidemy.status=='infected');}),
+                    .tmp.epidemy.epidemyList.filter(function() {return (epidemy!=null && epidemy.status!=null && epidemy.status=='sick');}),
                     .tmp.epidemy.invertedList); //TODO объединить invertedList c epidemyList
 
                 for(key in lists.keys){
