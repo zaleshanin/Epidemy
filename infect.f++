@@ -675,10 +675,10 @@
 
 					demon_room = mob.in_room;
 					invader = mob.epidemy.invader;
-					//взорвать всех зверюг в комнате
-					explode_in_room(demon_room);
 					//вызывать демона
 					get_one_demon(demon_room,invader);
+					//взорвать всех зверюг в комнате
+					explode_in_room(demon_room);
 
 					return;
 				}

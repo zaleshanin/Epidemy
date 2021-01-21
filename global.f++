@@ -43,7 +43,7 @@ odif yltsaeb~
     one_explode = function(mob) {
         if(.buildplot) debug(.fmt('!!! one_explode(%C1[%d]) !!!',mob,mob.in_room.vnum),null);
         mob.act('Твоя голова раздувается и лопается!!!');
-        mob.recho('Голова {1%С2{2 раздувается и взрывается, забрызгивая ошмётками мозгов всё вокруг.',mob);
+        mob.recho('Голова {1%C2{2 раздувается и взрывается, забрызгивая ошмётками мозгов всё вокруг.',mob);
         mob.raw_kill();
     };
     healall = function() {
@@ -51,14 +51,15 @@ odif yltsaeb~
 
         debug('healall()',null);
         //кого можем лечим
-        for(sick in .List().add(epidemyList,invertedList)) {
+        for(sick in .List().addAll(epidemyList).addAll(invertedList)) {
+            if(.buildplot) debug(.fmt("try to heal %C1",sick),null);
             if(sick.epidemy==null || sick.epidemy.status==null) continue;
             if(sick.epidemy.status=='sick' || sick.epidemy.status=='infected') {
                 heal(sick,null);
             }
         }
         //остальных убиваем
-        for(mob in .List().add(epidemyList.filter(function(){return (epidemy!=null && epidemy.status!=null && epidemy.status=='imp');}), Demon.instances, Fiend.instances)) {
+        for(mob in .List().addAll(epidemyList.filter(function(){return (epidemy!=null && epidemy.status!=null && epidemy.status=='imp');}).addAll(Demon.instances).addAll(Fiend.instances))) {
             one_explode(mob);
         }
     };
