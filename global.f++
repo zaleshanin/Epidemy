@@ -11,14 +11,16 @@ odif yltsaeb~
 
     this = .tmp.epidemy;
 
-    if(infectedList==null) infectedList = .List();
+    //TODO объединить с epidemyList
     if(invertedList==null) invertedList = .List();
+    //общий список действующих НПЦ
+    if(epidemyList==null) epidemyList = .List();
+
     if(warlocksList==null) warlocksList = .List();
     if(booksList==null) booksList=.Array();
     //if(demons==null) demons=.List();
     if(statistic==null) statistic = .Array();
     if(statistic_total==null) statistic_total = .Array();
-    if(impsList==null) impsList = .List();
     if(triggers==null) triggers = .Map();
     if(charNames==null) charNames = .Array();
     if(reward==null) reward= .Array();
@@ -38,21 +40,26 @@ odif yltsaeb~
     Miyamoto = .get_char_world('miyamoto');
     Zaleshanin = .get_char_world('zaleshanin');
 */
-
+    one_explode = function(mob) {
+        if(.buildplot) debug(.fmt('!!! one_explode(%C1[%d]) !!!',mob,mob.in_room.vnum),null);
+        mob.act('Твоя голова раздувается и лопается!!!');
+        mob.recho('Голова {1%С2{2 раздувается и взрывается, забрызгивая ошмётками мозгов всё вокруг.',mob);
+        mob.raw_kill();
+    };
     healall = function() {
         this = .tmp.epidemy;
 
         debug('healall()',null);
-        var infectedListClon;
-        infectedListClon = infectedList.clone();
-
-        for(sick in infectedListClon) {
-            heal(sick,null);
+        //кого можем лечим
+        for(sick in .List().add(epidemyList,invertedList)) {
+            if(sick.epidemy==null || sick.epidemy.status==null) continue;
+            if(sick.epidemy.status=='sick' || sick.epidemy.status=='infected') {
+                heal(sick,null);
+            }
         }
-        infectedListClon = invertedList.clone();
-
-        for(inverted in infectedListClon) {
-            heal(sick,null);
+        //остальных убиваем
+        for(mob in .List().add(epidemyList.filter(filter_status(s),'imp'), Demon.instances, Fiend.instances)) {
+            one_explode(mob);
         }
     };
 
@@ -193,7 +200,7 @@ odif yltsaeb~
                 res[demon.in_room.areaname][demon.epidemy.status].push_back('   '+res_str);
             }
         }
-        for(mobList in .List().add(infectedList,impsList,invertedList)) {
+        for(mobList in .List().add(epidemyList,invertedList)) {
             for(mob in mobList){
                 res_str = '';
                 if(mob.dead || !mob.online || mob.epidemy==null)
@@ -328,7 +335,12 @@ odif yltsaeb~
             else charNames[ch.name] = ch.russianName;
         }
     };
-
+    /*функция для фильтра пациентов по epidemy.status*/
+    filter_status = function(status) {
+        if(epidemy==null || epidemy.status==null || epidemy.status!=status) return false;
+        return true;
+    };
+    /*запуск глобального квеста gq*/
     start = function()    {
         .tmp.epidemy.running=true;
         .tmp.gquest.notifiers["epidemy"] = function() {
@@ -422,8 +434,11 @@ odif yltsaeb~
                 var lists; lists=.Array();
                 lists['demon']=.List().add(.tmp.epidemy.Demon.instances);
                 lists['fiend']=.List().add(.tmp.epidemy.Fiend.instances);
-                lists['imp']=.List().add(.tmp.epidemy.impsList);
-                lists['obsessed']=.List().add(.tmp.epidemy.infectedList,.tmp.epidemy.invertedList);
+                lists['imp']=.List().add(.tmp.epidemy.epidemyList.filter(.tmp.epidemy.filter_status(s),'imp')); //.impsList
+                lists['obsessed']=.List().add(
+                    .tmp.epidemy.epidemyList.filter(.tmp.epidemy.filter_status(s),'infected'),
+                    .tmp.epidemy.epidemyList.filter(.tmp.epidemy.filter_status(s),'sick'),
+                    .tmp.epidemy.invertedList); //TODO объединить invertedList c epidemyList
 
                 for(key in lists.keys){
                     for(list in lists[key]) {
@@ -554,7 +569,7 @@ odif yltsaeb~
 
         if(running==null) return;
 
-        for(list in .List().add(Demon.instances,Fiend.instances,infectedList,invertedList,impsList)){
+        for(list in .List().add(Demon.instances,Fiend.instances,epidemyList,invertedList)){
             for(mob in list) {
                 if(mob.dead || !mob.online || mob.epidemy==null) continue;
                 else return;

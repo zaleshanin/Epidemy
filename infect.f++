@@ -7,7 +7,7 @@
 	this = .tmp.epidemy;
 
 	if(epidemyList==null) epidemyList = .List();
-	if(infectedPatientList==null) infectedPatientList = .List();
+	if(enginePatientList==null) enginePatientList = .List();
 
 	epidemy_affect = .Affect();
 	epidemy_affect.type = "evil spirit";
@@ -180,7 +180,7 @@
 			mob.epidemy.status = 'sick';
 			mob.epidemy.victims = null;
 			plan_check(mob);
-			setOperator(mob);
+			setOperator();
 		}catch(e) {
 			throw('->transform:'+e);
 		}
@@ -527,18 +527,18 @@
 	triggers.infectedPostSpec = function(oper){
 		this = .tmp.epidemy;
 
-		if(infectedPatientList.size()==0)
-		    infectedPatientList = epidemyList.clone();
+		if(enginePatientList.size()==0)
+		    enginePatientList = epidemyList.clone();
 
 		try{
             var i;
-            if(.buildplot) debug(.fmt("postSpec(%C1)",oper),null);
+            if(.buildplot) debug(.fmt("infectedPostSpec(%C1) epidemyList(%d) enginePatientList(%d)",oper, epidemyList.size(), enginePatientList.size()),null);
 			for(i=0 ; i<30 ; i=i+1) {
-                if(infectedPatientList.size()==0)
+                if(enginePatientList.size()==0)
                     break;
 
-                mob = infectedPatientList.back();
-                infectedPatientList.pop_back();
+                mob = enginePatientList.back();
+                enginePatientList.pop_back();
 
 				if(mob.dead || mob.epidemy==null) {
 					epidemyList.sub(mob);
@@ -766,11 +766,10 @@
 							mob.epidemy.plan_waypoint = mob.in_room;
 							return;
 						} else {
-							debug('sick Engine 10.1.4: беда! пустой маршрут',mob);
-							mob.act('Ты не находишь выхода!!! Твоя голова раздувается и лопается!!!');
-							mob.recho('Голова {1%С2{2 раздувается и взрывается, забрызгивая ошмётками мозгов всё вокруг.',mob);
-							mob.raw_kill();
 							// беда! пустой маршрут
+							debug('sick Engine 10.1.4: беда! пустой маршрут',mob);
+							mob.act('Ты не находишь выхода!!!');
+							one_explode(mob);
 						}
 					}
 				} else if(mob.epidemy.plan_nextroom == null) {
