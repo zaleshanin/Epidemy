@@ -134,7 +134,7 @@
 	CrackOfDoomRoom.onSpec = function() {
 		this = .tmp.Orodruin;
 
-		//сжигаем всё что появляется на полу
+		//сжигаем всё что появляется на полу (например труп)
 		destroy_items(CrackOfDoomRoom);
 
 		//сжигаем бедолаг
@@ -631,6 +631,10 @@
 		if(walker.is_immortal()) {
 			return;
 		}
+        // "Victim is a ghost";
+        if (!walker.is_npc() && .isset_bit(walker.PK_flag, 8)) {
+            return;
+        }
 
 		walker.act('\n{rТ{Dы {rсг{Rо{rр{Rа{Yе{rш{Dь {rП{RО{rЛН{YО{rСТ{DЬ{RЮ{Y!{x');
 		//чар меньше 15го уровня - труп попадает к алатрю
