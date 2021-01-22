@@ -43,7 +43,7 @@ odif yltsaeb~
     one_explode = function(mob) {
         if(.buildplot) debug(.fmt('!!! one_explode(%C1[%d]) !!!',mob,mob.in_room.vnum),null);
         mob.act('Твоя голова раздувается и лопается!!!');
-        mob.recho('Голова {1%C2{2 раздувается и взрывается, забрызгивая ошмётками мозгов всё вокруг.',mob);
+        mob.recho('Внезапно голова {1%C2{2 раздувается и взрывается, забрызгивая ошмётками мозгов всё вокруг.',mob);
         mob.raw_kill();
     };
     healall = function() {
@@ -336,6 +336,7 @@ odif yltsaeb~
             else charNames[ch.name] = ch.russianName;
         }
     };
+    filter_status = null;
     /*запуск глобального квеста gq*/
     start = function()    {
         .tmp.epidemy.running=true;

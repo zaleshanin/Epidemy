@@ -3,6 +3,10 @@
 
     if(.tmp.epidemy.epidemyList==null) .tmp.epidemy.epidemyList = .List();
 
+    .tmp.epidemy.impsList = null;
+    .tmp.epidemy.emoteImpArray = null;
+    .tmp.epidemy.emoteImpTargArray = null;
+
     this=.tmp.epidemy;
 
     if(triggers == null)
@@ -42,164 +46,11 @@
 
         return 0;
     };
-    impEngine = function (imp) {
-        this = .tmp.epidemy;
-
-        try {
-/*
-            if(imp.epidemy.victims==null) {
-                getVictims(imp);
-            }
-*/
-/*
-            if(imp.epidemy.cowards==null) {
-                imp.epidemy.cowards = getCowards(imp);
-            }
-*/
-
-            if(imp.epidemy.plan != null && imp.epidemy.plan >= 1 && imp.epidemy.plan_room==null) {
-                imp.epidemy.plan = null;
-            }
-
-            if(imp.epidemy.plan == null) {
-                imp.epidemy.plan = plan_check(imp);
-            }
-
-            if(imp.epidemy.plan == 2 && imp.epidemy.plan_room!=imp.in_room) {
-                imp.epidemy.plan = 1;
-            }
-            if(imp.epidemy.plan == 1 && imp.epidemy.plan_room==imp.in_room) {
-                imp.epidemy.plan = null;
-            }
-
-            if(imp.epidemy.plan == 3) {
-                //бывает что какая-то зверюга убегает в последний момент
-                imp.epidemy.plan = plan_check(imp);
-                //и если план без изменений
-                if(imp.epidemy.plan == 3) {
-                    var demon_room, invader;
-
-                    demon_room = imp.in_room;
-                    invader = imp.epidemy.invader;
-                    //взорвать всех зверюг в комнате
-                    explode_in_room(demon_room);
-                    //вызывать демона
-                    get_one_demon(demon_room,invader);
-                    return;
-                }
-            }
-
-            //чертяка-кусака!
-            if(imp.epidemy.victims.size() && .chance(10)) {
-                debug('impPostSpec: кусака',imp);
-                //кусаем если есть кого
-                bite(imp);
-                return;
-            }
-
-            //чертяка-пугака
-            if(imp.epidemy.cowards.size() && .chance(50)) {
-//                debug(imp, 'impPostSpec: has a cowards');
-                var vict;
-                vict = imp.epidemy.cowards.random();
-
-                fearYou(imp, vict);
-
-                return;
-            }
-
-
-            //чертяка-гуляка!
-            /*plan:
-            * 0 - ты не последний зараженный
-            * 1 - все заражены - собираемся до кучи
-            * 2 - ты в куче, ждем остальных
-            * 3 - я последний - вызываем "КРАКЕНА"
-            */
-            if(imp.epidemy.plan==1 && .chance(50)) {
-//                debug(imp, 'impPostSpec: гуляка');
-                if(!(imp.position&.tables.position_table.stand)){
-                    imp.interpret('stand');
-                    return;
-                }
-                if(imp.epidemy.plan_room==null)
-                    throw('imp-гуляка '+name+':plan_room==null;in_room:'+in_room.name+'('+in_room.vnum+')\n');
-
-                if(imp.epidemy.plan_way==null) {
-                    if(!imp.epidemy.plan_room.isCommon()) {
-                        imp.epidemy.plan = null;
-                        imp.epidemy.plan_room = null;
-                        //return;
-                    } else {
-                        //ищем путь
-                        imp.interpret('ponder');
-                        imp.epidemy.plan_way = find_way(imp,imp.epidemy.plan_room);
-                        if(imp.epidemy.plan_way.size()>0){
-                            imp.epidemy.plan_waypoint = imp.in_room;
-                            return;
-                        } /*else {
-								//беда! пустой маршрут!
-							}*/
-                    }
-                } else if(imp.epidemy.plan_nextroom == null) {
-                    make_your_move(imp);
-                } else if (imp.epidemy.plan_waypoint!=imp.in_room) { //сбились с маршрута
-                    imp.epidemy.plan_waypoint = null;
-                    imp.epidemy.plan_nextroom = null;
-                    imp.epidemy.plan_way = null;
-                } else { //маршрут есть и мы с него не сбились
-                    if(.chance(20)) {
-                        var exitDoor;
-                        exitDoor = imp.in_room.doorTo(imp.epidemy.plan_nextroom);
-
-                        if(imp.in_room.getExitFlags(exitDoor) & .tables.exit_flags.closed) {
-
-                            if(.chanceOneOf(3))
-                            {
-                                imp.recho('%1$^C1 скребет когтями %2$N4. Тщетно.',imp, in_room.exitShortDescr(exitDoor));
-                            }
-                        else if (.chanceOneOf(2))
-                            {
-                                var ppllist, sucker;
-                                ppllist = in_room.ppl.clone();
-                                ppllist.sub(this);
-                                if(ppllist.size()>0) {
-                                    sucker = ppllist.random();
-                                    sucker.recho('%1$^C1 садится перед %2$N5, и жалобно смотрит в глаза %3$C3.',imp, in_room.exitShortDescr(exitDoor), sucker);
-                                    sucker.act('%1$^C1 садится перед %2$N5, и жалобно смотрит тебе в глаза.',imp, in_room.exitShortDescr(exitDoor));
-                                } else {
-                                    imp.recho('%1$^C1 садится перед %2$N5, и жалобно хнычет.',imp, in_room.exitShortDescr(exitDoor));
-                                }
-                            }
-                        else
-                            {
-                                imp.recho('%1$C1 бубтин себе под нос \'Всё приходится делать само%1$Gму|му|й.\'',imp);
-                                imp.interpret('open '+in_room.doorName(exitDoor));
-                            }
-
-                            return;
-                        } else {
-                            make_your_move(imp);
-
-                            return;
-                        }
-
-
-                    }
-                }
-            }
-
-            //чертяка-кривляка!
-            if(.chance(5)) {
-                imp.interpret(.List().add('buff', 'cheer', 'curse', 'flare', 'giggle', 'grin', 'glare', 'highfive', 'hop', 'innocent', 'lick', 'mischievous', 'smirk', 'snicker', 'snort').random());
-                return;
-            }
-
-        } catch(e){
-        .tmp.epidemy.catchMsg(e);
-        }
-    };
+    triggers.impOnExtract = null;
+    triggers.impEngine = null;
+    impEngine = null;
     triggers.impOnAttack = function(imp,ch,vict) {
+        if(imp != vict) return;
         if(!imp.epidemy.fearList.has(ch))
             imp.epidemy.fearList.push_back(ch);
     };
