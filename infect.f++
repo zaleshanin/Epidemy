@@ -623,8 +623,8 @@
 				debug('-> getVictims: healers:'+mob.epidemy.healers.size(),mob);
 			}
 
-			if(mob.epidemy.status=="imp" && imp.epidemy.cowards==null && getCowards!=null) {
-                imp.epidemy.cowards = getCowards(imp);
+			if(mob.epidemy.status=="imp" && mob.epidemy.cowards==null && getCowards!=null) {
+                mob.epidemy.cowards = getCowards(mob);
 			}
 
 			/*Заставляем Гиерофанта лечить, а остальных к нему направлять*/
@@ -717,7 +717,7 @@
 			if(.chance(5)) {
 				debug('sick Engine 12: собака-кривляка',mob);
                 if(mob.epidemy.status=="imp") {
-                    imp.interpret(.List().add('buff', 'cheer', 'curse', 'flare', 'giggle', 'grin', 'glare', 'highfive', 'hop', 'innocent', 'lick', 'mischievous', 'smirk', 'snicker', 'snort').random());
+                    mob.interpret(.List().add('buff', 'cheer', 'curse', 'flare', 'giggle', 'grin', 'glare', 'highfive', 'hop', 'innocent', 'lick', 'mischievous', 'smirk', 'snicker', 'snort').random());
                 } else {
                     //спамим всякими социалами
                     if (mob.in_room.ppl.size()<2)
@@ -817,7 +817,7 @@
 							if(.chanceOneOf(4))
 							{
 							    if(mob.epidemy.status=="imp") {
-							        mob.recho('%1$^C1 скребет когтями %2$N4. Тщетно.',imp, in_room.exitShortDescr(exitDoor));
+							        mob.recho('%1$^C1 скребет когтями %2$N4. Тщетно.',mob, in_room.exitShortDescr(exitDoor));
 							    } else {
     								mob.recho('%1$^C1 бьётся головой в %2$N4. Закрыто.',mob,mob.in_room.exitShortDescr(exitDoor));
 							    }
