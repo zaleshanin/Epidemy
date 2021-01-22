@@ -1,8 +1,12 @@
 .apply(function() {
     if(.tmp.epidemy==null) .tmp.epidemy = .Map();
     this = .tmp.epidemy;
-    if(triggers==null)
-        triggers=.Map();
+
+    //чистим остатки старых версий
+    if(triggers!=null) {
+        triggers.fiendPostSpec = null;
+        triggers.fiendEngine = null;
+    }
 
     if(fiends_names==null) fiends_names = .Array();
     if(fiends_names_descr==null) fiends_names = .Array();
@@ -100,8 +104,7 @@
         if(getRandomHelpPiece!=null)
             getRandomHelpPiece().obj_to_char(fiend);
 
-        if(Fiend.instances.size()==1)
-            fiend.postSpec = function(){.tmp.epidemy.triggers.fiendPostSpec();};
+        setOperator();
 
         return fiend;
     };
@@ -1275,14 +1278,7 @@
             fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]=fiend.epidemy.demon.epidemy.fiends_names[fiend.epidemy.name_key]-1;
         }
 
-        if(fiend.postSpec!=null) {
-            for(mob in Fiend.instances) {
-                if(mob.postSpec==null) {
-                    mob.postSpec = function () {.tmp.epidemy.triggers.fiendPostSpec();};
-                    break;
-                }
-            }
-        }
+        checkOperator(fiend);
         check_stop();
     };
     Fiend.onArea = function(fiend) {
@@ -1294,19 +1290,7 @@
         return true;
     };
 
-    if(triggers==null) triggers = .Map();
-    triggers.fiendPostSpec = function() {
-        try{
-            this = .tmp.epidemy;
-            //debug('fiendPostSpec:start (Fiend.instances:'+Fiend.instances.size()+')',null);
-            for(fiend in Fiend.instances) {
-                //debug(.fmt('fiendPostSpec: fiendEngine for %C1',fiend),null);
-                triggers.fiendEngine(fiend);
-            }
-            //debug('fiendPostSpec:end',null);
-        }catch(e){.tmp.epidemy.catchMsg(e);}
-    };
-    triggers.fiendEngine = function(fiend) {
+    fiendEnginefiendEngine = function(fiend) {
         try{
             this = .tmp.epidemy;
 

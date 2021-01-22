@@ -544,6 +544,8 @@
 		    enginePatientList = epidemyList.clone();
 		    //добавляем демонов
 		    enginePatientList.addAll(Demon.instances);
+		    //добавляем исчадий
+		    enginePatientList.addAll(Fiend.instances);
         }
 
 		try{
@@ -569,6 +571,8 @@
                     infectedEngine(mob);
                 } else if(mob.epidemy.status == "demon") {
                     demonEngine(mob);
+                } else if(mob.epidemy.status == "fiend") {
+                    fiendEngine(mob);
                 }
 			}
 		}catch(e){catchMsg('infectedPostSpec():'+e);}
