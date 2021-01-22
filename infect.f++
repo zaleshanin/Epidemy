@@ -508,7 +508,7 @@
 	    this = .tmp.epidemy;
 	    debug("epidemy->setingOperator()",null);
 	    if(epidemyOperator==null || epidemyOperator.dead) {
-            for(candidate in epidemyList) {
+            for(candidate in .List().addAll(epidemyList).addAll(Demon.instances).addAll(Fiend.instances)) {
                 if(candidate.dead || candidate.epidemy==null || candidate.epidemy.status==null) {
                     epidemyList.sub(candidate);
                     continue;

@@ -6,6 +6,7 @@
     if(triggers!=null) {
         triggers.fiendPostSpec = null;
         triggers.fiendEngine = null;
+        fiendEnginefiendEngine = null;
     }
 
     if(fiends_names==null) fiends_names = .Array();
@@ -165,7 +166,7 @@
         } else {
 			debug_str=debug_str+('  - can fly.('+sectorsDeny+')');
         }
-		if(.buildplot) debug(.fmt('find_way(%C1) debug_str',mob),null);
+		if(.buildplot) debug(.fmt('find_way(%C1) %s',mob,debug_str),null);
         //test_ruffina
         //.print("epidemy: fiend traverseTo[" + room.vnum + "]");
         return mob.in_room.traverseTo(room, mob, 0, sectorsDeny);
@@ -199,6 +200,8 @@
         //fiend_plan_check - должен вызываться из postSpec, когда plan==null
 
         this = .tmp.epidemy;
+
+        debug(.fmt("fiend_plan_check(%C1)",fiend),fiend);
 
         var result;
         result = 0; /*  0 - не знаю что делать;     1 - идём к цели;        2 - геноцид;
@@ -1290,7 +1293,7 @@
         return true;
     };
 
-    fiendEnginefiendEngine = function(fiend) {
+    fiendEngine = function(fiend) {
         try{
             this = .tmp.epidemy;
 
