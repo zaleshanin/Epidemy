@@ -118,11 +118,6 @@
         var demon_name;
 
         demon = Demon.create();
-        //пишем призванного демона в список (теперь не пишем. пользуемся Demon.instances)
-        //.tmp.epidemy.demons.push_back(demon);
-        if(Demon.instances.size()==1) {
-            demon.postSpec = function() {.tmp.epidemy.triggers.demonPostSpec();};
-        }
 
         demon.epidemy = .Map();
         demon.epidemy.fiends = .List();
@@ -155,6 +150,8 @@
         regHistory(.fmt('в месте называемом %1$s, из зерна {DТьмы{x посеянного %2$N5, явился демон %3$C1',room.areaname,getPCname(invader),demon));
         regStat(invader,'demon');
         check_reward(invader,'demon');
+
+        setOperator();
     };
 
     make_demon_list = function(){
@@ -366,19 +363,11 @@
             regStat(chMaster.name, 'demon_slay');
             check_reward(chMaster.name, 'demon_slay');
         }
+
+        checkOperator(demon);
     };
     Demon.onExtract = function(demon, count) {
-        this = .tmp.epidemy;
-        //если уничтожен управляющий демон, назначем другого.
-        if(demon.postSpec!=null) {
-            for(mob in Demon.instances) {
-                if(!mob.dead && mob.postSpec==null) {
-                    mob.postSpec = function(){.tmp.epidemy.triggers.demonPostSpec(this);};
-                    break;
-                }
-            }
-        }
-        check_stop();
+        .tmp.epidemy.check_stop();
     };
     Demon.onHit = function(demon, demon_slayer, dam, damType, wield) {
         if(wield==null){
@@ -416,13 +405,9 @@
         return 0;
     };
     if(triggers==null) triggers = .Map();
-    triggers.demonPostSpec = function() {
-        this = .tmp.epidemy;
-        for(demon in Demon.instances) {
-            triggers.demonEngine(demon);
-        }
-    };
-    triggers.demonEngine = function(demon){
+    triggers.demonPostSpec = null;
+    triggers.demonEngine = null;
+    demonEngine = function(demon){
         try {
             //2do социалов добавить бы
             //2do похоже не работает assist_align

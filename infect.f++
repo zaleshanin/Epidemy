@@ -535,13 +535,21 @@
 	triggers.infectedPostSpec = function(oper){
 		this = .tmp.epidemy;
 
-		if(enginePatientList.size()==0)
+        //обходить будем в одном месте, пачками по count
+		var count;
+		count = 20;
+
+		if(enginePatientList.size()==0) {
+		    //добавляем зараженных, одержимых и импов
 		    enginePatientList = epidemyList.clone();
+		    //добавляем демонов
+		    enginePatientList.addAll(Demon.instances);
+        }
 
 		try{
             var i;
             if(.buildplot) debug(.fmt("infectedPostSpec(%C1) epidemyList(%d) enginePatientList(%d)",oper, epidemyList.size(), enginePatientList.size()),null);
-			for(i=0 ; i<30 ; i=i+1) {
+			for(i = 0 ; i < count ; i = i + 1) {
                 if(enginePatientList.size()==0)
                     break;
 
@@ -559,6 +567,8 @@
 				    //if(mob.epidemy.plan==0) mob.epidemy.plan=null;
                 } else if(mob.epidemy.status=='infected') {
                     infectedEngine(mob);
+                } else if(mob.epidemy.status == "demon") {
+                    demonEngine(mob);
                 }
 			}
 		}catch(e){catchMsg('infectedPostSpec():'+e);}
