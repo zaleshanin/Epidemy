@@ -107,6 +107,8 @@
 
         setOperator();
 
+        if(.buildplot && Fiend.instances.size()==1) fiend.epidemy.debug=true;
+
         return fiend;
     };
 
@@ -224,6 +226,7 @@
                 }
             }
         }
+        debug(.fmt("   -> fighting_check: result=%d",result),fiend);
 
         if(result==0) {
             //если есть что подобрать - подбираем
@@ -239,14 +242,17 @@
             if(result==0) {
                 //цель померла, надо новую
                 if(fiend.epidemy.victim==null || fiend.epidemy.victim.dead) {
+                    debug("   -> [no victim]",fiend);
 
                     if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead
                         && fiend.epidemy.snd.epidemy.victim!=null && !fiend.epidemy.snd.epidemy.victim.dead) {
                         fiend.epidemy.victim=fiend.epidemy.snd.epidemy.victim;
                         result = 1;
+                        debug(.fmt("   -> copy victim from bro: result=%d, victim=%C1",result,fiend.epidemy.victim),fiend);
                     } else if(fiend.epidemy.primary_target!=null
                         && .get_mob_index(fiend.epidemy.primary_target).instances.size()>0) {
                         fiend.epidemy.victim = get_victim(fiend.epidemy.primary_target);
+                        debug(.fmt("   -> get victim from primary_target: result=%d, victim=%C1",result,fiend.epidemy.victim),fiend);
                     } else if(fiend.epidemy.demon!=null && !fiend.epidemy.demon.dead) {
                         var minlvl;
                         for(minlvl=fiend.level-10;minlvl>=0;minlvl=minlvl-10){
@@ -256,15 +262,19 @@
                     }
                     if(fiend.epidemy.victim == null) {
                         result = 0;
+                        debug(.fmt("   -> [no victim]: result=%d",result),fiend);
                     } else {
                         result = 1;
                         if(fiend.epidemy.snd!=null && !fiend.epidemy.snd.dead){
                             fiend.epidemy.snd.epidemy.victim = fiend.epidemy.victim;
                         }
+                        debug(.fmt("   -> result=%d, victim=%C1",result,fiend.epidemy.victim),fiend);
+
                     }
                 } else {
                     // цель есть, надо идти
                     result = 1;
+                    debug(.fmt("   -> result=%d, victim=%C1",result,fiend.epidemy.victim),fiend);
                 }
             }
         }
@@ -1310,70 +1320,75 @@
             }
 
             if(fiend.epidemy.plan == null) {
+                debug(.fmt("Engine(%C1) [no plan]",fiend),fiend);
+
                 if(fiend.epidemy.primary_target!=null) {
                     fiend.epidemy.plan = fiend_plan_check(fiend);
+                    debug(.fmt("Engine(%C1) [new plan] = %d",fiend,fiend.epidemy.plan),fiend);
                 }
             }
 
             if(fiend.epidemy.plan == 0) {
-                debug('fiendEngine() plan 0',fiend);
+                debug('Engine() [plan 0]',fiend);
                 if(fiend.epidemy.snd!=null
                     && !fiend.epidemy.snd.dead
                     && fiend.epidemy.snd.epidemy.plan==null
                     && fiend.epidemy.snd.in_room==fiend.in_room
                     && fiend.epidemy.snd.fighting==null) {
                     fiend.epidemy.snd.epidemy.plan=fiend.epidemy.plan;
+                    debug(.fmt("-> (%C1) [copy plan from snd] plan = %d",fiend,fiend.epidemy.plan),fiend);
                 }
             }
             else {
-            .scheduler.sleep(.number_range(0,5)); //пытаюсь разнести чуток по времени
+                debug(.fmt("-> (%C1) [have a plan] plan = %d",fiend,fiend.epidemy.plan),fiend);
                 if(fiend.dead || fiend.epidemy.plan==null)
                     return;
 
+//                .scheduler.sleep(.number_range(0,5)); //пытаюсь разнести чуток по времени
                 if(fiend.epidemy.plan == 1) { //ходим
-                    debug('fiendEngine() plan 1',fiend);
+                    debug('-> plan 1 ->try to make a move',fiend);
                     make_your_move(fiend);
                 } else if(fiend.epidemy.plan == 2) { //бьем
-                    debug('fiendEngine() plan 2',fiend);
+                    debug('-> plan 2 -> time to fight' ,fiend);
                     if(fiend.fighting==null) {
                         var victim;
 
                         if(fiend.epidemy.genocide!=null && !fiend.epidemy.genocide.dead
                             && fiend.epidemy.genocide.in_room==fiend.in_room) {
                             victim = fiend.epidemy.genocide;
-                            debug(.fmt('fiendEngine() plan 2 genocide->victim:%C1',victim),fiend);
+                            debug(.fmt('-> plan 2 genocide->victim:%C1',victim),fiend);
                         } else if(fiend.epidemy.victim!=null && !fiend.epidemy.victim.dead
                             && fiend.in_room == fiend.epidemy.victim.in_room) { //если добрались до цели
                             victim = fiend.epidemy.victim;
-                            debug(.fmt('fiendEngine() plan 2 victim->victim:%C1',victim),fiend);
+                            debug(.fmt('-> plan 2 victim->victim:%C1',victim),fiend);
                         }
 
                         if(victim==null) {
-                            debug('fiendEngine() plan 2 no victim',fiend);
+                            debug('-> plan 2 no victim',fiend);
                             clearPlan(fiend);
 
                         } else if(victim.dead){
-                            debug('fiendEngine() plan 2 victim dead!',fiend);
+                            debug('-> plan 2 victim dead!',fiend);
                             clearPlan(fiend);
 
                         } else if(victim.in_room!=fiend.in_room) {
-                            debug('fiendEngine() plan 2 no victim in room!',fiend);
+                            debug('-> plan 2 no victim in room!',fiend);
                             clearPlan(fiend);
 
                         } else if(victim.alignment<350) {
-                            debug('fiendEngine() plan 2 victim isnt GOOD!',fiend);
+                            debug('-> plan 2 victim isnt GOOD!',fiend);
                             clearPlan(fiend);
 
                         } else if(victim.epidemy!=null) {
-                            debug('fiendEngine() plan 2 victim epidemed?',fiend);
+                            debug('-> plan 2 victim epidemed? -> clearPlan()',fiend);
                             clearPlan(fiend);
                         } else {
                             if(victim.in_room.room_flags&.tables.room_flags.safe) {
-                                debug('fiendEngine() plan 2 safe room',fiend);
+                                debug('-> plan 2 safe room -> clearPlan()',fiend);
                                 clearPlan(fiend);
                                 return;
                             }
-                            debug('fiendEngine() plan 2 genocide',fiend);
+                            debug('-> plan 2 genocide!!!',fiend);
                             //2do не ввязываемся если у нас меньше 50% жизни
                             fiend.interpret('yell '+get_phrase(fiend,victim));
                             fiend.multi_hit(victim);
@@ -1381,18 +1396,21 @@
                     } else {
                     }
                 } else if(fiend.epidemy.plan==3) {// стоим в очереди на сбор урожая
-                    debug('fiendEngine() plan 3',fiend);
+                    debug('-> plan 3',fiend);
                     if(time_to_loot(fiend)) {
                         fiend.epidemy.plan = 4;
+                        debug('-> plan 3 ->time_to_loot() -> plan = 4',fiend);
                     }
                 } else if(fiend.epidemy.plan==4) {//plan 4 - собираем
-                    debug('fiendEngine() plan 4',fiend);
+                    debug('-> plan 4',fiend);
 
                     if(fiend.in_room!=fiend.epidemy.last_room_looted) {
                         if(scavenge(fiend, fiend.in_room.items, corpse)){
+                            debug('-> scavenge() -> plan=null',fiend);
 
                             fiend.epidemy.plan = null;
                         } else {
+                            debug('-> loot failed -> plan=3',fiend);
                             //неудачный loot. начинаем заново
                             fiend.epidemy.plan = 3;
                         }
