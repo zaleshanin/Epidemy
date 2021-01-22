@@ -232,11 +232,13 @@
             //если есть что подобрать - подбираем
             if(fiend.epidemy.last_room_looted!=fiend.in_room && loot(fiend)){
                 result = 3;
+                debug(.fmt("   -> last_room_looted & loot(): result=%d",result),fiend);
             }
             //если есть добрые подходящего уровня в комнате - бьем
             fiend.epidemy.genocide = genocide(fiend);
             if(!result && fiend.epidemy.genocide!=null) {
                 result = 2;
+                debug(.fmt("   -> have to genocide(%C1): result=%d",fiend.epidemy.genocide,result),fiend);
             }
 
             if(result==0) {
@@ -257,7 +259,10 @@
                         var minlvl;
                         for(minlvl=fiend.level-10;minlvl>=0;minlvl=minlvl-10){
                             fiend.epidemy.victim = get_one_good(fiend.epidemy.demon,minlvl,fiend.level+3,true,true);
-                            if(fiend.epidemy.victim!=null) break;
+                            if(fiend.epidemy.victim!=null) {
+                                debug(.fmt("   -> get new victim: result=%d, victim=%C1",result,fiend.epidemy.victim),fiend);
+                                break;
+                            }
                         }
                     }
                     if(fiend.epidemy.victim == null) {
