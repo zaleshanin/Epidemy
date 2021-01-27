@@ -451,7 +451,7 @@
 
 		var helper;
 		helper = mob.epidemy.helpers.filter(function(){return epidemy==null;}).random();
-
+                if(helper==null) return;
 		debug('helpMe: helper selected->'+helper.name+'['+helper.in_room.name+']',mob);
 
 	.tmp.quest.sleep(1, mob, helper);
