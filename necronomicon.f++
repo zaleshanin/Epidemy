@@ -500,6 +500,9 @@
     Necronomicon.postSpeech = function(book,ch,str) {
         this=.tmp.epidemy;
         try{
+            if(ch.is_npc()) return;
+            if(ch != book.getCarrier()) return;
+
             if(ch.clan.name!='invader' || ch.name!=book.epidemy.ownerName || !book.epidemy.isLorem) return;
 
             if(str.toLower().match('lorem ipsum dolor sit amet')) {
