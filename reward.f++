@@ -102,6 +102,46 @@
         vict.onGive = null;
 
     };
+    triggers.rewardOnWear = function(obj, ch) {
+        this = obj;
+        if (ch.is_npc())
+            return;
+
+        if (!ch.isAffected("protection evil")) {
+            var af;
+            af = .Affect();
+            af.duration = -1;
+            af.level = ch.getModifyLevel();
+            af.type = "protection evil";
+            af.bitvector("affect_flags", "protect_evil");
+            ch.affectAdd(af);
+
+            ch.act("{1%^O1{2 начинает излучать легкое {1{Wсвечение{2, и ты чувствуешь защиту светлых сил.", this);
+        } else {
+            ch.act("{1%^O1{2 начинает излучать легкое {1{Wсвечение{2.", this);
+        }
+        ch.recho("{1%^O1{2 на{1 %^C6{2 начинает излучать легкое {1{Wсвечение{2.", this, ch);
+
+    };
+    triggers.rewardOnRemove = function(obj, ch) {
+        this = obj;
+        if (ch.isAffected("protection evil")) {
+            ch.affectStrip("protection evil");
+            ch.act("{1%^O1{2 перестаёт излучать свет, и ты чувствуешь себя менее защищённым перед {1{Dзлом{2.",this);
+        } else {
+            ch.act("{1%^O1{2 перестаёт излучать свет.",this);
+        }
+        ch.recho("{1%^O1{2 перестаёт излучать свет.", this);
+
+    };
+    setRewardTriggers = function(obj) {
+        obj.onEquip = function(ch){
+            .tmp.epidemy.triggers.rewardOnWear(this,ch);
+        };
+        obj.onRemove = function(ch) {
+            .tmp.epidemy.triggers.rewardOnRemove(this,ch);
+        };
+    };
     makeRewardObj=function(obj,ch){
         var measure, gender;
         measure = ch.getModifyLevel();
@@ -113,7 +153,7 @@
         if(obj.wear_flags&.tables.wear_flags.wear_about){
             obj.name = 'superpelliceum exorcist суперпеллицеум экзорциста';
             obj.short_descr = "{cсу{Cпер{Wпелл{Cице{cум||а|у||ом|е {cэ{Cкз{Wорци{Cст{cа{x";
-            //obj.gender
+            obj.gender = 'm';
             extradesc = .fmt("Персональный %1$O1, полученный в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
             obj.description = .fmt("Чей-то персональный {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
             measure = (measure/10) + 2;
@@ -121,7 +161,7 @@
         else if(obj.wear_flags&.tables.wear_flags.wear_face){
             obj.name = 'mask plague doctor маска чумного доктора';
             obj.short_descr = "{Dм{wа{Wс{wк{D|а|и|е|у|ой|е {Dч{wу{Wм{Cн{Wо{wг{Dо {Dд{wо{Wк{Cт{Wо{wр{Dа{x";
-            //obj.gender
+            obj.gender = 'f';
             extradesc = .fmt("Персональная %1$O1, полученная в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
             obj.description = .fmt("Чья-то персональная {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
             measure = (measure/10) + 1;
@@ -129,40 +169,15 @@
         else if(obj.wear_flags&.tables.wear_flags.wear_neck){
             obj.name = 'medal knights assistant орден помощника рыцарей';
             obj.short_descr = "{cо{Cр{Wде{Cн{c {cп{Cом{Wощн{Cик{cа {WРыцарей{x";
-            //obj.gender
+            obj.gender = 'f';
             extradesc = .fmt("Персональная %1$O1, полученная в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
             obj.description = .fmt("Чья-то персональная {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
             measure = measure/10;
         }
-        //obj.description = .fmt("Ч%1$Gьё|ей|ья-то персональн%1$Gое|ый|ая {1%1$O1{2 (%2$s) лежит у твоих ног.",obj, obj.name.getOneArgument());
-        //extradesc = .fmt("Персональн%1$Gое|ый|ая %1$O1, полученн%1$Gое|ый|ая в награду за уничтожение нечисти {DЗахватчиков{x.",obj);
+
         obj.set_extra_descr(obj.name, extradesc);
 
-        obj.onEquip = function(ch){
-            if (ch.is_npc())
-                return;
-
-            if (!ch.isAffected("protection evil")) {
-                var af;
-                af = .Affect();
-                af.bitvector = .tables.affect_flags.protect_evil;
-                af.duration = -1;
-                af.level = ch.getModifyLevel();
-                af.type = "protection evil";
-                af.where = .tables.affwhere_flags.affects;
-                ch.affectAdd(af);
-
-                ch.act("{1%^O1{2 начинает излучать легкое {1{Wсвечение{2, и ты чувствуешь защиту светлых сил.", this);
-                ch.recho("{1%^O1{2 на{1 %^C6{2 начинает излучать легкое {1{Wсвечение{2.", this, ch);
-            }
-        };
-        obj.onRemove = function(ch) {
-            if (ch.isAffected("protection evil")) {
-                ch.affectStrip("protection evil");
-                ch.act("{1%^O1{2 перестаёт излучать свет, и ты чувствуешь себя менее защищённым перед {1{Dзлом{2.",this);
-                ch.recho("{1%^O1{2 перестаёт излучать свет.", this);
-            }
-        };
+        setRewardTriggers(obj);
 
         var objAffects; objAffects = .List();
         var hr,dr,cha,bless;hr=0;dr=0;cha=0;bless=0;
@@ -216,10 +231,12 @@
 
         //bless
         aff.type = 'bless';
-        aff.bitvector = .tables.extra_flags.bless;
+		af.bitvector("extra_flags", "bless");
         aff.location=.tables.apply_flags.saves;
         aff.modifier = .min(bless,((ch.getModifyLevel()/25+1)*-1));
         obj.affectAdd(aff);
+
+        obj.extra_flags = .set_bit(obj.extra_flags, .tables.extra_flags.anti_evil);
 
         return obj;
     };
@@ -236,13 +253,13 @@
         if(num==1) {return .tables.wear_flags.wear_about;}
         else if(num==2){return .tables.wear_flags.wear_face;}
         else if(num==3){return .tables.wear_flags.wear_neck;}
-        throw('getRewardWearLoc(): incorrect coupon rank');
+        throw('epidemy->getRewardWearLoc(): incorrect coupon rank');
     };
     getRewardWearLocName=function(num){
         if(num==1) {return 'накидывающ|аяся|ейся|ейся|уюся|ейся|ейся вокруг тела';}
         else if(num==2){return 'прикрывающ|ая|ей|ей|ую|ей|ей лицо';}
         else if(num==3){return 'надевающ|аяся|ейся|ейся|уюся|ейся|ейся на шею';}
-        throw('getRewardWearLocName(): incorrect coupon rank');
+        throw('epidemy->getRewardWearLocName(): incorrect coupon rank');
     };
     returnObj=function(vict,ch,obj,str){
         if(str==null) str = 'Я не знаю что мне c этим делать.';
