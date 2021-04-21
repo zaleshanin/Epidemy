@@ -71,7 +71,27 @@
     triggers.restringerOnGive=function(vict,ch,obj) {
         this=.tmp.epidemy;
 
-        if(isRewardCoupon(obj) && obj.owner==ch.name){
+        if(obj.name.match('superpelliceum exorcist|mask plague doctor|medal knights assistant')){
+            var phrase;
+            phrase = 'Ничем не могу помочь.';
+            if(obj.fixed==null){
+                if(obj.onEquip==null || obj.onRemove==null || !obj.extra_flags&&.tables.extra_flags.anti_evil) {
+                    vict.act('Ты чинишь %O4.',obj);
+                    vict.recho('%1$C^1 производит с %2$O4 какие-то манипуляции.',vict, obj);
+
+                    var newobj;
+                    newobj = obj.pIndexData.create();
+                    obj.extract(true);
+                    .tmp.epidemy.makeRewardObj(newobj,ch).obj_to_char(ch);
+
+                    vict.in_room.echo('%^O1{x на мгновение вспыхивает {Cголубым{x светом.',newobj);
+                    phrase = 'Я сделал всё что смог.';
+                    obj.fixed = 1;
+                }
+            } 
+            returnObj(vict,ch,makeRewardObj(obj,ch), phrase);
+        }
+        else if(isRewardCoupon(obj) && obj.owner==ch.name){
             vict.say('Теперь, %1$C1, дай мне вещь %2$N4.',ch,getRewardWearLocName(obj.epidemy.rank));
         } else {
             var coupon;
@@ -91,7 +111,8 @@
             if(obj.enchanted==true) {returnObj(vict,ch,obj,'Я не смогу изменить уже измененную вещь. Другой не найдётся?');return;}
             if(obj.level>ch.getModifyLevel()+3) {returnObj(vict,ch,obj,'Я, пожалуй, не буду менять вещь, которую ты пока не сможешь одеть. Другой не найдётся?');return;}
 
-            vict.act('Ты переделываешь %O4',obj);
+            vict.act('Ты переделываешь %O4.',obj);
+            vict.recho('%1$C^1 переделывает %2$O4.',vict, obj);
             returnObj(vict,ch,makeRewardObj(obj,ch),'Прими в награду за совершенное тобой Добро!');
             coupon.clear(); coupon.extract(true);
         }
