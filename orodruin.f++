@@ -101,6 +101,7 @@
 	Eagle.postCommand = function(eagle, ch, cmdName, cmdArgs){
 		this = .tmp.Orodruin;
 
+		if (!eagle.online || !ch.online) return;
 		if(eagle.in_room!=ch.in_room) return;
 
 		if(eagle.affected_by&.tables.affect_flags.charm) return;
@@ -754,15 +755,15 @@
 	// Выдаём орла
 	 getEagle = function(ch) {
 		 var eagle;
-		 eagle = .get_mob_index(35002).create();
+		 eagle = .get_mob_index(35002).createFor(ch);
 		 eagle.OneRingDestroyer = ch.name;
 
-		 var chname;
+		 /* var chname;
 		 chname=ch.russianName;
-		 if(chname=='') chname = ch.name;
+		 if(chname=='') chname = ch.name; */
 // 		eagle.description = .fmt(eagle.description,chname);
 
-		 eagle.setLevel(ch.getModifyLevel());
+		 /* eagle.setLevel(ch.getModifyLevel());
 		 eagle.perm_cha = ch.cur_cha;
 		 eagle.perm_con = ch.cur_con;
 		 eagle.perm_dex = ch.cur_dex;
@@ -784,7 +785,7 @@
 		eagle.damage_type = .number_range(eagle.level/3, eagle.level/2);
 		eagle.damage_number = .number_range(eagle.level/3, eagle.level/2);
 		eagle.damroll = .number_range(eagle.level*20/100, eagle.level*80/100);
-		eagle.hitroll = .number_range(eagle.level, eagle.level*2);
+		eagle.hitroll = .number_range(eagle.level, eagle.level*2); */
 
 		return eagle;
 	 };
