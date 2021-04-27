@@ -755,7 +755,7 @@
 	// Выдаём орла
 	 getEagle = function(ch) {
 		 var eagle;
-		 eagle = .get_mob_index(35002).createFor(ch);
+		 eagle = .tmp.Orodruin.Eagle.createFor(ch);
 		 eagle.OneRingDestroyer = ch.name;
 
 		 /* var chname;
