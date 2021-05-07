@@ -1,0 +1,18 @@
+.apply(function(){
+    .get_mob_index(7900).postGreet=function(mob, ch) {
+        for(obj in ch.inventory) {
+            if(obj.name.match('superpelliceum exorcist|mask plague doctor|medal knights assistant') && obj.owner == ch.name && obj.personal == ch.name && obj.fixed==null){
+                if(obj.onEquip==null || obj.onRemove==null) {
+                    var newobj;
+                    newobj = obj.pIndexData.create();
+                    .tmp.epidemy.makeRewardObj(newobj,ch).obj_to_char(ch);
+
+                    ch.in_room.echo('%^O1{x на мгновение вспыхивает {Cголубым{x светом.',newobj);
+                    obj.fixed = 1;
+                    obj.extract(true);
+                    newobj.obj_to_char(ch);
+                }
+            }
+        }
+    };
+})
